@@ -1,0 +1,249 @@
+import { ImpersonationBanner } from "@/components/ImpersonationBanner";
+import { trpc } from "@/lib/trpc";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import NotFound from "@/pages/NotFound";
+import { Route, Switch } from "wouter";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { StripeTerminalProvider } from "@/contexts/StripeTerminalContext";
+import { EmployeeSessionProvider } from "@/contexts/EmployeeSessionContext";
+import { PinLoginDialog } from "@/components/PinLoginDialog";
+import { ThermalPrinterProvider } from "@/contexts/ThermalPrinterContext";
+import { useTranslation } from "react-i18next";
+import { useEffect } from "react";
+import Home from "./pages/Home";
+import Dashboard from "./pages/Dashboard";
+import Customers from "./pages/Customers";
+import CustomerDetails from "./pages/CustomerDetails";
+import Services from "./pages/Services";
+import Appointments from "./pages/Appointments";
+import Employees from "@/pages/Employees";
+import Products from "@/pages/Products";
+import Reports from "@/pages/Reports";
+import Financial from "@/pages/Financial";
+import AdvancedFinancialReports from "@/pages/AdvancedFinancialReports";
+import Settings from "@/pages/Settings";
+import Notifications from "@/pages/Notifications";
+import Loyalty from "@/pages/Loyalty";
+import { Communications } from "@/pages/Communications";
+import { BulkMessaging } from "@/pages/BulkMessaging";
+import { CampaignAnalytics } from "@/pages/CampaignAnalytics";
+import { EmailTemplates } from "@/pages/EmailTemplates";
+import Analytics from "@/pages/Analytics";
+import Monitoring from "@/pages/Monitoring";
+import EmployeeDashboard from "@/pages/EmployeeDashboard";
+import PublicBooking from "@/pages/PublicBooking";
+import BookingSuccess from "@/pages/BookingSuccess";
+import ManageBooking from "@/pages/ManageBooking";
+import CaseStudy from "@/pages/CaseStudy";
+import AboutUs from "@/pages/AboutUs";
+import Testimonials from "@/pages/Testimonials";
+import TimeClock from "@/pages/TimeClock";
+import TimeClockAdmin from "@/pages/TimeClockAdmin";
+import WorkHoursReport from "@/pages/WorkHoursReport";
+import AttendanceReport from "@/pages/AttendanceReport";
+import UXShowcase from "@/pages/UXShowcase";
+import POS from "@/pages/POS";
+import Orders from "@/pages/Orders";
+import PrintReceipt from "@/pages/PrintReceipt";
+import Refunds from "@/pages/Refunds";
+import MyLeaves from "@/pages/MyLeaves";
+import LeaveApprovals from "@/pages/LeaveApprovals";
+import SalonHolidays from "@/pages/SalonHolidays";
+import Backups from "@/pages/Backups";
+import DataImport from "@/pages/DataImport";
+import UnimicroSettings from "@/pages/UnimicroSettings";
+import FikenSettings from "./pages/FikenSettings";
+import AccountingIntegrations from "./pages/AccountingIntegrations";
+// iZettle removed - using Stripe Terminal instead
+import AccountantExport from "./pages/AccountantExport";
+import SaasAdminLogin from "./pages/SaasAdmin/SaasAdminLogin";
+import SaasAdminOverview from "./pages/SaasAdmin/SaasAdminOverview";
+import SaasAdminTenants from "./pages/SaasAdmin/SaasAdminTenants";
+import SaasAdminTenantDetails from "./pages/SaasAdmin/SaasAdminTenantDetails";
+import SaasAdminTenantOnboarding from "./pages/SaasAdminTenantOnboarding";
+import SaasAdminSubscriptions from "./pages/SaasAdmin/SaasAdminSubscriptions";
+import SystemStatus from "./pages/SystemStatus";
+import ProtectedSaasAdminRoute from "./components/ProtectedSaasAdminRoute";
+import SignUp from "./pages/SignUp";
+import Contact from "./pages/Contact";
+import { VerifyEmail } from "./pages/VerifyEmail";
+import EmailVerificationRequired from "./pages/EmailVerificationRequired";
+import SetupWizard from "./pages/SetupWizard";
+import POSPayment from "./pages/POSPayment";
+import PaymentHistory from "./pages/PaymentHistory";
+import PaymentProviders from "./pages/PaymentProviders";
+import ReaderManagement from "./pages/ReaderManagement";
+import StripeCallback from "./pages/StripeCallback";
+import WalkInQueue from "./pages/WalkInQueue";
+import QueueDisplay from "./pages/QueueDisplay";
+import MyBookings from "./pages/MyBookings";
+import RefundManagement from "./pages/RefundManagement";
+import POSFinancialReports from "./pages/POSFinancialReports";
+import Login from "./pages/Login";
+import Demo from "./pages/Demo";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import Onboarding from "./pages/Onboarding";
+import Gallery from "./pages/Gallery";
+import TerminalTest from "./pages/TerminalTest";
+
+function Router() {
+  return (
+    <Switch>
+      <Route path="/" component={Home} />
+      <Route path="/login" component={Login} />
+      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/reset-password" component={ResetPassword} />
+      <Route path="/demo" component={Demo} />
+      <Route path="/signup" component={SignUp} />
+      <Route path="/onboard" component={Onboarding} />
+      <Route path="/verify-email" component={VerifyEmail} />
+      <Route
+        path="/email-verification-required"
+        component={EmailVerificationRequired}
+      />
+      <Route path="/setup-wizard" component={SetupWizard} />
+      <Route path="/book" component={PublicBooking} />
+      <Route path="/book/success" component={BookingSuccess} />
+      <Route path="/manage-booking/:token" component={ManageBooking} />
+      <Route path="/my-bookings" component={MyBookings} />
+      <Route path="/case-study" component={CaseStudy} />
+      <Route path="/about" component={AboutUs} />
+      <Route path="/testimonials" component={Testimonials} />
+      <Route path="/gallery" component={Gallery} />
+      <Route path="/contact" component={Contact} />
+      <Route path="/terms" component={Terms} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/timeclock" component={TimeClock} />
+      <Route path="/timeclock-admin" component={TimeClockAdmin} />
+      <Route path="/work-hours-report" component={WorkHoursReport} />
+      <Route path="/attendance" component={AttendanceReport} />
+      <Route path="/ux-showcase" component={UXShowcase} />
+      <Route path="/pos" component={POS} />
+      <Route path="/orders" component={Orders} />
+      <Route path="/refunds" component={Refunds} />
+      <Route path="/refund-management" component={RefundManagement} />
+      <Route path="/pos-reports" component={POSFinancialReports} />
+      <Route path="/my-leaves" component={MyLeaves} />
+      <Route path="/leave-approvals" component={LeaveApprovals} />
+      <Route path="/holidays" component={SalonHolidays} />
+      <Route path="/backups" component={Backups} />
+      <Route path="/import" component={DataImport} />
+      <Route path="/unimicro" component={UnimicroSettings} />
+      <Route path="/fiken" component={FikenSettings} />
+      <Route path="/accounting" component={AccountingIntegrations} />
+      <Route path="/accountant-export" component={AccountantExport} />
+      {/* iZettle routes removed - using Stripe Terminal instead */}
+      <Route path="/pos-payment" component={POSPayment} />
+      <Route path="/payment-history" component={PaymentHistory} />
+      <Route path="/payment-providers" component={PaymentProviders} />
+      <Route path="/reader-management" component={ReaderManagement} />
+      <Route path="/terminal-test" component={TerminalTest} />
+      <Route path="/stripe/callback" component={StripeCallback} />
+      <Route path="/print-receipt/:orderId" component={PrintReceipt} />
+      <Route path="/saas-admin/login" component={SaasAdminLogin} />
+      <Route path="/saas-admin">
+        <ProtectedSaasAdminRoute>
+          <SaasAdminOverview />
+        </ProtectedSaasAdminRoute>
+      </Route>
+      <Route path="/saas-admin/tenants/new">
+        <ProtectedSaasAdminRoute>
+          <SaasAdminTenantOnboarding />
+        </ProtectedSaasAdminRoute>
+      </Route>
+      <Route path="/saas-admin/tenants/:tenantId">
+        <ProtectedSaasAdminRoute>
+          <SaasAdminTenantDetails />
+        </ProtectedSaasAdminRoute>
+      </Route>
+      <Route path="/saas-admin/tenants">
+        <ProtectedSaasAdminRoute>
+          <SaasAdminTenants />
+        </ProtectedSaasAdminRoute>
+      </Route>
+      <Route path="/saas-admin/subscriptions">
+        <ProtectedSaasAdminRoute>
+          <SaasAdminSubscriptions />
+        </ProtectedSaasAdminRoute>
+      </Route>
+      <Route path="/system-status" component={SystemStatus} />
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/customers/:id" component={CustomerDetails} />
+      <Route path="/customers" component={Customers} />
+      <Route path="/services" component={Services} />
+      <Route path="/appointments" component={Appointments} />
+      <Route path="/walk-in-queue" component={WalkInQueue} />
+      <Route path="/queue-display" component={QueueDisplay} />
+      <Route path="/employees" component={Employees} />
+      <Route path="/products" component={Products} />
+      <Route path="/reports" component={Reports} />
+      <Route path="/financial" component={Financial} />
+      <Route path="/advanced-reports" component={AdvancedFinancialReports} />
+      <Route path="/settings" component={Settings} />
+      <Route path="/notifications" component={Notifications} />
+      <Route path="/loyalty" component={Loyalty} />
+      <Route path="/communications" component={Communications} />
+      <Route path="/bulk-messaging" component={BulkMessaging} />
+      <Route path="/campaign-analytics" component={CampaignAnalytics} />
+      <Route path="/email-templates" component={EmailTemplates} />
+      <Route path="/analytics" component={Analytics} />
+      <Route path="/monitoring" component={Monitoring} />
+      <Route path="/employee" component={EmployeeDashboard} />
+      <Route path={"/404"} component={NotFound} />
+      {/* Final fallback route */}
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
+// NOTE: About Theme
+// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
+//   to keep consistent foreground/background color across components
+// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
+
+function App() {
+  const { i18n } = useTranslation();
+  
+  // Set document direction based on language (RTL for Arabic)
+  useEffect(() => {
+    const direction = i18n.language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.dir = direction;
+    document.documentElement.lang = i18n.language;
+  }, [i18n.language]);
+  
+  return (
+    <ErrorBoundary>
+      <ThemeProvider defaultTheme="light" switchable>
+        <StripeTerminalProvider>
+          <ThermalPrinterProvider>
+            <EmployeeSessionProvider>
+              <TooltipProvider>
+                <ImpersonationBannerWrapper />
+                <PinLoginDialog />
+                <Router />
+              </TooltipProvider>
+            </EmployeeSessionProvider>
+          </ThermalPrinterProvider>
+        </StripeTerminalProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
+  );
+}
+
+function ImpersonationBannerWrapper() {
+  const { data: user } = trpc.auth.me.useQuery();
+
+  // Show banner only if impersonatedTenantId is explicitly set in the session
+  // This means the platform owner is actively impersonating another tenant
+  const isImpersonating = user && user.impersonatedTenantId;
+
+  if (!isImpersonating) return null;
+
+  return <ImpersonationBanner />;
+}
+
+export default App;
