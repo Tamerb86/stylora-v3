@@ -163,6 +163,34 @@ export const appRouter = router({
   onboarding: onboardingRouter,
   monitoring: monitoringRouter,
 
+  // Payroll (admin-only, tenant-scoped) — computes monthly staff earnings from
+  // completed appointments and commission rates.
+  payroll: router({
+    getMonthlyPayroll: adminProcedure
+      .input(z.object({ month: z.number().int(), year: z.number().int() }))
+      .query(async ({ ctx, input }) => {
+        const { getMonthlyPayrollData } = await import("./payroll");
+        return getMonthlyPayrollData(ctx.tenantId, input.month, input.year);
+      }),
+    getEmployeePayslip: adminProcedure
+      .input(
+        z.object({
+          employeeId: z.number().int(),
+          month: z.number().int(),
+          year: z.number().int(),
+        })
+      )
+      .query(async ({ ctx, input }) => {
+        const { getEmployeePayslipData } = await import("./payroll");
+        return getEmployeePayslipData(
+          ctx.tenantId,
+          input.employeeId,
+          input.month,
+          input.year
+        );
+      }),
+  }),
+
   // ============================================================================
   // STRIPE CONNECT (OAuth for SaaS)
   // ============================================================================

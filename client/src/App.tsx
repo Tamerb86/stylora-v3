@@ -26,6 +26,7 @@ import Settings from "@/pages/Settings";
 import Notifications from "@/pages/Notifications";
 import Loyalty from "@/pages/Loyalty";
 import LoyaltyCustomer from "@/pages/LoyaltyCustomer";
+import Payroll from "@/pages/Payroll";
 import { Communications } from "@/pages/Communications";
 import { BulkMessaging } from "@/pages/BulkMessaging";
 import { CampaignAnalytics } from "@/pages/CampaignAnalytics";
@@ -181,6 +182,7 @@ function Router() {
       <Route path="/walk-in-queue" component={WalkInQueue} />
       <Route path="/queue-display" component={QueueDisplay} />
       <Route path="/employees" component={Employees} />
+      <Route path="/payroll" component={Payroll} />
       <Route path="/products" component={Products} />
       <Route path="/reports" component={Reports} />
       <Route path="/financial" component={Financial} />
