@@ -19,7 +19,31 @@ import { and, eq, gte, lte, sql } from "drizzle-orm";
 /**
  * Check for appointments that need reminders and send SMS
  */
+// Module-level scheduler state: prevents double-start and overlapping runs.
+let schedulerHandle: ReturnType<typeof setInterval> | null = null;
+let isRunning = false;
+
 export async function processAppointmentReminders(): Promise<{
+  processed: number;
+  sent: number;
+  failed: number;
+}> {
+  // Skip if a previous run is still in flight (avoids duplicate sends when a
+  // run takes longer than the interval).
+  if (isRunning) {
+    console.log("[Scheduler] Previous run still in progress — skipping tick");
+    return { processed: 0, sent: 0, failed: 0 };
+  }
+  isRunning = true;
+
+  try {
+    return await runAppointmentReminders();
+  } finally {
+    isRunning = false;
+  }
+}
+
+async function runAppointmentReminders(): Promise<{
   processed: number;
   sent: number;
   failed: number;
@@ -187,6 +211,12 @@ export async function processAppointmentReminders(): Promise<{
  * Runs every hour
  */
 export function startNotificationScheduler() {
+  // Guard against double-start (e.g. multiple server.listen callers).
+  if (schedulerHandle) {
+    console.log("[Scheduler] Notification scheduler already running — skipping");
+    return;
+  }
+
   console.log("[Scheduler] Starting notification scheduler...");
 
   // Run immediately on startup
@@ -196,7 +226,7 @@ export function startNotificationScheduler() {
 
   // Then run every hour
   const intervalMs = 60 * 60 * 1000; // 1 hour
-  setInterval(() => {
+  schedulerHandle = setInterval(() => {
     processAppointmentReminders().catch(error => {
       console.error("[Scheduler] Error in scheduled run:", error);
     });
