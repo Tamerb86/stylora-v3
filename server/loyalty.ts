@@ -6,8 +6,18 @@ import {
   loyaltyRedemptions,
   settings,
 } from "../drizzle/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, gte, desc, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
+
+/**
+ * Robustly read the affected-row count from a drizzle/mysql2 write result.
+ * mysql2 returns [ResultSetHeader, FieldPacket[]] where the count lives in
+ * ResultSetHeader.affectedRows (NOT `rowsAffected`).
+ */
+function getAffectedRows(result: any): number {
+  if (Array.isArray(result)) return Number(result[0]?.affectedRows ?? 0);
+  return Number(result?.affectedRows ?? result?.rowsAffected ?? 0);
+}
 
 /**
  * Get or create loyalty points record for a customer
@@ -110,30 +120,39 @@ export async function awardPoints(
   // Get or create loyalty points record
   const loyaltyRecord = await getOrCreateLoyaltyPoints(tenantId, customerId);
 
-  // Update points
-  await db
-    .update(loyaltyPoints)
-    .set({
-      currentPoints: sql`${loyaltyPoints.currentPoints} + ${points}`,
-      lifetimePoints: sql`${loyaltyPoints.lifetimePoints} + ${points}`,
-    })
-    .where(eq(loyaltyPoints.id, loyaltyRecord!.id));
+  // Increment and record atomically.
+  await db.transaction(async tx => {
+    await tx
+      .update(loyaltyPoints)
+      .set({
+        currentPoints: sql`${loyaltyPoints.currentPoints} + ${points}`,
+        lifetimePoints: sql`${loyaltyPoints.lifetimePoints} + ${points}`,
+      })
+      .where(eq(loyaltyPoints.id, loyaltyRecord!.id));
 
-  // Record transaction
-  await db.insert(loyaltyTransactions).values({
-    tenantId,
-    customerId,
-    type: "earn",
-    points,
-    reason,
-    referenceType,
-    referenceId,
-    performedBy,
+    await tx.insert(loyaltyTransactions).values({
+      tenantId,
+      customerId,
+      type: "earn",
+      points,
+      reason,
+      referenceType,
+      referenceId,
+      performedBy,
+    });
   });
+
+  // Re-read the authoritative balance (the pre-read value is stale under
+  // concurrency).
+  const [fresh] = await db
+    .select()
+    .from(loyaltyPoints)
+    .where(eq(loyaltyPoints.id, loyaltyRecord!.id))
+    .limit(1);
 
   return {
     success: true,
-    newBalance: (loyaltyRecord!.currentPoints || 0) + points,
+    newBalance: fresh?.currentPoints ?? 0,
   };
 }
 
@@ -156,47 +175,54 @@ export async function deductPoints(
   // Get loyalty points record
   const loyaltyRecord = await getOrCreateLoyaltyPoints(tenantId, customerId);
 
-  if ((loyaltyRecord!.currentPoints || 0) < points) {
-    throw new Error("Insufficient points");
-  }
+  let transactionId: number | undefined;
 
-  // Update points
-  await db
-    .update(loyaltyPoints)
-    .set({
-      currentPoints: sql`${loyaltyPoints.currentPoints} - ${points}`,
-    })
-    .where(eq(loyaltyPoints.id, loyaltyRecord!.id));
+  // Deduct and record atomically. The decrement is guarded by
+  // `currentPoints >= points` in the WHERE clause, so two concurrent
+  // redemptions can't both pass a stale JS check and drive the balance
+  // negative (double-spend). If the guarded update affects 0 rows, there
+  // weren't enough points and the transaction rolls back.
+  await db.transaction(async tx => {
+    const result = await tx
+      .update(loyaltyPoints)
+      .set({
+        currentPoints: sql`${loyaltyPoints.currentPoints} - ${points}`,
+      })
+      .where(
+        and(
+          eq(loyaltyPoints.id, loyaltyRecord!.id),
+          gte(loyaltyPoints.currentPoints, points)
+        )
+      );
 
-  // Record transaction (negative points)
-  await db.insert(loyaltyTransactions).values({
-    tenantId,
-    customerId,
-    type,
-    points: -points,
-    reason,
-    referenceType,
-    referenceId,
-    performedBy,
+    if (getAffectedRows(result) === 0) {
+      throw new Error("Insufficient points");
+    }
+
+    const [inserted] = await tx.insert(loyaltyTransactions).values({
+      tenantId,
+      customerId,
+      type,
+      points: -points,
+      reason,
+      referenceType,
+      referenceId,
+      performedBy,
+    });
+    transactionId = (inserted as any)?.insertId;
   });
 
-  // Get the transaction ID
-  const lastTransaction = await db
+  // Re-read the authoritative balance after the committed transaction.
+  const [fresh] = await db
     .select()
-    .from(loyaltyTransactions)
-    .where(
-      and(
-        eq(loyaltyTransactions.tenantId, tenantId),
-        eq(loyaltyTransactions.customerId, customerId)
-      )
-    )
-    .orderBy(desc(loyaltyTransactions.id))
+    .from(loyaltyPoints)
+    .where(eq(loyaltyPoints.id, loyaltyRecord!.id))
     .limit(1);
 
   return {
     success: true,
-    newBalance: (loyaltyRecord!.currentPoints || 0) - points,
-    transactionId: lastTransaction[0]?.id,
+    newBalance: fresh?.currentPoints ?? 0,
+    transactionId,
   };
 }
 
