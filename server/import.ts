@@ -74,7 +74,6 @@ export async function importCustomersFromFile(
           phone: row.phone,
           email: row.email || null,
           notes: row.notes || null,
-          source: "import",
         });
 
         imported++;

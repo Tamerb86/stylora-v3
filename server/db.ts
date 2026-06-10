@@ -31,7 +31,9 @@ export async function getDb() {
       await _connection.ping();
 
       console.log("[Database] Connection successful");
-      _db = drizzle(_connection);
+      // Cast away the $client Pool-vs-Connection variance (we use a single
+      // Connection); the query-builder typing is otherwise identical.
+      _db = drizzle(_connection) as unknown as ReturnType<typeof drizzle>;
     } catch (error) {
       console.error("[Database] Failed to connect:", error);
       _db = null;
@@ -397,15 +399,15 @@ export async function createPayment(paymentData: {
     tenantId: paymentData.tenantId,
     orderId: paymentData.orderId,
     appointmentId: paymentData.appointmentId,
-    paymentMethod: paymentData.paymentMethod,
-    paymentGateway: paymentData.paymentGateway,
+    paymentMethod: paymentData.paymentMethod as any,
+    paymentGateway: paymentData.paymentGateway as any,
     amount: paymentData.amount,
     currency: paymentData.currency,
-    status: paymentData.status,
+    status: paymentData.status as any,
     gatewaySessionId: paymentData.gatewaySessionId,
     gatewayPaymentId: paymentData.gatewayPaymentId,
     gatewayMetadata: paymentData.gatewayMetadata,
-    lastFour: paymentData.lastFour,
+    cardLast4: paymentData.lastFour,
     cardBrand: paymentData.cardBrand,
     processedBy: paymentData.processedBy,
     processedAt: paymentData.processedAt,

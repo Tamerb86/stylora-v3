@@ -160,7 +160,7 @@ export default function AppointmentsChart({ data }: AppointmentsChartProps) {
 
   return (
     <div className="h-[250px] w-full">
-      <Line data={chartData} options={options} />
+      <Line data={chartData} options={options as any} />
     </div>
   );
 }

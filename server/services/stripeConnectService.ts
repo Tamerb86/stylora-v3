@@ -151,7 +151,9 @@ export async function handleStripeConnectCallback(
 
     const settingsData = {
       stripeConnectedAccountId: accountId,
-      stripeAccountStatus: account.charges_enabled ? "connected" : "pending",
+      stripeAccountStatus: (account.charges_enabled
+        ? "connected"
+        : "pending") as "connected" | "pending",
       stripeConnectedAt: new Date(),
       cardEnabled: true,
     };
