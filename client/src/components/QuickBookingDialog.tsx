@@ -115,7 +115,11 @@ export default function QuickBookingDialog({
     if (selectedCustomerId) {
       setCurrentStep("service");
     } else if (customerForm.name && customerForm.phone) {
-      createCustomerMutation.mutate(customerForm);
+      createCustomerMutation.mutate({
+        firstName: customerForm.name,
+        phone: customerForm.phone,
+        email: customerForm.email,
+      });
     } else {
       toast.error(t("customers.fillRequired"));
     }
@@ -143,13 +147,26 @@ export default function QuickBookingDialog({
       return;
     }
 
+    // Derive start/end from the selected time and the service duration.
+    const serviceId = parseInt(bookingForm.serviceId);
+    const selectedService = services?.find((s: any) => s.id === serviceId);
+    const duration = selectedService?.durationMinutes ?? 30;
+    const [h, m] = bookingForm.time.split(":").map(Number);
+    const endMinutes = h * 60 + m + duration;
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const startTime =
+      bookingForm.time.length === 5 ? `${bookingForm.time}:00` : bookingForm.time;
+    const endTime = `${pad(Math.floor(endMinutes / 60) % 24)}:${pad(
+      endMinutes % 60
+    )}:00`;
+
     createAppointmentMutation.mutate({
       customerId: selectedCustomerId,
-      serviceId: parseInt(bookingForm.serviceId),
       employeeId: parseInt(bookingForm.employeeId),
       appointmentDate: bookingForm.date.toISOString().split("T")[0],
-      appointmentTime: bookingForm.time,
-      status: "pending",
+      startTime,
+      endTime,
+      serviceIds: [serviceId],
     });
   };
 
@@ -466,7 +483,9 @@ export default function QuickBookingDialog({
                     {t("quickBooking.customer")}:
                   </span>
                   <span className="font-semibold">
-                    {selectedCustomer?.name}
+                    {selectedCustomer
+                      ? `${selectedCustomer.firstName} ${selectedCustomer.lastName ?? ""}`.trim()
+                      : ""}
                   </span>
                 </div>
                 <div className="flex justify-between">

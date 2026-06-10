@@ -2315,7 +2315,7 @@ export const appRouter = router({
 
         const { customers } = await import("../drizzle/schema");
 
-        await dbInstance.insert(customers).values({
+        const [result] = await dbInstance.insert(customers).values({
           tenantId: ctx.tenantId,
           firstName: input.firstName,
           lastName: input.lastName || null,
@@ -2333,7 +2333,7 @@ export const appRouter = router({
           consentIp: ctx.req.ip || null,
         });
 
-        return { success: true };
+        return { success: true, id: (result as any).insertId as number };
       }),
 
     update: tenantProcedure
