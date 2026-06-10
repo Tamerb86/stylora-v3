@@ -42,7 +42,11 @@ export function getSessionCookieOptions(
   return {
     httpOnly: true,
     path: "/",
-    sameSite: "none",
+    // "lax" (not "none") so the browser does not attach the session cookie to
+    // cross-site requests — this is the built-in CSRF defense. Subdomains of the
+    // same registrable domain are still same-site, so multi-tenant subdomain
+    // usage keeps working; only true cross-origin requests lose the cookie.
+    sameSite: "lax",
     secure: isSecureRequest(req),
   };
 }
