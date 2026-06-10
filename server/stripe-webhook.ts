@@ -28,6 +28,16 @@ export async function handleStripeWebhook(req: Request, res: Response) {
     return res.status(503).send("Stripe is not configured");
   }
 
+  // Fail closed: never verify against an empty secret. With a blank signing
+  // secret, constructEvent's HMAC key is effectively public and an attacker
+  // could forge a valid signature, confirming bookings without payment.
+  if (!ENV.stripeWebhookSecret) {
+    console.error(
+      "[Stripe Webhook] STRIPE_WEBHOOK_SECRET is not set — rejecting webhook"
+    );
+    return res.status(500).send("Webhook secret not configured");
+  }
+
   const sig = req.headers["stripe-signature"];
 
   if (!sig || Array.isArray(sig)) {

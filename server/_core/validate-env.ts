@@ -110,6 +110,24 @@ export function validateEnvironmentOrExit(): void {
   // Log additional validation info
   validateDatabaseUrl();
   validateJwtSecret();
+  validateStripeWebhookSecret();
+}
+
+/**
+ * Warn loudly when Stripe is enabled but the webhook signing secret is missing.
+ * The webhook handler hard-rejects in this state, so payments confirmed via
+ * webhook will silently fail until the secret is configured.
+ */
+function validateStripeWebhookSecret(): void {
+  const stripeEnabled = !!process.env.STRIPE_SECRET_KEY;
+  const hasWebhookSecret = !!process.env.STRIPE_WEBHOOK_SECRET;
+
+  if (stripeEnabled && !hasWebhookSecret) {
+    logger.error(
+      "STRIPE_SECRET_KEY is set but STRIPE_WEBHOOK_SECRET is missing. " +
+        "Stripe webhooks will be REJECTED until this is configured."
+    );
+  }
 }
 
 /**
