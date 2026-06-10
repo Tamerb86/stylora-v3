@@ -37,7 +37,7 @@ export default function CustomerDetails() {
   const { data: customer, isLoading: customerLoading } =
     trpc.customers.getById.useQuery({ id: customerId });
   const { data: appointments, isLoading: appointmentsLoading } =
-    trpc.appointments.list.useQuery({ tenantId: "" });
+    trpc.appointments.list.useQuery({});
   const { data: loyaltyPoints } = trpc.loyalty.getPoints.useQuery({
     customerId,
   });

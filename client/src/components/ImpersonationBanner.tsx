@@ -16,8 +16,7 @@ export function ImpersonationBanner() {
   const clearImpersonation = trpc.saasAdmin.clearImpersonation.useMutation({
     onSuccess: async data => {
       // Clear all caches
-      utils.invalidate();
-      await utils.client.resetQueries();
+      await utils.invalidate();
 
       toast.success("Impersonasjon avsluttet");
 

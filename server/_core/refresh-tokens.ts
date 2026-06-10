@@ -6,7 +6,7 @@
 import { nanoid } from "nanoid";
 import { getDb } from "../db";
 import { refreshTokens, users } from "../../drizzle/schema";
-import { eq, and, or, lt } from "drizzle-orm";
+import { eq, and, or, lt, gt } from "drizzle-orm";
 import { logger, logAuth, logSecurity } from "./logger";
 
 const REFRESH_TOKEN_EXPIRY_DAYS = 90;
@@ -432,7 +432,7 @@ export async function getUserActiveTokens(userId: number) {
       and(
         eq(refreshTokens.userId, userId),
         eq(refreshTokens.revoked, false),
-        lt(new Date(), refreshTokens.expiresAt) // Not expired
+        gt(refreshTokens.expiresAt, new Date()) // Not expired
       )
     )
     .orderBy(refreshTokens.lastUsedAt);
