@@ -351,19 +351,45 @@ export const loyaltyRouter = router({
   earnPoints: protectedProcedure
     .input(
       z.object({
-        tenantId: z.string(),
         customerId: z.number(),
         appointmentId: z.number(),
         amount: z.number(), // Total amount spent
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const dbInstance = await db.getDb();
       if (!dbInstance)
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Database not available",
         });
+
+      // SECURITY: derive the tenant from the caller, never from input — and
+      // only internal staff may award points. This stops any authenticated
+      // user from minting redeemable points for any customer in any tenant.
+      const tenantId = String(ctx.user.tenantId);
+      if (!["owner", "admin", "employee"].includes(ctx.user.role as string)) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
+      // Verify the target customer belongs to the caller's tenant.
+      const [targetCustomer] = await dbInstance
+        .select()
+        .from(customers)
+        .where(
+          and(
+            eq(customers.id, input.customerId),
+            eq(customers.tenantId, tenantId)
+          )
+        )
+        .limit(1);
+
+      if (!targetCustomer) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Customer not found",
+        });
+      }
 
       // Calculate points (1 point per 100 kr spent)
       const pointsEarned = Math.floor(input.amount / 100);
@@ -382,7 +408,7 @@ export const loyaltyRouter = router({
         .from(loyaltyPoints)
         .where(
           and(
-            eq(loyaltyPoints.tenantId, input.tenantId),
+            eq(loyaltyPoints.tenantId, tenantId),
             eq(loyaltyPoints.customerId, input.customerId)
           )
         )
@@ -390,7 +416,7 @@ export const loyaltyRouter = router({
 
       if (!loyaltyRecord) {
         const [inserted] = await dbInstance.insert(loyaltyPoints).values({
-          tenantId: input.tenantId,
+          tenantId,
           customerId: input.customerId,
           currentPoints: 0,
           lifetimePoints: 0,
@@ -414,7 +440,7 @@ export const loyaltyRouter = router({
 
       // Create transaction record
       await dbInstance.insert(loyaltyTransactions).values({
-        tenantId: input.tenantId,
+        tenantId,
         customerId: input.customerId,
         type: "earn",
         points: pointsEarned,

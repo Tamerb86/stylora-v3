@@ -27,7 +27,10 @@ import {
 import { nanoid } from "nanoid";
 import { eq, and, or, gte, lte, sql, desc } from "drizzle-orm";
 import { exportRouter } from "./export";
-import { loyaltyRouter } from "./loyalty-router";
+// loyaltyRouter is intentionally not mounted — the live loyalty router is
+// defined inline in appRouter below. The hardened earnPoints in loyalty-router
+// remains available for a future, deliberate remount.
+// import { loyaltyRouter } from "./loyalty-router";
 import { onboardingRouter } from "./routers/onboarding";
 import { monitoringRouter } from "./routers/monitoring";
 import { ENV } from "./_core/env";
@@ -152,7 +155,10 @@ const platformAdminProcedure = protectedProcedure.use(({ ctx, next }) => {
 export const appRouter = router({
   system: systemRouter,
   export: exportRouter,
-  loyalty: loyaltyRouter,
+  // NOTE: the live `loyalty` router is defined inline further below. The
+  // previously duplicated `loyalty: loyaltyRouter` key here was shadowed (last
+  // key wins) and has been removed to avoid a duplicate-key landmine that could
+  // silently re-expose loyaltyRouter's procedures on a future reorder.
   onboarding: onboardingRouter,
   monitoring: monitoringRouter,
 
@@ -1165,7 +1171,26 @@ export const appRouter = router({
   }),
 
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
+    // Return a whitelisted DTO — never ship the raw user row, which contains
+    // the bcrypt passwordHash and the time-clock pin to the browser.
+    me: publicProcedure.query(opts => {
+      const u = opts.ctx.user;
+      if (!u) return null;
+      return {
+        id: u.id,
+        openId: u.openId,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        tenantId: u.tenantId,
+        uiMode: u.uiMode,
+        sidebarOpen: u.sidebarOpen,
+        onboardingCompleted: u.onboardingCompleted,
+        onboardingStep: u.onboardingStep,
+        impersonatedTenantId: u.impersonatedTenantId,
+        isImpersonating: u.isImpersonating,
+      };
+    }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
