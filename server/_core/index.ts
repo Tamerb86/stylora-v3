@@ -16,6 +16,12 @@ import { handleStripeWebhook } from "../stripe-webhook";
 import { handleVippsCallback } from "../vipps-callback";
 import * as Sentry from "@sentry/node";
 import { getDb } from "../db";
+import { sql } from "drizzle-orm";
+import {
+  validateEnvironmentOrExit,
+  getEnvironmentSummary,
+} from "./validate-env";
+import { logger } from "./logger";
 
 const getRequestPath = (req: express.Request) =>
   req.path || (req.url ? req.url.split("?")[0] : "");
@@ -126,6 +132,11 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  // Fail fast and loud if required configuration is missing, instead of booting
+  // into a half-broken state where requests fail later with opaque errors.
+  validateEnvironmentOrExit();
+  logger.info("Starting server", getEnvironmentSummary());
+
   const app = express();
   const server = createServer(app);
 
@@ -293,6 +304,29 @@ async function startServer() {
     }
 
     next();
+  });
+
+  // Health check — registered BEFORE rate limiters and body parsers so it is
+  // never throttled. Actively pings the database so Docker/Railway can detect a
+  // broken backend (not just that the process is up). 200 = healthy, 503 = not.
+  app.get("/api/health", async (_req, res) => {
+    try {
+      const db = await getDb();
+      if (!db) {
+        res
+          .status(503)
+          .json({ status: "unhealthy", database: "unavailable" });
+        return;
+      }
+      await db.execute(sql`SELECT 1`);
+      res.status(200).json({ status: "ok", database: "up" });
+    } catch (error) {
+      res.status(503).json({
+        status: "unhealthy",
+        database: "down",
+        error: error instanceof Error ? error.message : "unknown",
+      });
+    }
   });
 
   // Apply rate limiting to API routes

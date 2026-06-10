@@ -8,11 +8,12 @@ import { parse as parseCookieHeader } from "cookie";
 import {
   COOKIE_NAME,
   THIRTY_DAYS_MS,
+  NINETY_DAYS_MS,
   REFRESH_TOKEN_COOKIE_NAME,
 } from "@shared/const";
 import { getSessionCookieOptions } from "./cookies";
 import { authService } from "./auth-simple";
-import { getUserFromRefreshToken } from "./refresh-tokens";
+import { rotateRefreshToken } from "./refresh-tokens";
 import { ENV } from "./env";
 import { logger, logAuth } from "./logger";
 
@@ -35,25 +36,26 @@ export function registerRefreshEndpoint(app: Express) {
         return;
       }
 
-      // Validate refresh token and get user
-      const user = await getUserFromRefreshToken(refreshToken);
+      // Rotate the refresh token: this validates it, revokes it, and issues a
+      // fresh one (and detects reuse of an already-revoked token as theft).
+      const rotated = await rotateRefreshToken(
+        refreshToken,
+        req.ip,
+        req.headers["user-agent"]
+      );
 
-      if (!user) {
-        res.status(401).json({ 
+      if (!rotated) {
+        // Clear the stale/invalid refresh cookie so the client stops retrying.
+        const opts = getSessionCookieOptions(req);
+        res.clearCookie(REFRESH_TOKEN_COOKIE_NAME, { ...opts, maxAge: -1 });
+        res.status(401).json({
           error: "Ugyldig eller utløpt refresh token",
-          messageKey: "errors.invalidRefreshToken"
+          messageKey: "errors.invalidRefreshToken",
         });
         return;
       }
 
-      // Check if user is still active
-      if (!user.isActive) {
-        res.status(403).json({ 
-          error: "Kontoen er deaktivert",
-          messageKey: "errors.accountDeactivated"
-        });
-        return;
-      }
+      const { user, newToken } = rotated;
 
       // Create new access token (30 days)
       const sessionToken = await authService.createSessionToken(
@@ -68,11 +70,15 @@ export function registerRefreshEndpoint(app: Express) {
         }
       );
 
-      // Set new access token cookie
+      // Set new access token + rotated refresh token cookies
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, sessionToken, {
         ...cookieOptions,
         maxAge: THIRTY_DAYS_MS,
+      });
+      res.cookie(REFRESH_TOKEN_COOKIE_NAME, newToken, {
+        ...cookieOptions,
+        maxAge: NINETY_DAYS_MS,
       });
 
       logAuth.loginSuccess(user.email || user.openId, req.ip);

@@ -1,4 +1,4 @@
-import { eq, and, isNull, like, desc, sql } from "drizzle-orm";
+import { eq, and, isNull, like, desc, sql, gte, lte, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
 import {
@@ -492,4 +492,184 @@ export async function getOrderItems(orderId: number, tenantId: string) {
     ...item,
     name: item.itemName || item.serviceName || item.productName || "Unknown Item",
   }));
+}
+
+// ============================================================================
+// PAYMENT HELPERS
+// ============================================================================
+
+/**
+ * Update a payment by id (tenant-agnostic by design — callers already resolve
+ * the payment within their tenant scope). Returns the updated row.
+ */
+export async function updatePayment(
+  paymentId: number,
+  data: Partial<{
+    status: "pending" | "completed" | "failed" | "refunded";
+    processedAt: Date | null;
+    paidAt: Date | null;
+    gatewayPaymentId: string | null;
+    gatewayMetadata: any;
+    errorMessage: string | null;
+  }>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const { payments } = await import("../drizzle/schema");
+
+  await db.update(payments).set(data).where(eq(payments.id, paymentId));
+
+  const [payment] = await db
+    .select()
+    .from(payments)
+    .where(eq(payments.id, paymentId))
+    .limit(1);
+
+  return payment;
+}
+
+// ============================================================================
+// REFUND HELPERS
+// ============================================================================
+
+/**
+ * List refunds for an order, scoped to the tenant.
+ */
+export async function getRefundsByOrder(orderId: number, tenantId: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const { refunds } = await import("../drizzle/schema");
+
+  return db
+    .select()
+    .from(refunds)
+    .where(and(eq(refunds.orderId, orderId), eq(refunds.tenantId, tenantId)))
+    .orderBy(desc(refunds.createdAt));
+}
+
+/**
+ * List refunds for a payment, scoped to the tenant.
+ */
+export async function getRefundsByPayment(paymentId: number, tenantId: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const { refunds } = await import("../drizzle/schema");
+
+  return db
+    .select()
+    .from(refunds)
+    .where(
+      and(eq(refunds.paymentId, paymentId), eq(refunds.tenantId, tenantId))
+    )
+    .orderBy(desc(refunds.createdAt));
+}
+
+// ============================================================================
+// NO-SHOW / APPOINTMENT STATS
+// ============================================================================
+
+/**
+ * Count how many appointments a customer has been marked "no_show" for, scoped
+ * to the tenant. Used to decide whether prepayment should be required.
+ */
+export async function getNoShowCountForCustomer(
+  tenantId: string,
+  customerId: number
+): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const [row] = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(appointments)
+    .where(
+      and(
+        eq(appointments.tenantId, tenantId),
+        eq(appointments.customerId, customerId),
+        eq(appointments.status, "no_show")
+      )
+    );
+
+  return Number(row?.count ?? 0);
+}
+
+// ============================================================================
+// ORDER LISTING
+// ============================================================================
+
+/**
+ * List a tenant's orders with customer/employee names and the primary payment,
+ * shaped as { order, customer, employee, payment } to match the POS Orders UI.
+ * Optional filters: date range (orderDate), payment method, customer, status.
+ */
+export async function getOrdersWithDetails(
+  tenantId: string,
+  filters: {
+    startDate?: string;
+    endDate?: string;
+    paymentMethod?: "cash" | "card";
+    customerId?: number;
+    status?: "pending" | "completed" | "refunded" | "partially_refunded";
+  } = {}
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const { orders, customers, users, payments } = await import(
+    "../drizzle/schema"
+  );
+
+  const conditions = [eq(orders.tenantId, tenantId)];
+  if (filters.customerId)
+    conditions.push(eq(orders.customerId, filters.customerId));
+  if (filters.status) conditions.push(eq(orders.status, filters.status));
+  if (filters.startDate)
+    conditions.push(gte(orders.orderDate, filters.startDate));
+  if (filters.endDate) conditions.push(lte(orders.orderDate, filters.endDate));
+
+  const rows = await db
+    .select({
+      order: orders,
+      customer: customers,
+      employee: users,
+    })
+    .from(orders)
+    .leftJoin(customers, eq(orders.customerId, customers.id))
+    .leftJoin(users, eq(orders.employeeId, users.id))
+    .where(and(...conditions))
+    .orderBy(desc(orders.createdAt));
+
+  // Attach the primary payment per order in a single query (no N+1).
+  const orderIds = rows.map(r => r.order.id);
+  const paymentRows = orderIds.length
+    ? await db
+        .select()
+        .from(payments)
+        .where(inArray(payments.orderId, orderIds))
+    : [];
+
+  const paymentByOrder = new Map<number, (typeof paymentRows)[number]>();
+  for (const p of paymentRows) {
+    if (p.orderId != null && !paymentByOrder.has(p.orderId)) {
+      paymentByOrder.set(p.orderId, p);
+    }
+  }
+
+  let result = rows.map(r => ({
+    order: r.order,
+    customer: r.customer,
+    employee: r.employee,
+    payment: paymentByOrder.get(r.order.id) ?? null,
+  }));
+
+  if (filters.paymentMethod) {
+    result = result.filter(
+      r => r.payment?.paymentMethod === filters.paymentMethod
+    );
+  }
+
+  return result;
 }

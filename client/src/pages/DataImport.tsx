@@ -12,7 +12,6 @@ import {
 import {
   Upload,
   Download,
-  Database,
   Users,
   Briefcase,
   Package,
@@ -77,21 +76,6 @@ export default function DataImport() {
     },
   });
 
-  const restoreSQL = trpc.imports.restoreSQL.useMutation({
-    onSuccess: data => {
-      toast.success(`Utført ${data.executed} av ${data.total} SQL-setninger`);
-      if (data.failed > 0) {
-        toast.warning(`${data.failed} setninger feilet`);
-      }
-      setUploading(false);
-      refetch();
-    },
-    onError: error => {
-      toast.error(error.message || "Kunne ikke gjenopprette sikkerhetskopi");
-      setUploading(false);
-    },
-  });
-
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
     type: string
@@ -100,8 +84,7 @@ export default function DataImport() {
     if (!file) return;
 
     // Validate file type
-    const validExtensions =
-      type === "sql" ? [".sql"] : [".csv", ".xlsx", ".xls"];
+    const validExtensions = [".csv", ".xlsx", ".xls"];
     const fileExtension = file.name
       .substring(file.name.lastIndexOf("."))
       .toLowerCase();
@@ -147,20 +130,6 @@ export default function DataImport() {
               fileContent: base64Data,
               fileName: file.name,
             });
-            break;
-          case "sql":
-            if (
-              confirm(
-                "ADVARSEL: Dette vil gjenopprette databasen fra sikkerhetskopien. Er du sikker?"
-              )
-            ) {
-              await restoreSQL.mutateAsync({
-                fileContent: base64Data,
-                fileName: file.name,
-              });
-            } else {
-              setUploading(false);
-            }
             break;
         }
       };
@@ -278,12 +247,12 @@ export default function DataImport() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold">Importer Data</h1>
           <p className="text-muted-foreground mt-2">
-            Last opp CSV/Excel-filer eller gjenopprett fra sikkerhetskopi
+            Last opp CSV/Excel-filer
           </p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="customers">
               <Users className="h-4 w-4 mr-2" />
               Kunder
@@ -295,10 +264,6 @@ export default function DataImport() {
             <TabsTrigger value="products">
               <Package className="h-4 w-4 mr-2" />
               Produkter
-            </TabsTrigger>
-            <TabsTrigger value="sql">
-              <Database className="h-4 w-4 mr-2" />
-              SQL Gjenoppretting
             </TabsTrigger>
           </TabsList>
 
@@ -507,52 +472,6 @@ export default function DataImport() {
             </Card>
           </TabsContent>
 
-          {/* SQL Restore Tab */}
-          <TabsContent value="sql">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gjenopprett fra Sikkerhetskopi</CardTitle>
-                <CardDescription>
-                  Last opp en SQL-fil for å gjenopprette databasen
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <label htmlFor="sql-upload">
-                  <Button variant="default" disabled={uploading} asChild>
-                    <span>
-                      <Upload className="h-4 w-4 mr-2" />
-                      {uploading ? "Laster opp..." : "Last opp SQL-fil"}
-                    </span>
-                  </Button>
-                  <input
-                    id="sql-upload"
-                    type="file"
-                    accept=".sql"
-                    className="hidden"
-                    onChange={e => handleFileUpload(e, "sql")}
-                    disabled={uploading}
-                  />
-                </label>
-
-                <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/50 rounded-lg p-4">
-                  <div className="flex gap-3">
-                    <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                    <div className="text-sm text-red-900 dark:text-red-100">
-                      <p className="font-semibold mb-2">ADVARSEL:</p>
-                      <ul className="list-disc list-inside space-y-1">
-                        <li>
-                          Dette vil utføre SQL-setninger fra sikkerhetskopien
-                        </li>
-                        <li>Sørg for at SQL-filen er fra en sikker kilde</li>
-                        <li>Ta en sikkerhetskopi før du gjenoppretter</li>
-                        <li>Prosessen kan ikke angres</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
 
         {/* Import History */}

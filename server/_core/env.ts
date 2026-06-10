@@ -21,6 +21,9 @@ export const ENV = {
   vippsSubscriptionKey: process.env.VIPPS_SUBSCRIPTION_KEY ?? "",
   vippsMerchantSerialNumber: process.env.VIPPS_MERCHANT_SERIAL_NUMBER ?? "",
   vippsApiUrl: process.env.VIPPS_API_URL ?? "https://apitest.vipps.no", // Use https://api.vipps.no for production
+  // Optional shared secret echoed back by Vipps in the callback Authorization header.
+  // If set, the callback handler requires an exact match before processing (defense in depth).
+  vippsCallbackAuthToken: process.env.VIPPS_CALLBACK_AUTH_TOKEN ?? "",
   // AWS S3 for file storage
   awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
   awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",

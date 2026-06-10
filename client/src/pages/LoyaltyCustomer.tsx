@@ -48,30 +48,30 @@ export default function LoyaltyCustomer() {
     data: pointsData,
     isLoading: pointsLoading,
     refetch: refetchPoints,
-  } = trpc.loyalty.getCustomerPoints.useQuery({
+  } = trpc.loyaltyCustomer.getCustomerPoints.useQuery({
     tenantId,
   });
 
   // Fetch available rewards
   const { data: rewards = [], isLoading: rewardsLoading } =
-    trpc.loyalty.getAvailableRewards.useQuery({
+    trpc.loyaltyCustomer.getAvailableRewards.useQuery({
       tenantId,
     });
 
   // Fetch transaction history
   const { data: transactions = [], isLoading: transactionsLoading } =
-    trpc.loyalty.getTransactionHistory.useQuery({
+    trpc.loyaltyCustomer.getTransactionHistory.useQuery({
       tenantId,
     });
 
   // Fetch active redemptions
   const { data: redemptions = [], isLoading: redemptionsLoading } =
-    trpc.loyalty.getActiveRedemptions.useQuery({
+    trpc.loyaltyCustomer.getActiveRedemptions.useQuery({
       tenantId,
     });
 
   // Redeem reward mutation
-  const redeemMutation = trpc.loyalty.redeemReward.useMutation({
+  const redeemMutation = trpc.loyaltyCustomer.redeemReward.useMutation({
     onSuccess: data => {
       toast.success(data.message);
       setRedeemDialogOpen(false);

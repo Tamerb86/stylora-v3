@@ -27,6 +27,11 @@ import {
 import { nanoid } from "nanoid";
 import { eq, and, or, gte, lte, sql, desc } from "drizzle-orm";
 import { exportRouter } from "./export";
+// Customer-facing loyalty router. The staff-facing `loyalty` router is defined
+// inline in appRouter below; this one (mounted as `loyaltyCustomer`) exposes the
+// customer-authenticated procedures (resolve the logged-in customer, view
+// points/rewards/history, redeem). Keeping them as separate keys avoids the
+// duplicate-key shadowing that previously hid loyaltyRouter.
 import { loyaltyRouter } from "./loyalty-router";
 import { onboardingRouter } from "./routers/onboarding";
 import { monitoringRouter } from "./routers/monitoring";
@@ -152,7 +157,9 @@ const platformAdminProcedure = protectedProcedure.use(({ ctx, next }) => {
 export const appRouter = router({
   system: systemRouter,
   export: exportRouter,
-  loyalty: loyaltyRouter,
+  // Customer-facing loyalty API (distinct from the inline staff `loyalty`
+  // router defined further below — they intentionally have different keys).
+  loyaltyCustomer: loyaltyRouter,
   onboarding: onboardingRouter,
   monitoring: monitoringRouter,
 
@@ -1165,7 +1172,26 @@ export const appRouter = router({
   }),
 
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
+    // Return a whitelisted DTO — never ship the raw user row, which contains
+    // the bcrypt passwordHash and the time-clock pin to the browser.
+    me: publicProcedure.query(opts => {
+      const u = opts.ctx.user;
+      if (!u) return null;
+      return {
+        id: u.id,
+        openId: u.openId,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        tenantId: u.tenantId,
+        uiMode: u.uiMode,
+        sidebarOpen: u.sidebarOpen,
+        onboardingCompleted: u.onboardingCompleted,
+        onboardingStep: u.onboardingStep,
+        impersonatedTenantId: u.impersonatedTenantId,
+        isImpersonating: u.isImpersonating,
+      };
+    }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
@@ -2297,12 +2323,12 @@ export const appRouter = router({
           marketingEmailConsent: z.boolean().optional(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         const dbInstance = await db.getDb();
         if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
         const { customers } = await import("../drizzle/schema");
-        const { eq } = await import("drizzle-orm");
+        const { eq, and } = await import("drizzle-orm");
 
         const updateData: any = {};
         if (input.firstName) updateData.firstName = input.firstName;
@@ -2318,28 +2344,39 @@ export const appRouter = router({
         if (input.marketingEmailConsent !== undefined)
           updateData.marketingEmailConsent = input.marketingEmailConsent;
 
+        // Tenant-scoped: never let one tenant edit another tenant's customer.
         await dbInstance
           .update(customers)
           .set(updateData)
-          .where(eq(customers.id, input.id));
+          .where(
+            and(
+              eq(customers.id, input.id),
+              eq(customers.tenantId, ctx.tenantId)
+            )
+          );
 
         return { success: true };
       }),
 
     delete: adminProcedure
       .input(z.object({ id: z.number() }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         const dbInstance = await db.getDb();
         if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
         const { customers } = await import("../drizzle/schema");
-        const { eq } = await import("drizzle-orm");
+        const { eq, and } = await import("drizzle-orm");
 
-        // Soft delete
+        // Soft delete — tenant-scoped to prevent cross-tenant deletion.
         await dbInstance
           .update(customers)
           .set({ deletedAt: new Date() })
-          .where(eq(customers.id, input.id));
+          .where(
+            and(
+              eq(customers.id, input.id),
+              eq(customers.tenantId, ctx.tenantId)
+            )
+          );
 
         return { success: true };
       }),
@@ -2627,12 +2664,12 @@ export const appRouter = router({
           isActive: z.boolean().optional(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         const dbInstance = await db.getDb();
         if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
         const { services } = await import("../drizzle/schema");
-        const { eq } = await import("drizzle-orm");
+        const { eq, and } = await import("drizzle-orm");
 
         const updateData: any = {};
         if (input.name) updateData.name = input.name;
@@ -2643,10 +2680,13 @@ export const appRouter = router({
         if (input.price) updateData.price = input.price;
         if (input.isActive !== undefined) updateData.isActive = input.isActive;
 
+        // Tenant-scoped: prevent cross-tenant modification of services/pricing.
         await dbInstance
           .update(services)
           .set(updateData)
-          .where(eq(services.id, input.id));
+          .where(
+            and(eq(services.id, input.id), eq(services.tenantId, ctx.tenantId))
+          );
 
         return { success: true };
       }),
@@ -3015,17 +3055,23 @@ export const appRouter = router({
         if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
         const { appointments } = await import("../drizzle/schema");
-        const { eq } = await import("drizzle-orm");
+        const { eq, and } = await import("drizzle-orm");
         const {
           sendAppointmentConfirmationIfPossible,
           sendAppointmentCancellationIfPossible,
         } = await import("./notifications-appointments");
 
-        // Get appointment details before updating
+        // Get appointment details before updating — tenant-scoped so one tenant
+        // cannot read or mutate another tenant's appointments by guessing IDs.
         const appointment = await dbInstance
           .select()
           .from(appointments)
-          .where(eq(appointments.id, input.id))
+          .where(
+            and(
+              eq(appointments.id, input.id),
+              eq(appointments.tenantId, String(ctx.tenantId))
+            )
+          )
           .limit(1);
 
         if (!appointment[0]) {
@@ -3075,7 +3121,12 @@ export const appRouter = router({
         await dbInstance
           .update(appointments)
           .set(updateData)
-          .where(eq(appointments.id, input.id));
+          .where(
+            and(
+              eq(appointments.id, input.id),
+              eq(appointments.tenantId, String(ctx.tenantId))
+            )
+          );
 
         // Send email notifications based on status transitions
         if (previousStatus !== "confirmed" && input.status === "confirmed") {
@@ -3431,7 +3482,7 @@ export const appRouter = router({
         }
 
         const { payments, refunds, orders } = await import("../drizzle/schema");
-        const { eq, sum } = await import("drizzle-orm");
+        const { eq, and, sum } = await import("drizzle-orm");
 
         // Get original payment
         const [payment] = await dbInstance
@@ -3450,6 +3501,10 @@ export const appRouter = router({
         if (payment.tenantId !== ctx.tenantId) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
         }
+
+        // Use the order tied to the verified payment — never a client-supplied
+        // orderId, which could point at another tenant's order.
+        const orderId = payment.orderId;
 
         const originalAmount = parseFloat(payment.amount);
 
@@ -3475,7 +3530,7 @@ export const appRouter = router({
         const [refund] = await dbInstance.insert(refunds).values({
           tenantId: ctx.tenantId,
           paymentId: input.paymentId,
-          orderId: input.orderId,
+          orderId: orderId,
           amount: input.amount.toString(),
           reason: input.reason,
           refundMethod: input.refundMethod,
@@ -3484,18 +3539,25 @@ export const appRouter = router({
           processedAt: new Date(),
         });
 
-        // Update order status if fully refunded
+        // Update order status if fully refunded — tenant-scoped, and only when
+        // the payment is actually linked to an order.
         const newTotalRefunded = totalRefunded + input.amount;
-        if (Math.abs(newTotalRefunded - originalAmount) < 0.01) {
-          await dbInstance
-            .update(orders)
-            .set({ status: "refunded" })
-            .where(eq(orders.id, input.orderId));
-        } else if (newTotalRefunded > 0) {
-          await dbInstance
-            .update(orders)
-            .set({ status: "partially_refunded" })
-            .where(eq(orders.id, input.orderId));
+        if (orderId != null) {
+          if (Math.abs(newTotalRefunded - originalAmount) < 0.01) {
+            await dbInstance
+              .update(orders)
+              .set({ status: "refunded" })
+              .where(
+                and(eq(orders.id, orderId), eq(orders.tenantId, ctx.tenantId))
+              );
+          } else if (newTotalRefunded > 0) {
+            await dbInstance
+              .update(orders)
+              .set({ status: "partially_refunded" })
+              .where(
+                and(eq(orders.id, orderId), eq(orders.tenantId, ctx.tenantId))
+              );
+          }
         }
 
         // Update payment status
@@ -4059,19 +4121,25 @@ export const appRouter = router({
           adjustment: z.number(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         const dbInstance = await db.getDb();
         if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
         const { products } = await import("../drizzle/schema");
-        const { eq, sql } = await import("drizzle-orm");
+        const { eq, and, sql } = await import("drizzle-orm");
 
+        // Tenant-scoped: prevent cross-tenant inventory tampering.
         await dbInstance
           .update(products)
           .set({
             stockQuantity: sql`${products.stockQuantity} + ${input.adjustment}`,
           })
-          .where(eq(products.id, input.productId));
+          .where(
+            and(
+              eq(products.id, input.productId),
+              eq(products.tenantId, ctx.tenantId)
+            )
+          );
 
         return { success: true };
       }),
@@ -8482,8 +8550,10 @@ export const appRouter = router({
                   errorMessage: result.resultErrorMessage || "Payment failed",
                 });
               } else if (result.resultStatus === "CANCELED") {
+                // payments.status has no "cancelled" value; a canceled terminal
+                // payment never completed, so record it as failed.
                 await db.updatePayment(payment.id, {
-                  status: "cancelled",
+                  status: "failed",
                   errorMessage: result.resultErrorMessage || "Payment canceled",
                 });
               }
@@ -11772,25 +11842,6 @@ export const appRouter = router({
         const { importProductsFromFile } = await import("./import");
         const fileBuffer = Buffer.from(input.fileContent, "base64");
         return importProductsFromFile(
-          ctx.tenantId,
-          fileBuffer,
-          input.fileName,
-          ctx.user.id
-        );
-      }),
-
-    // Restore from SQL backup
-    restoreSQL: adminProcedure
-      .input(
-        z.object({
-          fileContent: z.string(),
-          fileName: z.string(),
-        })
-      )
-      .mutation(async ({ ctx, input }) => {
-        const { restoreFromSQL } = await import("./import");
-        const fileBuffer = Buffer.from(input.fileContent, "base64");
-        return restoreFromSQL(
           ctx.tenantId,
           fileBuffer,
           input.fileName,
@@ -15778,14 +15829,17 @@ export const appRouter = router({
           });
         }
 
-        // Check if appointment exists and belongs to user's tenant
+        // Check if appointment exists and belongs to THIS customer in their
+        // tenant. The customerId predicate prevents a logged-in customer from
+        // canceling another customer's appointment by guessing IDs (IDOR).
         const [appointment] = await dbInstance
           .select()
           .from(appointments)
           .where(
             and(
               eq(appointments.id, input.appointmentId),
-              eq(appointments.tenantId, input.tenantId)
+              eq(appointments.tenantId, input.tenantId),
+              eq(appointments.customerId, customer.id)
             )
           )
           .limit(1);

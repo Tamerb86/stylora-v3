@@ -25,6 +25,7 @@ import AdvancedFinancialReports from "@/pages/AdvancedFinancialReports";
 import Settings from "@/pages/Settings";
 import Notifications from "@/pages/Notifications";
 import Loyalty from "@/pages/Loyalty";
+import LoyaltyCustomer from "@/pages/LoyaltyCustomer";
 import { Communications } from "@/pages/Communications";
 import { BulkMessaging } from "@/pages/BulkMessaging";
 import { CampaignAnalytics } from "@/pages/CampaignAnalytics";
@@ -110,6 +111,7 @@ function Router() {
       <Route path="/book/success" component={BookingSuccess} />
       <Route path="/manage-booking/:token" component={ManageBooking} />
       <Route path="/my-bookings" component={MyBookings} />
+      <Route path="/my-loyalty" component={LoyaltyCustomer} />
       <Route path="/case-study" component={CaseStudy} />
       <Route path="/about" component={AboutUs} />
       <Route path="/testimonials" component={Testimonials} />

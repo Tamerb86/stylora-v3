@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { getDb } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import Stripe from "stripe";
 import { ENV } from "./_core/env";
 
@@ -277,6 +277,28 @@ export async function cancelAppointmentWithRefund(
       };
     }
 
+    // Idempotency guard: if a refund for this payment has already completed or
+    // is in progress, do NOT call the gateway again or insert a duplicate row.
+    // Without this, a retry after a partial failure would double-refund.
+    const [existingRefund] = await dbInstance
+      .select()
+      .from(refunds)
+      .where(
+        and(
+          eq(refunds.paymentId, payment.id),
+          sql`${refunds.status} IN ('completed', 'pending')`
+        )
+      )
+      .limit(1);
+
+    if (existingRefund) {
+      return {
+        success: true,
+        refundProcessed: existingRefund.status === "completed",
+        refundAmount: Number(existingRefund.amount),
+      };
+    }
+
     // Process refund based on payment method
     let refundResult: { success: boolean; refundId?: string; error?: string };
     let refundMethod: "stripe" | "vipps" | "manual";
@@ -301,28 +323,36 @@ export async function cancelAppointmentWithRefund(
       refundResult = { success: true, refundId: undefined };
     }
 
-    // Record refund in database
-    await dbInstance.insert(refunds).values({
-      tenantId,
-      paymentId: payment.id,
-      appointmentId,
-      amount: String(refundCalc.refundAmount),
-      reason,
-      refundMethod,
-      status: refundResult.success ? "completed" : "failed",
-      gatewayRefundId: refundResult.refundId || null,
-      errorMessage: refundResult.error || null,
-      processedBy: userId,
-      processedAt: new Date(),
-    });
+    // Persist the refund record and the payment-status change atomically, only
+    // after a definitive gateway result, so we never end up with a refund row
+    // but an un-updated payment (or vice versa).
+    await dbInstance.transaction(async tx => {
+      await tx.insert(refunds).values({
+        tenantId,
+        paymentId: payment.id,
+        appointmentId,
+        amount: String(refundCalc.refundAmount),
+        reason,
+        refundMethod,
+        status: refundResult.success ? "completed" : "failed",
+        gatewayRefundId: refundResult.refundId || null,
+        errorMessage: refundResult.error || null,
+        processedBy: userId,
+        processedAt: new Date(),
+      });
 
-    // Update payment status if fully refunded
-    if (refundCalc.refundAmount >= refundCalc.originalAmount) {
-      await dbInstance
-        .update(payments)
-        .set({ status: "refunded" })
-        .where(eq(payments.id, payment.id));
-    }
+      // Only mark the payment refunded if the gateway refund actually
+      // succeeded and it was a full refund.
+      if (
+        refundResult.success &&
+        refundCalc.refundAmount >= refundCalc.originalAmount
+      ) {
+        await tx
+          .update(payments)
+          .set({ status: "refunded" })
+          .where(eq(payments.id, payment.id));
+      }
+    });
 
     return {
       success: true,

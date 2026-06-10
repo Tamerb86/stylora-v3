@@ -11,6 +11,16 @@ import { logger, logAuth, logSecurity } from "./logger";
 
 const REFRESH_TOKEN_EXPIRY_DAYS = 90;
 
+/**
+ * Read the affected-row count from a mysql2/drizzle write result. The driver
+ * returns a ResultSetHeader (affectedRows), sometimes wrapped in a tuple — not
+ * an array with `.length`.
+ */
+function affectedRowsOf(result: unknown): number {
+  const r = result as any;
+  return r?.rowsAffected ?? r?.affectedRows ?? r?.[0]?.affectedRows ?? 0;
+}
+
 export interface RefreshTokenData {
   token: string;
   userId: number;
@@ -146,7 +156,10 @@ export async function revokeRefreshToken(
     })
     .where(eq(refreshTokens.token, token));
 
-  const revoked = result && result.length > 0;
+  // mysql2 returns a ResultSetHeader (affectedRows), not an array — reading
+  // .length always yielded undefined/false here.
+  const affected = affectedRowsOf(result);
+  const revoked = affected > 0;
 
   if (revoked) {
     logger.info("Refresh token revoked", {
@@ -182,7 +195,7 @@ export async function revokeAllUserTokens(
       and(eq(refreshTokens.userId, userId), eq(refreshTokens.revoked, false))
     );
 
-  const count = result ? result.length : 0;
+  const count = affectedRowsOf(result);
 
   logger.info("All user refresh tokens revoked", { userId, count, reason });
 
@@ -216,7 +229,7 @@ export async function revokeAllTenantTokens(
       )
     );
 
-  const count = result ? result.length : 0;
+  const count = affectedRowsOf(result);
 
   logger.warn("All tenant refresh tokens revoked", { tenantId, count, reason });
 
@@ -263,6 +276,106 @@ export async function getUserFromRefreshToken(token: string) {
 }
 
 /**
+ * Rotate a refresh token: validate the presented token, revoke it, and issue a
+ * fresh one — returning the active user and the new token. This limits the
+ * lifetime of any single stolen token to one refresh cycle.
+ *
+ * Reuse detection: if a token that is ALREADY revoked is presented, a
+ * previously-rotated (or logged-out) token is being replayed — a strong theft
+ * signal — so the entire token family for that user is revoked.
+ *
+ * Returns null if the token is unknown, expired, reused, or the user is gone.
+ */
+export async function rotateRefreshToken(
+  oldToken: string,
+  ipAddress?: string,
+  userAgent?: string
+): Promise<{ user: typeof users.$inferSelect; newToken: string } | null> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const [tokenRecord] = await db
+    .select()
+    .from(refreshTokens)
+    .where(eq(refreshTokens.token, oldToken))
+    .limit(1);
+
+  if (!tokenRecord) {
+    return null;
+  }
+
+  // Reuse of a revoked token → treat as theft and kill the whole family.
+  if (tokenRecord.revoked) {
+    logSecurity.unauthorizedAccess(
+      "/auth/refresh",
+      tokenRecord.ipAddress || undefined
+    );
+    logger.error(
+      "Refresh token reuse detected — revoking all tokens for user",
+      {
+        tokenId: tokenRecord.id,
+        userId: tokenRecord.userId,
+      }
+    );
+    await revokeAllUserTokens(
+      tokenRecord.userId,
+      "Refresh token reuse detected"
+    );
+    return null;
+  }
+
+  if (tokenRecord.expiresAt < new Date()) {
+    return null;
+  }
+
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(
+      and(
+        eq(users.id, tokenRecord.userId),
+        eq(users.tenantId, tokenRecord.tenantId),
+        eq(users.isActive, true)
+      )
+    )
+    .limit(1);
+
+  if (!user) {
+    return null;
+  }
+
+  const newToken = nanoid(64);
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + REFRESH_TOKEN_EXPIRY_DAYS);
+
+  // Revoke the old token and insert the new one atomically.
+  await db.transaction(async tx => {
+    await tx
+      .update(refreshTokens)
+      .set({
+        revoked: true,
+        revokedAt: new Date(),
+        revokedReason: "Rotated on refresh",
+      })
+      .where(eq(refreshTokens.id, tokenRecord.id));
+
+    await tx.insert(refreshTokens).values({
+      token: newToken,
+      userId: tokenRecord.userId,
+      tenantId: tokenRecord.tenantId,
+      expiresAt,
+      ipAddress: ipAddress || null,
+      userAgent: userAgent || null,
+      revoked: false,
+    });
+  });
+
+  return { user, newToken };
+}
+
+/**
  * Cleanup expired and old revoked tokens
  * Should be run periodically (e.g., daily cron job)
  */
@@ -288,7 +401,7 @@ export async function cleanupExpiredTokens(): Promise<number> {
     )
   );
 
-  const count = result ? result.length : 0;
+  const count = affectedRowsOf(result);
 
   logger.info("Expired refresh tokens cleaned up", { count });
 

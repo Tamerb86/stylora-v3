@@ -148,27 +148,50 @@ export const logDebug = (
   logger.debug(message, context);
 };
 
+/**
+ * Mask an email for logs: keep the first character and the domain so events can
+ * still be correlated, without storing the full address in plaintext logs.
+ * e.g. "john.doe@example.com" -> "j***@example.com".
+ */
+const maskEmail = (email?: string): string | undefined => {
+  if (!email) return email;
+  const at = email.indexOf("@");
+  if (at <= 0) return "***";
+  return `${email[0]}***${email.slice(at)}`;
+};
+
 // Log authentication events
 export const logAuth = {
   loginSuccess: (email: string, ip?: string) => {
-    logger.info("Login successful", { email, ip, event: "auth.login.success" });
+    logger.info("Login successful", {
+      email: maskEmail(email),
+      ip,
+      event: "auth.login.success",
+    });
   },
   loginFailed: (email: string, reason: string, ip?: string) => {
     logger.warn("Login failed", {
-      email,
+      email: maskEmail(email),
       reason,
       ip,
       event: "auth.login.failed",
     });
   },
   logout: (email: string, ip?: string) => {
-    logger.info("User logged out", { email, ip, event: "auth.logout" });
+    logger.info("User logged out", {
+      email: maskEmail(email),
+      ip,
+      event: "auth.logout",
+    });
   },
   tokenExpired: (email?: string) => {
     logger.info("Session token expired", {
-      email,
+      email: maskEmail(email),
       event: "auth.token.expired",
     });
+  },
+  sessionInvalid: (reason: string) => {
+    logger.warn("Session invalid", { reason, event: "auth.session.invalid" });
   },
 };
 

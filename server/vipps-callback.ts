@@ -29,7 +29,9 @@
  */
 
 import type { Request, Response } from "express";
+import { timingSafeEqual } from "crypto";
 import * as db from "./db";
+import { ENV } from "./_core/env";
 import { getVippsPaymentDetails } from "./vipps";
 import { sendAppointmentConfirmationIfPossible } from "./notifications-appointments";
 
@@ -65,37 +67,49 @@ export async function handleVippsCallback(
   res: Response
 ): Promise<void> {
   try {
+    // Defense in depth: if a callback auth token is configured, the incoming
+    // request must carry the matching Authorization header. The body is never
+    // trusted for state regardless (see below), but this rejects forged pings.
+    if (!verifyVippsCallback(req)) {
+      console.error("[Vipps Callback] Rejected: invalid Authorization header");
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
     const payload: VippsCallbackPayload = req.body;
 
-    console.log(
-      "[Vipps Callback] Received callback:",
-      JSON.stringify(payload, null, 2)
-    );
-
-    // Validate payload
-    if (!payload.orderId || !payload.transactionInfo) {
-      console.error(
-        "[Vipps Callback] Invalid payload: missing orderId or transactionInfo"
-      );
+    // We only ever read orderId from the body — purely as a lookup key. ALL
+    // payment state (status, amount) is taken from an authenticated
+    // server-to-server fetch against Vipps, so a forged/replayed callback body
+    // cannot mark a payment paid or tamper with the amount.
+    if (!payload || !payload.orderId) {
+      console.error("[Vipps Callback] Invalid payload: missing orderId");
       res.status(400).json({ error: "Invalid callback payload" });
       return;
     }
 
-    const { orderId, transactionInfo } = payload;
-    const { status, transactionId, amount } = transactionInfo;
+    const { orderId } = payload;
 
-    // Get full payment details from Vipps to verify
+    // Authoritative payment details from Vipps. This is the ONLY source of truth.
+    // If we cannot verify with Vipps, we must NOT mutate any state.
     let paymentDetails;
     try {
       paymentDetails = await getVippsPaymentDetails(orderId);
-      console.log(
-        "[Vipps Callback] Payment details:",
-        JSON.stringify(paymentDetails, null, 2)
-      );
     } catch (error) {
-      console.error("[Vipps Callback] Failed to get payment details:", error);
-      // Continue anyway, use callback data
+      console.error("[Vipps Callback] Failed to verify with Vipps:", error);
+      // 503 so Vipps retries later; we never fall back to trusting the body.
+      res.status(503).json({ error: "Could not verify payment with Vipps" });
+      return;
     }
+
+    if (!paymentDetails?.transactionInfo) {
+      console.error("[Vipps Callback] Vipps returned no transactionInfo");
+      res.status(502).json({ error: "Invalid response from Vipps" });
+      return;
+    }
+
+    // Source of truth — derived from Vipps, never from req.body.
+    const { status, transactionId, amount } = paymentDetails.transactionInfo;
 
     // Find payment record in database by gatewaySessionId (vippsOrderId)
     const dbInstance = await db.getDb();
@@ -132,12 +146,23 @@ export async function handleVippsCallback(
 
     switch (status) {
       case "RESERVE":
-      case "SALE":
-        // Payment successful (reserved or captured)
+      case "SALE": {
+        // Payment successful (reserved or captured) — but only if the amount
+        // Vipps reserved/captured covers what we actually expect. payment.amount
+        // is stored in NOK; Vipps amounts are in øre.
+        const expectedOre = Math.round(Number(payment.amount) * 100);
+        if (!Number.isFinite(expectedOre) || amount < expectedOre) {
+          console.error(
+            `[Vipps Callback] Amount mismatch for ${orderId}: Vipps=${amount} øre, expected>=${expectedOre} øre. Not confirming.`
+          );
+          newPaymentStatus = "failed";
+          break;
+        }
         newPaymentStatus = "completed";
         shouldConfirmAppointment = true;
         console.log(`[Vipps Callback] Payment ${status}: marking as completed`);
         break;
+      }
 
       case "CANCEL":
       case "VOID":
@@ -174,7 +199,7 @@ export async function handleVippsCallback(
             vippsStatus: status,
             vippsTransactionId: transactionId,
             vippsAmount: amount,
-            vippsTimestamp: transactionInfo.timeStamp,
+            vippsTimestamp: paymentDetails.transactionInfo.timeStamp,
             callbackReceived: new Date().toISOString(),
           },
           processedAt: new Date(),
@@ -193,7 +218,13 @@ export async function handleVippsCallback(
         .from(appointments)
         .where(eq(appointments.id, payment.appointmentId));
 
-      if (appointment && appointment.status !== "canceled") {
+      // Only act on a real transition into "confirmed". This makes the handler
+      // idempotent so Vipps retries / replayed callbacks don't re-send emails.
+      if (
+        appointment &&
+        appointment.status !== "canceled" &&
+        appointment.status !== "confirmed"
+      ) {
         // Update appointment to confirmed
         await dbInstance
           .update(appointments)
@@ -235,20 +266,28 @@ export async function handleVippsCallback(
 }
 
 /**
- * Verify Vipps callback authenticity (optional but recommended)
+ * Verify Vipps callback authenticity.
  *
- * Vipps includes an Authorization header with the callback request.
- * You can verify this matches your access token to ensure the callback is genuine.
+ * If VIPPS_CALLBACK_AUTH_TOKEN is configured, Vipps must echo it back in the
+ * callback's Authorization header (set it as the `Authorization` value when
+ * initiating the payment). The comparison is constant-time.
  *
- * Note: This is optional as Vipps callbacks come from known IP ranges.
- * For production, consider implementing IP whitelisting or token verification.
+ * If no token is configured, this returns true and the handler relies solely
+ * on the authenticated server-to-server fetch of payment details as its source
+ * of truth — a forged callback body still cannot change any payment state.
  */
 export function verifyVippsCallback(req: Request): boolean {
-  // TODO: Implement callback verification if needed
-  // For now, we trust callbacks from Vipps
-  // In production, you may want to:
-  // 1. Check the Authorization header matches your access token
-  // 2. Whitelist Vipps IP addresses
-  // 3. Use HTTPS only
-  return true;
+  const expected = ENV.vippsCallbackAuthToken;
+  if (!expected) {
+    return true; // Not configured — fall back to fetch-as-source-of-truth.
+  }
+
+  const provided = req.headers["authorization"];
+  if (typeof provided !== "string" || provided.length === 0) {
+    return false;
+  }
+
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
 }

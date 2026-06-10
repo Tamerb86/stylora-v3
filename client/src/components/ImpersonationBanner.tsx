@@ -18,23 +18,13 @@ export function ImpersonationBanner() {
       // Clear all caches
       utils.invalidate();
       await utils.client.resetQueries();
-      
+
       toast.success("Impersonasjon avsluttet");
-      
-      // Attempt to restore admin token if available
-      const adminToken = localStorage.getItem("admin-token-backup");
-      if (adminToken) {
-        // Clear the backup
-        localStorage.removeItem("admin-token-backup");
-        // Set the admin cookie back
-        document.cookie = `stylora-session=${adminToken}; path=/; max-age=2592000`; // 30 days
-        
-        // Reload to admin panel
-        window.location.href = "/saas-admin";
-      } else {
-        // Force re-login - redirect to home
-        window.location.href = data.redirectUrl;
-      }
+
+      // Return-from-impersonation is handled entirely server-side (the mutation
+      // restores the admin session cookie). Never stash a privileged token in
+      // localStorage or re-create a session cookie from client JS.
+      window.location.href = data.redirectUrl;
     },
     onError: error => {
       toast.error(`Feil ved avslutning: ${error.message}`);

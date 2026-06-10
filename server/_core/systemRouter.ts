@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { sql } from "drizzle-orm";
 import { notifyOwner } from "./notification";
 import { adminProcedure, publicProcedure, protectedProcedure, router } from "./trpc";
 import { ENV } from "./env";
@@ -24,7 +25,7 @@ export const systemRouter = router({
     let dbError = null;
     try {
       if (dbInstance) {
-        await dbInstance.execute(db.sql`SELECT 1`);
+        await dbInstance.execute(sql`SELECT 1`);
         dbConnected = true;
       }
     } catch (error) {

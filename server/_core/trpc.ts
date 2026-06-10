@@ -2,6 +2,7 @@ import { NOT_ADMIN_ERR_MSG, UNAUTHED_ERR_MSG } from "@shared/const";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import type { TrpcContext } from "./context";
+import { logger } from "./logger";
 
 const t = initTRPC.context<TrpcContext>().create({
   transformer: superjson,
@@ -25,7 +26,27 @@ const requireUser = t.middleware(async opts => {
   });
 });
 
-export const protectedProcedure = t.procedure.use(requireUser);
+// Audit (do not block) every write performed while impersonating, so each
+// change is attributable to the acting platform admin. Impersonation is used
+// by support to fix tenant data, so writes must still be allowed.
+const auditImpersonatedWrites = t.middleware(async opts => {
+  const { ctx, next, type, path } = opts;
+
+  if (type === "mutation" && ctx.user?.isImpersonating) {
+    logger.warn("Mutation performed during impersonation", {
+      event: "impersonation.write",
+      actingOpenId: ctx.user.openId,
+      targetTenantId: ctx.user.tenantId,
+      procedure: path,
+    });
+  }
+
+  return next();
+});
+
+export const protectedProcedure = t.procedure
+  .use(requireUser)
+  .use(auditImpersonatedWrites);
 
 export const adminProcedure = t.procedure.use(
   t.middleware(async opts => {

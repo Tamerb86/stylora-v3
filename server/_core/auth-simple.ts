@@ -105,6 +105,12 @@ class AuthService {
         return null;
       }
 
+      // Reject tokens minted for a different app/deployment (defense in depth).
+      if (ENV.appId && appId !== ENV.appId) {
+        logAuth.sessionInvalid("appId mismatch");
+        return null;
+      }
+
       return {
         openId,
         appId,

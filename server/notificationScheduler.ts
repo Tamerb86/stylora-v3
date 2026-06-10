@@ -19,7 +19,31 @@ import { and, eq, gte, lte, sql } from "drizzle-orm";
 /**
  * Check for appointments that need reminders and send SMS
  */
+// Module-level scheduler state: prevents double-start and overlapping runs.
+let schedulerHandle: ReturnType<typeof setInterval> | null = null;
+let isRunning = false;
+
 export async function processAppointmentReminders(): Promise<{
+  processed: number;
+  sent: number;
+  failed: number;
+}> {
+  // Skip if a previous run is still in flight (avoids duplicate sends when a
+  // run takes longer than the interval).
+  if (isRunning) {
+    console.log("[Scheduler] Previous run still in progress — skipping tick");
+    return { processed: 0, sent: 0, failed: 0 };
+  }
+  isRunning = true;
+
+  try {
+    return await runAppointmentReminders();
+  } finally {
+    isRunning = false;
+  }
+}
+
+async function runAppointmentReminders(): Promise<{
   processed: number;
   sent: number;
   failed: number;
@@ -52,9 +76,11 @@ export async function processAppointmentReminders(): Promise<{
       .innerJoin(users, eq(appointments.employeeId, users.id))
       .where(
         and(
-          // Appointment is in the reminder window
-          gte(appointments.appointmentDate, reminderStart),
-          lte(appointments.appointmentDate, reminderEnd),
+          // appointmentDate is a DATE column, so narrow by DATE bounds only.
+          // The exact 23-25h window is enforced per-row in JS below, combining
+          // appointmentDate + startTime (which a date-only compare cannot do).
+          gte(appointments.appointmentDate, sql`DATE(${reminderStart})`),
+          lte(appointments.appointmentDate, sql`DATE(${reminderEnd})`),
           // Appointment is confirmed or pending (not canceled/completed)
           sql`${appointments.status} IN ('confirmed', 'pending')`,
           // Customer has a phone number
@@ -72,10 +98,25 @@ export async function processAppointmentReminders(): Promise<{
 
     for (const record of upcomingAppointments) {
       const { appointment, customer } = record;
+
+      // Combine the date-only appointmentDate with startTime to get the real
+      // appointment start, then keep only those within the 23-25h window.
+      const aptDateTime = new Date(appointment.appointmentDate);
+      const [aptHours, aptMinutes] = String(appointment.startTime)
+        .split(":")
+        .map(Number);
+      aptDateTime.setHours(aptHours, aptMinutes, 0, 0);
+
+      if (aptDateTime < reminderStart || aptDateTime > reminderEnd) {
+        continue;
+      }
+
       processed++;
 
-      // Check if reminder was already sent
-      // We check by recipientId (customer) and scheduledAt within 24h window
+      // Dedup per appointment occurrence: we record scheduledAt as the exact
+      // appointment start (below), so an existing 'sent' reminder with the same
+      // scheduledAt uniquely identifies this appointment and prevents the
+      // hourly job from re-sending across overlapping runs.
       const existingNotification = await db
         .select()
         .from(notifications)
@@ -86,8 +127,7 @@ export async function processAppointmentReminders(): Promise<{
             eq(notifications.notificationType, "sms"),
             eq(notifications.template, "appointment_reminder_24h"),
             eq(notifications.status, "sent"),
-            gte(notifications.scheduledAt, reminderStart),
-            lte(notifications.scheduledAt, reminderEnd)
+            eq(notifications.scheduledAt, aptDateTime)
           )
         )
         .limit(1);
@@ -134,7 +174,9 @@ export async function processAppointmentReminders(): Promise<{
         subject: "Appointment Reminder",
         content: message,
         status: result.success ? "sent" : "failed",
-        scheduledAt: new Date(),
+        // Record the appointment start as scheduledAt so the dedup check above
+        // can uniquely match this occurrence on subsequent hourly runs.
+        scheduledAt: aptDateTime,
         sentAt: result.success ? new Date() : null,
         errorMessage: result.error || null,
         attempts: 1,
@@ -169,6 +211,12 @@ export async function processAppointmentReminders(): Promise<{
  * Runs every hour
  */
 export function startNotificationScheduler() {
+  // Guard against double-start (e.g. multiple server.listen callers).
+  if (schedulerHandle) {
+    console.log("[Scheduler] Notification scheduler already running — skipping");
+    return;
+  }
+
   console.log("[Scheduler] Starting notification scheduler...");
 
   // Run immediately on startup
@@ -178,7 +226,7 @@ export function startNotificationScheduler() {
 
   // Then run every hour
   const intervalMs = 60 * 60 * 1000; // 1 hour
-  setInterval(() => {
+  schedulerHandle = setInterval(() => {
     processAppointmentReminders().catch(error => {
       console.error("[Scheduler] Error in scheduled run:", error);
     });
