@@ -8538,8 +8538,10 @@ export const appRouter = router({
                   errorMessage: result.resultErrorMessage || "Payment failed",
                 });
               } else if (result.resultStatus === "CANCELED") {
+                // payments.status has no "cancelled" value; a canceled terminal
+                // payment never completed, so record it as failed.
                 await db.updatePayment(payment.id, {
-                  status: "cancelled",
+                  status: "failed",
                   errorMessage: result.resultErrorMessage || "Payment canceled",
                 });
               }
