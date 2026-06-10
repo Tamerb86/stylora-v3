@@ -70,16 +70,8 @@ export default function SaasAdminTenants() {
 
   const impersonateMutation = trpc.saasAdmin.impersonateTenant.useMutation({
     onSuccess: async result => {
-      // Store the current admin token before switching
-      const currentToken = document.cookie
-        .split("; ")
-        .find(row => row.startsWith("stylora-session="))
-        ?.split("=")[1];
-      
-      if (currentToken) {
-        // Store admin token in localStorage for restoration
-        localStorage.setItem("admin-token-backup", currentToken);
-      }
+      // The admin session is preserved server-side and restored on exit; do not
+      // stash session tokens in localStorage (the real cookie is httpOnly).
 
       // Clear all tRPC/ReactQuery caches to prevent stale admin data
       utils.invalidate();
