@@ -11779,25 +11779,6 @@ export const appRouter = router({
         );
       }),
 
-    // Restore from SQL backup
-    restoreSQL: adminProcedure
-      .input(
-        z.object({
-          fileContent: z.string(),
-          fileName: z.string(),
-        })
-      )
-      .mutation(async ({ ctx, input }) => {
-        const { restoreFromSQL } = await import("./import");
-        const fileBuffer = Buffer.from(input.fileContent, "base64");
-        return restoreFromSQL(
-          ctx.tenantId,
-          fileBuffer,
-          input.fileName,
-          ctx.user.id
-        );
-      }),
-
     // List all imports
     list: adminProcedure.query(async ({ ctx }) => {
       const { listImports } = await import("./import");
