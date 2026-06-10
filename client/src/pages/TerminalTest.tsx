@@ -149,7 +149,7 @@ export default function TerminalTest() {
     updateTest("API-nøkkel konfigurasjon", { status: "running" });
     const start4 = Date.now();
     try {
-      if (paymentSettings?.stripePublishableKey || stripeStatus?.connected) {
+      if ((paymentSettings as any)?.stripePublishableKey || stripeStatus?.connected) {
         updateTest("API-nøkkel konfigurasjon", { 
           status: "success", 
           message: "API-nøkler konfigurert",

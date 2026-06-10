@@ -745,6 +745,7 @@ function DashboardLayoutContent({
                   if (isSimpleMode && item.advancedOnly) return false;
                   // Filter out admin-only items for non-admins
                   if (
+                    "adminOnly" in item &&
                     item.adminOnly &&
                     user?.role !== "admin" &&
                     user?.role !== "owner"

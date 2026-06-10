@@ -162,11 +162,11 @@ async function uploadToS3(
 
   await s3Client.send(command);
 
-  // Get file size
-  const { size } = await execAsync(
+  // Get file size (stat writes the byte count to stdout)
+  const { stdout: sizeOut } = await execAsync(
     `stat -f%z ${localPath} || stat -c%s ${localPath}`
   );
-  const fileSize = parseInt(size.trim(), 10);
+  const fileSize = parseInt(sizeOut.trim(), 10);
 
   // Clean up local file
   unlinkSync(localPath);

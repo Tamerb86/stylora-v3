@@ -111,7 +111,7 @@ export default function POS() {
   const { data: printSettings } =
     trpc.salonSettings.getPrintSettings.useQuery();
   // iZettle reader links removed - using Stripe Terminal instead
-  const readerLinks = { links: [] };
+  const readerLinks: { links: Array<{ linkId: string }> } = { links: [] };
 
   // Auto-select first Reader Link if available
   useEffect(() => {
