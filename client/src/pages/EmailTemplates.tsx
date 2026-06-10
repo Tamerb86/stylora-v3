@@ -476,19 +476,28 @@ export function EmailTemplates() {
                   <p className="text-sm font-medium">Emne:</p>
                   <p className="text-lg">{subject || "(Ingen emne)"}</p>
                 </div>
-                <div
-                  className="bg-white p-4 rounded border"
-                  dangerouslySetInnerHTML={{
-                    __html: bodyHtml
-                      .replace(/{{primaryColor}}/g, primaryColor)
-                      .replace(/{{secondaryColor}}/g, secondaryColor)
-                      .replace(/{{customerName}}/g, "Test Kunde")
-                      .replace(/{{salonName}}/g, "Din Salong")
-                      .replace(/{{appointmentDate}}/g, "15. desember 2024")
-                      .replace(/{{appointmentTime}}/g, "14:00")
-                      .replace(/{{serviceName}}/g, "Herreklipp")
-                      .replace(/{{employeeName}}/g, "Stylist Test"),
-                  }}
+                {/*
+                  Render the template in a fully sandboxed iframe (no
+                  allow-scripts) instead of dangerouslySetInnerHTML. bodyHtml is
+                  attacker-controllable (stored per tenant), so any <script> or
+                  inline event handler in it must never execute in this app's
+                  origin. The sandbox neutralizes scripts while still rendering
+                  the HTML/CSS preview.
+                */}
+                <iframe
+                  title="E-postforhåndsvisning"
+                  sandbox=""
+                  className="bg-white rounded border w-full"
+                  style={{ height: 500 }}
+                  srcDoc={bodyHtml
+                    .replace(/{{primaryColor}}/g, primaryColor)
+                    .replace(/{{secondaryColor}}/g, secondaryColor)
+                    .replace(/{{customerName}}/g, "Test Kunde")
+                    .replace(/{{salonName}}/g, "Din Salong")
+                    .replace(/{{appointmentDate}}/g, "15. desember 2024")
+                    .replace(/{{appointmentTime}}/g, "14:00")
+                    .replace(/{{serviceName}}/g, "Herreklipp")
+                    .replace(/{{employeeName}}/g, "Stylist Test")}
                 />
               </div>
             </TabsContent>
