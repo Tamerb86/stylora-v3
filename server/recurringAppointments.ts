@@ -5,7 +5,7 @@
 
 import { getDb } from "./db";
 import { appointments, recurrenceRules } from "../drizzle/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, gte, sql } from "drizzle-orm";
 
 export type RecurrenceFrequency = "weekly" | "biweekly" | "monthly";
 
@@ -181,16 +181,16 @@ export async function updateRecurringSeries(
     throw new Error("Database not available");
   }
 
-  // Update all future appointments in the series
-  const now = new Date();
-
+  // Update all future appointments in the series. appointmentDate is a DATE
+  // column, so match by date (today and later) — comparing it to a timestamped
+  // `new Date()` matched nothing and silently updated zero rows.
   await db
     .update(appointments)
     .set(updates)
     .where(
       and(
         eq(appointments.recurrenceRuleId, ruleId),
-        eq(appointments.appointmentDate, now)
+        gte(appointments.appointmentDate, sql`CURDATE()`)
       )
     );
 }
@@ -213,9 +213,9 @@ export async function cancelRecurringSeries(
     .set({ isActive: false })
     .where(eq(recurrenceRules.id, ruleId));
 
-  // Cancel all future appointments
-  const now = new Date();
-
+  // Cancel all future appointments. appointmentDate is a DATE column, so match
+  // by date (today and later); the previous eq(appointmentDate, new Date())
+  // matched nothing, leaving future bookings orphaned after a series cancel.
   await db
     .update(appointments)
     .set({
@@ -227,7 +227,7 @@ export async function cancelRecurringSeries(
     .where(
       and(
         eq(appointments.recurrenceRuleId, ruleId),
-        eq(appointments.appointmentDate, now),
+        gte(appointments.appointmentDate, sql`CURDATE()`),
         eq(appointments.status, "confirmed")
       )
     );

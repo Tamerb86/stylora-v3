@@ -52,9 +52,11 @@ export async function processAppointmentReminders(): Promise<{
       .innerJoin(users, eq(appointments.employeeId, users.id))
       .where(
         and(
-          // Appointment is in the reminder window
-          gte(appointments.appointmentDate, reminderStart),
-          lte(appointments.appointmentDate, reminderEnd),
+          // appointmentDate is a DATE column, so narrow by DATE bounds only.
+          // The exact 23-25h window is enforced per-row in JS below, combining
+          // appointmentDate + startTime (which a date-only compare cannot do).
+          gte(appointments.appointmentDate, sql`DATE(${reminderStart})`),
+          lte(appointments.appointmentDate, sql`DATE(${reminderEnd})`),
           // Appointment is confirmed or pending (not canceled/completed)
           sql`${appointments.status} IN ('confirmed', 'pending')`,
           // Customer has a phone number
@@ -72,10 +74,25 @@ export async function processAppointmentReminders(): Promise<{
 
     for (const record of upcomingAppointments) {
       const { appointment, customer } = record;
+
+      // Combine the date-only appointmentDate with startTime to get the real
+      // appointment start, then keep only those within the 23-25h window.
+      const aptDateTime = new Date(appointment.appointmentDate);
+      const [aptHours, aptMinutes] = String(appointment.startTime)
+        .split(":")
+        .map(Number);
+      aptDateTime.setHours(aptHours, aptMinutes, 0, 0);
+
+      if (aptDateTime < reminderStart || aptDateTime > reminderEnd) {
+        continue;
+      }
+
       processed++;
 
-      // Check if reminder was already sent
-      // We check by recipientId (customer) and scheduledAt within 24h window
+      // Dedup per appointment occurrence: we record scheduledAt as the exact
+      // appointment start (below), so an existing 'sent' reminder with the same
+      // scheduledAt uniquely identifies this appointment and prevents the
+      // hourly job from re-sending across overlapping runs.
       const existingNotification = await db
         .select()
         .from(notifications)
@@ -86,8 +103,7 @@ export async function processAppointmentReminders(): Promise<{
             eq(notifications.notificationType, "sms"),
             eq(notifications.template, "appointment_reminder_24h"),
             eq(notifications.status, "sent"),
-            gte(notifications.scheduledAt, reminderStart),
-            lte(notifications.scheduledAt, reminderEnd)
+            eq(notifications.scheduledAt, aptDateTime)
           )
         )
         .limit(1);
@@ -134,7 +150,9 @@ export async function processAppointmentReminders(): Promise<{
         subject: "Appointment Reminder",
         content: message,
         status: result.success ? "sent" : "failed",
-        scheduledAt: new Date(),
+        // Record the appointment start as scheduledAt so the dedup check above
+        // can uniquely match this occurrence on subsequent hourly runs.
+        scheduledAt: aptDateTime,
         sentAt: result.success ? new Date() : null,
         errorMessage: result.error || null,
         attempts: 1,
