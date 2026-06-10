@@ -938,7 +938,7 @@ export default function Onboarding() {
                     <div className="space-y-2">
                       <h3 className="font-semibold">
                         {t("onboarding.employees.employeeList", {
-                          count: `${onboardingData.employees.length}/10`,
+                          count: onboardingData.employees.length,
                         })}
                       </h3>
                       {onboardingData.employees.map(emp => (
@@ -1138,7 +1138,7 @@ export default function Onboarding() {
                     <div className="space-y-2">
                       <h3 className="font-semibold">
                         {t("onboarding.services.serviceList", {
-                          count: `${onboardingData.services.length}/20`,
+                          count: onboardingData.services.length,
                         })}
                       </h3>
                       {onboardingData.services.map(svc => (

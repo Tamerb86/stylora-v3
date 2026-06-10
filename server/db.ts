@@ -464,6 +464,8 @@ export async function getOrderById(orderId: number, tenantId: string) {
       customerId: orders.customerId,
       employeeId: orders.employeeId,
       appointmentId: orders.appointmentId,
+      orderDate: orders.orderDate,
+      orderTime: orders.orderTime,
       subtotal: orders.subtotal,
       vatAmount: orders.vatAmount,
       total: orders.total,

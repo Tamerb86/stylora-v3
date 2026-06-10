@@ -579,7 +579,7 @@ export default function Appointments() {
                           {t("appointments.recurringPreviewDate", { start: selectedDate, end: recurringEndDate })}
                         </p>
                       ) : recurringEndType === "count" && recurringCount ? (
-                        <p>{t("appointments.recurringPreviewCount", { count: recurringCount })}</p>
+                        <p>{t("appointments.recurringPreviewCount", { count: Number(recurringCount) })}</p>
                       ) : (
                         <p>{t("appointments.selectEndOption")}</p>
                       )}
