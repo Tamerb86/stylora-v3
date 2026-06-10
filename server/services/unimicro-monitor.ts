@@ -21,7 +21,7 @@ import { unimicroSyncLog } from "../../drizzle/schema";
 export interface SyncMetrics {
   totalSyncs: number;
   successfulSyncs: number;
-  failedSyncs: number;
+  failedCount: number;
   successRate: number;
   averageDuration: number;
   lastSyncTime: Date | null;
@@ -75,7 +75,7 @@ export async function getUnimicroSyncMetrics(
       return {
         totalSyncs: 0,
         successfulSyncs: 0,
-        failedSyncs: 0,
+        failedCount: 0,
         successRate: 0,
         averageDuration: 0,
         lastSyncTime: null,
@@ -93,7 +93,7 @@ export async function getUnimicroSyncMetrics(
     return {
       totalSyncs: syncLogs.length,
       successfulSyncs,
-      failedSyncs,
+      failedCount: failedSyncs,
       successRate:
         syncLogs.length > 0 ? (successfulSyncs / syncLogs.length) * 100 : 0,
       averageDuration: averageDurationSeconds(syncLogs),
@@ -317,7 +317,7 @@ export async function getSyncStatsByType(
       result[type] = {
         totalSyncs: logs.length,
         successfulSyncs,
-        failedSyncs,
+        failedCount: failedSyncs,
         successRate:
           logs.length > 0 ? (successfulSyncs / logs.length) * 100 : 0,
         averageDuration: averageDurationSeconds(logs),

@@ -377,7 +377,7 @@ export const monitoringRouter = router({
             input.recipientEmail,
             emailMetrics.successRate,
             emailMetrics.totalSent,
-            emailMetrics.failedCount
+            emailMetrics.failed
           );
           if (sent) alertsSent.push("email_delivery");
         }
@@ -390,7 +390,7 @@ export const monitoringRouter = router({
             input.recipientEmail,
             smsMetrics.successRate,
             smsMetrics.totalSent,
-            smsMetrics.failedCount
+            smsMetrics.failed
           );
           if (sent) alertsSent.push("sms_delivery");
         }

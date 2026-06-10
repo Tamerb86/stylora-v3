@@ -245,25 +245,42 @@ export async function getAppointmentById(
 
 export async function globalSearch(tenantId: string, query: string) {
   const db = await getDb();
-  if (!db) return { customers: [], appointments: [], services: [] };
+  if (!db)
+    return { customers: [], appointments: [], orders: [], services: [] };
 
   const term = `%${query}%`;
+  const { orders, users } = await import("../drizzle/schema");
 
   const customerResults = await db
     .select()
     .from(customers)
     .where(
-      and(
-        eq(customers.tenantId, tenantId),
-        like(customers.firstName, term)
-      )
+      and(eq(customers.tenantId, tenantId), like(customers.firstName, term))
     )
     .limit(5);
 
+  // Appointments matched by customer name, with customer + employee attached
+  // so the UI can show "<customer> • <employee>".
   const appointmentResults = await db
-    .select()
+    .select({
+      appointment: appointments,
+      customer: customers,
+      employee: users,
+    })
     .from(appointments)
-    .where(eq(appointments.tenantId, tenantId))
+    .leftJoin(customers, eq(appointments.customerId, customers.id))
+    .leftJoin(users, eq(appointments.employeeId, users.id))
+    .where(
+      and(eq(appointments.tenantId, tenantId), like(customers.firstName, term))
+    )
+    .limit(5);
+
+  // Orders matched by customer name, with the customer attached.
+  const orderResults = await db
+    .select({ order: orders, customer: customers })
+    .from(orders)
+    .leftJoin(customers, eq(orders.customerId, customers.id))
+    .where(and(eq(orders.tenantId, tenantId), like(customers.firstName, term)))
     .limit(5);
 
   const serviceResults = await db
@@ -275,6 +292,7 @@ export async function globalSearch(tenantId: string, query: string) {
   return {
     customers: customerResults,
     appointments: appointmentResults,
+    orders: orderResults,
     services: serviceResults,
   };
 }
