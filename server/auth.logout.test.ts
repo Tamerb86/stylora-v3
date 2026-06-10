@@ -57,7 +57,8 @@ describe("auth.logout", () => {
     expect(clearedCookies[0]?.options).toMatchObject({
       maxAge: -1,
       secure: true,
-      sameSite: "none",
+      // Lax (not None) — see getSessionCookieOptions; CSRF hardening (#17).
+      sameSite: "lax",
       httpOnly: true,
       path: "/",
     });

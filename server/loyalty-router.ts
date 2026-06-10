@@ -12,6 +12,7 @@ import {
 } from "../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import { deductPoints } from "./loyalty";
 
 export const loyaltyRouter = router({
   // Get customer's current points balance
@@ -214,45 +215,28 @@ export const loyaltyRouter = router({
         });
       }
 
-      // Get customer's current points
-      const [loyaltyRecord] = await dbInstance
-        .select()
-        .from(loyaltyPoints)
-        .where(
-          and(
-            eq(loyaltyPoints.tenantId, input.tenantId),
-            eq(loyaltyPoints.customerId, customer.id)
-          )
-        )
-        .limit(1);
-
-      if (!loyaltyRecord || loyaltyRecord.currentPoints < reward.pointsCost) {
+      // Atomically deduct the reward cost. deductPoints guards against
+      // double-spend (WHERE currentPoints >= cost) and records the ledger
+      // entry in a transaction; it throws "Insufficient points" if the balance
+      // is too low.
+      let deduction;
+      try {
+        deduction = await deductPoints(
+          input.tenantId,
+          customer.id,
+          reward.pointsCost,
+          `Redeemed reward: ${reward.name}`,
+          "redeem",
+          "reward",
+          reward.id
+        );
+      } catch (e) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: `Insufficient points. You need ${reward.pointsCost} points but have ${loyaltyRecord?.currentPoints || 0}.`,
+          message:
+            e instanceof Error ? e.message : "Insufficient points",
         });
       }
-
-      // Deduct points
-      await dbInstance
-        .update(loyaltyPoints)
-        .set({
-          currentPoints: loyaltyRecord.currentPoints - reward.pointsCost,
-        })
-        .where(eq(loyaltyPoints.id, loyaltyRecord.id));
-
-      // Create transaction record
-      const [transaction] = await dbInstance
-        .insert(loyaltyTransactions)
-        .values({
-          tenantId: input.tenantId,
-          customerId: customer.id,
-          type: "redeem",
-          points: -reward.pointsCost,
-          reason: `Redeemed reward: ${reward.name}`,
-          referenceType: "reward",
-          referenceId: reward.id,
-        });
 
       // Create redemption record with unique code
       const redemptionCode = nanoid(12).toUpperCase();
@@ -263,7 +247,7 @@ export const loyaltyRouter = router({
         tenantId: input.tenantId,
         customerId: customer.id,
         rewardId: reward.id,
-        transactionId: transaction.insertId,
+        transactionId: deduction.transactionId,
         code: redemptionCode,
         status: "active",
         expiresAt,

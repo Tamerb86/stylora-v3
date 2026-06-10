@@ -27,10 +27,12 @@ import {
 import { nanoid } from "nanoid";
 import { eq, and, or, gte, lte, sql, desc } from "drizzle-orm";
 import { exportRouter } from "./export";
-// loyaltyRouter is intentionally not mounted — the live loyalty router is
-// defined inline in appRouter below. The hardened earnPoints in loyalty-router
-// remains available for a future, deliberate remount.
-// import { loyaltyRouter } from "./loyalty-router";
+// Customer-facing loyalty router. The staff-facing `loyalty` router is defined
+// inline in appRouter below; this one (mounted as `loyaltyCustomer`) exposes the
+// customer-authenticated procedures (resolve the logged-in customer, view
+// points/rewards/history, redeem). Keeping them as separate keys avoids the
+// duplicate-key shadowing that previously hid loyaltyRouter.
+import { loyaltyRouter } from "./loyalty-router";
 import { onboardingRouter } from "./routers/onboarding";
 import { monitoringRouter } from "./routers/monitoring";
 import { ENV } from "./_core/env";
@@ -155,10 +157,9 @@ const platformAdminProcedure = protectedProcedure.use(({ ctx, next }) => {
 export const appRouter = router({
   system: systemRouter,
   export: exportRouter,
-  // NOTE: the live `loyalty` router is defined inline further below. The
-  // previously duplicated `loyalty: loyaltyRouter` key here was shadowed (last
-  // key wins) and has been removed to avoid a duplicate-key landmine that could
-  // silently re-expose loyaltyRouter's procedures on a future reorder.
+  // Customer-facing loyalty API (distinct from the inline staff `loyalty`
+  // router defined further below — they intentionally have different keys).
+  loyaltyCustomer: loyaltyRouter,
   onboarding: onboardingRouter,
   monitoring: monitoringRouter,
 
