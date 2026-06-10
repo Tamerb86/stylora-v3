@@ -293,6 +293,9 @@ export const logSecurity = {
       event: "security.rate_limit.exceeded",
     });
   },
+  warn: (message: string, context?: Record<string, unknown>) => {
+    logger.warn(message, { ...context, event: "security.warn" });
+  },
   error: (message: string, context?: Record<string, unknown>) => {
     logger.error(message, { ...context, event: "security.error" });
   },

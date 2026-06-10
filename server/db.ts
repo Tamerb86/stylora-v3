@@ -405,7 +405,10 @@ export async function createPayment(paymentData: {
   return payment;
 }
 
-export async function updateOrderStatus(orderId: number, status: string) {
+export async function updateOrderStatus(
+  orderId: number,
+  status: "pending" | "completed" | "refunded" | "partially_refunded"
+) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
@@ -450,7 +453,7 @@ export async function getOrderById(orderId: number, tenantId: string) {
       notes: orders.notes,
       createdAt: orders.createdAt,
       updatedAt: orders.updatedAt,
-      customerName: customers.name,
+      customerName: sql<string>`CONCAT(${customers.firstName}, ' ', COALESCE(${customers.lastName}, ''))`,
       employeeName: users.name,
     })
     .from(orders)
@@ -478,7 +481,6 @@ export async function getOrderItems(orderId: number, tenantId: string) {
       quantity: orderItems.quantity,
       unitPrice: orderItems.unitPrice,
       vatRate: orderItems.vatRate,
-      vatAmount: orderItems.vatAmount,
       total: orderItems.total,
       serviceName: services.name,
       productName: products.name,

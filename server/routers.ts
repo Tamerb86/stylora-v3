@@ -47,7 +47,7 @@ const tenantProcedure = protectedProcedure.use(async ({ ctx, next }) => {
     throw new TRPCError({ 
       code: "FORBIDDEN", 
       message: "No tenant access",
-      data: { messageKey: "errors.noTenantAccess" }
+      cause: { messageKey: "errors.noTenantAccess" }
     });
   }
 
@@ -57,7 +57,7 @@ const tenantProcedure = protectedProcedure.use(async ({ ctx, next }) => {
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
       message: "Database not available",
-      data: { messageKey: "errors.databaseUnavailable" }
+      cause: { messageKey: "errors.databaseUnavailable" }
     });
   }
 
@@ -74,7 +74,7 @@ const tenantProcedure = protectedProcedure.use(async ({ ctx, next }) => {
     throw new TRPCError({ 
       code: "NOT_FOUND", 
       message: "Tenant not found",
-      data: { messageKey: "errors.tenantNotFound" }
+      cause: { messageKey: "errors.tenantNotFound" }
     });
   }
 
@@ -82,7 +82,7 @@ const tenantProcedure = protectedProcedure.use(async ({ ctx, next }) => {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "EMAIL_NOT_VERIFIED",
-      data: { messageKey: "errors.emailNotVerified" }
+      cause: { messageKey: "errors.emailNotVerified" }
     });
   }
 
@@ -100,7 +100,7 @@ const wizardProcedure = protectedProcedure.use(async ({ ctx, next }) => {
     throw new TRPCError({ 
       code: "FORBIDDEN", 
       message: "No tenant access",
-      data: { messageKey: "errors.noTenantAccess" }
+      cause: { messageKey: "errors.noTenantAccess" }
     });
   }
 
@@ -118,7 +118,7 @@ const adminProcedure = tenantProcedure.use(({ ctx, next }) => {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "Admin access required",
-      data: { messageKey: "errors.accessDenied" }
+      cause: { messageKey: "errors.accessDenied" }
     });
   }
   return next({ ctx });
