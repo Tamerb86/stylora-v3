@@ -530,6 +530,44 @@ export async function updatePayment(
 }
 
 // ============================================================================
+// REFUND HELPERS
+// ============================================================================
+
+/**
+ * List refunds for an order, scoped to the tenant.
+ */
+export async function getRefundsByOrder(orderId: number, tenantId: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const { refunds } = await import("../drizzle/schema");
+
+  return db
+    .select()
+    .from(refunds)
+    .where(and(eq(refunds.orderId, orderId), eq(refunds.tenantId, tenantId)))
+    .orderBy(desc(refunds.createdAt));
+}
+
+/**
+ * List refunds for a payment, scoped to the tenant.
+ */
+export async function getRefundsByPayment(paymentId: number, tenantId: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const { refunds } = await import("../drizzle/schema");
+
+  return db
+    .select()
+    .from(refunds)
+    .where(
+      and(eq(refunds.paymentId, paymentId), eq(refunds.tenantId, tenantId))
+    )
+    .orderBy(desc(refunds.createdAt));
+}
+
+// ============================================================================
 // NO-SHOW / APPOINTMENT STATS
 // ============================================================================
 

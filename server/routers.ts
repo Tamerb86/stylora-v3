@@ -3481,7 +3481,7 @@ export const appRouter = router({
         }
 
         const { payments, refunds, orders } = await import("../drizzle/schema");
-        const { eq, sum } = await import("drizzle-orm");
+        const { eq, and, sum } = await import("drizzle-orm");
 
         // Get original payment
         const [payment] = await dbInstance
@@ -3500,6 +3500,10 @@ export const appRouter = router({
         if (payment.tenantId !== ctx.tenantId) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
         }
+
+        // Use the order tied to the verified payment — never a client-supplied
+        // orderId, which could point at another tenant's order.
+        const orderId = payment.orderId;
 
         const originalAmount = parseFloat(payment.amount);
 
@@ -3525,7 +3529,7 @@ export const appRouter = router({
         const [refund] = await dbInstance.insert(refunds).values({
           tenantId: ctx.tenantId,
           paymentId: input.paymentId,
-          orderId: input.orderId,
+          orderId: orderId,
           amount: input.amount.toString(),
           reason: input.reason,
           refundMethod: input.refundMethod,
@@ -3534,18 +3538,25 @@ export const appRouter = router({
           processedAt: new Date(),
         });
 
-        // Update order status if fully refunded
+        // Update order status if fully refunded — tenant-scoped, and only when
+        // the payment is actually linked to an order.
         const newTotalRefunded = totalRefunded + input.amount;
-        if (Math.abs(newTotalRefunded - originalAmount) < 0.01) {
-          await dbInstance
-            .update(orders)
-            .set({ status: "refunded" })
-            .where(eq(orders.id, input.orderId));
-        } else if (newTotalRefunded > 0) {
-          await dbInstance
-            .update(orders)
-            .set({ status: "partially_refunded" })
-            .where(eq(orders.id, input.orderId));
+        if (orderId != null) {
+          if (Math.abs(newTotalRefunded - originalAmount) < 0.01) {
+            await dbInstance
+              .update(orders)
+              .set({ status: "refunded" })
+              .where(
+                and(eq(orders.id, orderId), eq(orders.tenantId, ctx.tenantId))
+              );
+          } else if (newTotalRefunded > 0) {
+            await dbInstance
+              .update(orders)
+              .set({ status: "partially_refunded" })
+              .where(
+                and(eq(orders.id, orderId), eq(orders.tenantId, ctx.tenantId))
+              );
+          }
         }
 
         // Update payment status
