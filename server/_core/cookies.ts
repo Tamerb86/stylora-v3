@@ -39,14 +39,17 @@ export function getSessionCookieOptions(
   //       ? hostname
   //       : undefined;
 
+  const secure = isSecureRequest(req);
+
   return {
     httpOnly: true,
     path: "/",
-    // "lax" (not "none") so the browser does not attach the session cookie to
-    // cross-site requests — this is the built-in CSRF defense. Subdomains of the
-    // same registrable domain are still same-site, so multi-tenant subdomain
-    // usage keeps working; only true cross-origin requests lose the cookie.
-    sameSite: "lax",
-    secure: isSecureRequest(req),
+    // Over HTTPS use SameSite=None so the session cookie is still sent on
+    // cross-site requests — required for the multi-tenant model where tenants
+    // may be served from custom domains / different origins than the API.
+    // Over plain HTTP (local dev) browsers REJECT SameSite=None unless Secure,
+    // so fall back to "lax", which works without Secure.
+    sameSite: secure ? "none" : "lax",
+    secure,
   };
 }
