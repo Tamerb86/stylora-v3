@@ -67,9 +67,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run TypeScript check (with increased memory)
-        run: NODE_OPTIONS='--max-old-space-size=4096' pnpm check || echo "⚠️ Type check has warnings but not blocking"
-        continue-on-error: true
+      - name: Run TypeScript check
+        run: pnpm check
 
   build:
     name: Build Application
@@ -105,7 +104,6 @@ jobs:
           name: build-artifacts
           path: |
             dist/
-            client/dist/
           retention-days: 7
 
   lint:
