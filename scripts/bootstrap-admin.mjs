@@ -59,10 +59,9 @@ try {
   }
 
   const tenantId = randomUUID();
-  const ownerOpenId =
-    process.env.OWNER_OPEN_ID && process.env.OWNER_OPEN_ID.length <= 64
-      ? process.env.OWNER_OPEN_ID
-      : `owner-${randomUUID()}`.slice(0, 64);
+  // A salon owner must get a UNIQUE openId — never OWNER_OPEN_ID, which the
+  // server treats as the platform super-admin (SaaS Admin) identity.
+  const ownerOpenId = `owner-${randomUUID()}`.slice(0, 64);
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
   await conn.beginTransaction();
