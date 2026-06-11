@@ -39,11 +39,13 @@ try {
   ];
 
   let total = 0;
+  let userCount = 0;
   for (const t of tables) {
     try {
       const [rows] = await conn.execute(`SELECT COUNT(*) AS c FROM \`${t}\``);
       const c = Number(rows[0].c);
       total += c;
+      if (t === "users") userCount = c;
       console.log(`  ${t.padEnd(14)} ${c}`);
     } catch (e) {
       console.log(`  ${t.padEnd(14)} (table missing: ${e.code || e.message})`);
@@ -53,15 +55,20 @@ try {
   console.log("");
   if (total === 0) {
     console.log(
-      "⚠️  Every table is empty → this is a fresh/empty database. Your data is\n" +
-        "    most likely intact in a DIFFERENT database. In Railway, check that the\n" +
-        "    app's DATABASE_URL variable points at the MySQL service that holds\n" +
-        "    your data (re-provisioning MySQL creates a new, empty one)."
+      "⚠️  Every table is empty → fresh/empty database. Either this is a brand-new\n" +
+        "    install (create the first account with scripts/bootstrap-admin.mjs), or\n" +
+        "    DATABASE_URL points at the wrong MySQL service (your data may be in\n" +
+        "    another database)."
+    );
+  } else if (userCount === 0) {
+    console.log(
+      "⚠️  There is data but no users → no account to log in with. Create one with\n" +
+        "    scripts/bootstrap-admin.mjs."
     );
   } else {
     console.log(
-      "ℹ️  Some tables have data but `users` is empty — that's unusual; tell me\n" +
-        "    the counts above and I'll help recover access."
+      `✅ ${userCount} user account(s) present — you can log in (reset a password\n` +
+        "    with scripts/reset-password.mjs if needed)."
     );
   }
 } finally {
