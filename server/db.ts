@@ -12,13 +12,17 @@ import {
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
-let _connection: mysql.Connection | null = null;
+let _pool: mysql.Pool | null = null;
 
 // ============================================================================
 // DATABASE CONNECTION
 // ============================================================================
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
+// Use a connection POOL, not a single connection. A single connection dies
+// permanently if MySQL closes it (idle timeout, restart, network blip) —
+// every later query then throws "Can't add new command when connection is in
+// closed state" until the process restarts. A pool transparently replaces dead
+// connections, so the app keeps working.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -27,17 +31,21 @@ export async function getDb() {
         process.env.DATABASE_URL.replace(/:\/\/.*@/, "://***@")
       );
 
-      _connection = await mysql.createConnection(process.env.DATABASE_URL);
-      await _connection.ping();
+      _pool = mysql.createPool({
+        uri: process.env.DATABASE_URL,
+        waitForConnections: true,
+        connectionLimit: 10,
+        enableKeepAlive: true,
+        keepAliveInitialDelay: 10000,
+      });
+      await _pool.query("SELECT 1"); // verify connectivity up front
 
       console.log("[Database] Connection successful");
-      // Cast away the $client Pool-vs-Connection variance (we use a single
-      // Connection); the query-builder typing is otherwise identical.
-      _db = drizzle(_connection) as unknown as ReturnType<typeof drizzle>;
+      _db = drizzle(_pool) as unknown as ReturnType<typeof drizzle>;
     } catch (error) {
       console.error("[Database] Failed to connect:", error);
       _db = null;
-      _connection = null;
+      _pool = null;
     }
   }
   return _db;
@@ -45,9 +53,9 @@ export async function getDb() {
 
 // Graceful shutdown
 export async function closeDb() {
-  if (_connection) {
-    await _connection.end();
-    _connection = null;
+  if (_pool) {
+    await _pool.end();
+    _pool = null;
     _db = null;
     console.log("[Database] Connection closed");
   }
