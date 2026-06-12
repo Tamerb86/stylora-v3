@@ -60,7 +60,7 @@ export default function WorkHoursReport() {
 
   // Fetch work hours report
   const { data: report, isLoading } =
-    trpc.timesheets.getEmployeeWorkReport.useQuery({
+    trpc.attendance.getEmployeeWorkReport.useQuery({
       employeeId: selectedEmployeeId,
       startDate,
       endDate,

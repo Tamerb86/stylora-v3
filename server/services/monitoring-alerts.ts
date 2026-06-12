@@ -220,7 +220,7 @@ Hvis du trenger hjelp, kontakt support@stylora.no
     const success = true;
 
     if (success) {
-      logSecurity(
+      logSecurity.warn(
         `Monitoring alert email sent: ${alert.severity} - ${alert.title}`,
         {
           tenantId,
@@ -229,7 +229,7 @@ Hvis du trenger hjelp, kontakt support@stylora.no
         }
       );
     } else {
-      logSecurity(`Failed to send monitoring alert email: ${alert.title}`, {
+      logSecurity.error(`Failed to send monitoring alert email: ${alert.title}`, {
         tenantId,
         component: alert.component,
         recipient: recipientEmail,
@@ -238,7 +238,7 @@ Hvis du trenger hjelp, kontakt support@stylora.no
 
     return success;
   } catch (error) {
-    logSecurity(`Error sending monitoring alert email: ${error}`, {
+    logSecurity.error(`Error sending monitoring alert email: ${error}`, {
       tenantId,
       alert: alert.title,
     });

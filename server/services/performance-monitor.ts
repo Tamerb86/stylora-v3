@@ -265,7 +265,7 @@ export async function getSMSMetricsByProvider(
     const byProvider: Record<string, any[]> = {};
     smsNotifications.forEach(notification => {
       // Assuming provider is stored in metadata
-      const provider = (notification.metadata as any)?.provider || "unknown";
+      const provider = (notification as any).metadata?.provider || "unknown";
       if (!byProvider[provider]) {
         byProvider[provider] = [];
       }

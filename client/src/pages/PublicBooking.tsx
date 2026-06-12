@@ -102,7 +102,7 @@ export default function PublicBooking() {
   // Get tenant ID from subdomain
   const { data: tenantData, isLoading: tenantLoading } =
     trpc.publicBooking.getTenantBySubdomain.useQuery(
-      { subdomain },
+      { subdomain: subdomain || "" },
       { enabled: !!subdomain }
     );
 
@@ -250,10 +250,20 @@ export default function PublicBooking() {
       return;
     }
 
+    // "Ingen preferanse" (no preference) → assign the first available employee,
+    // since an appointment must have a concrete staff member.
+    const resolvedEmployeeId = selectedEmployee ?? employees[0]?.id;
+    if (!resolvedEmployeeId) {
+      toast.error("Feil", {
+        description: "Ingen ansatt tilgjengelig for booking.",
+      });
+      return;
+    }
+
     const bookingData = {
       tenantId: TENANT_ID,
       serviceId: selectedService,
-      employeeId: selectedEmployee, // can be null (Ingen preferanse)
+      employeeId: resolvedEmployeeId,
       date: format(selectedDate, "yyyy-MM-dd"),
       time: selectedTime,
       customerInfo,

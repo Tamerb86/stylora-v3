@@ -6,17 +6,22 @@
  * - Error detection and logging
  * - Performance metrics
  * - Automated alerts for failures
+ *
+ * NOTE: unimicroSyncLog stores one row per completed sync with a pre-computed
+ * `duration` (ms) and the row's `createdAt` as the sync time. Earlier code
+ * referenced syncStartedAt/syncCompletedAt/syncType/recordsSynced columns that
+ * do not exist on the table; this module uses the real columns.
  */
 
 import { getDb } from "../db";
 import { logSecurity, logDb } from "../_core/logger";
-import { eq, and, gte, desc, sql } from "drizzle-orm";
+import { eq, and, gte, desc } from "drizzle-orm";
 import { unimicroSyncLog } from "../../drizzle/schema";
 
 export interface SyncMetrics {
   totalSyncs: number;
   successfulSyncs: number;
-  failedSyncs: number;
+  failedCount: number;
   successRate: number;
   averageDuration: number;
   lastSyncTime: Date | null;
@@ -30,6 +35,16 @@ export interface SyncAlert {
   tenantId: string;
   syncLogId?: number;
   details?: any;
+}
+
+type SyncLogRow = typeof unimicroSyncLog.$inferSelect;
+
+/** Average of the stored per-sync duration (ms), expressed in seconds. */
+function averageDurationSeconds(logs: SyncLogRow[]): number {
+  const withDuration = logs.filter(log => log.duration != null);
+  if (withDuration.length === 0) return 0;
+  const totalMs = withDuration.reduce((sum, log) => sum + (log.duration ?? 0), 0);
+  return Math.round((totalMs / withDuration.length / 1000) * 100) / 100;
 }
 
 /**
@@ -51,16 +66,16 @@ export async function getUnimicroSyncMetrics(
       .where(
         and(
           eq(unimicroSyncLog.tenantId, tenantId),
-          gte(unimicroSyncLog.syncStartedAt, cutoffTime)
+          gte(unimicroSyncLog.createdAt, cutoffTime)
         )
       )
-      .orderBy(desc(unimicroSyncLog.syncStartedAt));
+      .orderBy(desc(unimicroSyncLog.createdAt));
 
     if (syncLogs.length === 0) {
       return {
         totalSyncs: 0,
         successfulSyncs: 0,
-        failedSyncs: 0,
+        failedCount: 0,
         successRate: 0,
         averageDuration: 0,
         lastSyncTime: null,
@@ -73,33 +88,16 @@ export async function getUnimicroSyncMetrics(
     ).length;
     const failedSyncs = syncLogs.filter(log => log.status === "failed").length;
 
-    // Calculate average duration (only for completed syncs)
-    const completedSyncs = syncLogs.filter(
-      log => log.syncCompletedAt && log.syncStartedAt
-    );
-    const totalDuration = completedSyncs.reduce((sum, log) => {
-      if (log.syncCompletedAt && log.syncStartedAt) {
-        return (
-          sum + (log.syncCompletedAt.getTime() - log.syncStartedAt.getTime())
-        );
-      }
-      return sum;
-    }, 0);
-    const averageDuration =
-      completedSyncs.length > 0
-        ? totalDuration / completedSyncs.length / 1000 // Convert to seconds
-        : 0;
-
     const lastSync = syncLogs[0];
 
     return {
       totalSyncs: syncLogs.length,
       successfulSyncs,
-      failedSyncs,
+      failedCount: failedSyncs,
       successRate:
         syncLogs.length > 0 ? (successfulSyncs / syncLogs.length) * 100 : 0,
-      averageDuration: Math.round(averageDuration * 100) / 100,
-      lastSyncTime: lastSync.syncStartedAt,
+      averageDuration: averageDurationSeconds(syncLogs),
+      lastSyncTime: lastSync.createdAt,
       lastSyncStatus: lastSync.status,
     };
   } catch (error) {
@@ -166,7 +164,7 @@ export async function checkUnimicroSyncHealth(
       .select()
       .from(unimicroSyncLog)
       .where(eq(unimicroSyncLog.tenantId, tenantId))
-      .orderBy(desc(unimicroSyncLog.syncStartedAt))
+      .orderBy(desc(unimicroSyncLog.createdAt))
       .limit(5);
 
     const consecutiveFailures = recentSyncs.filter(
@@ -183,7 +181,7 @@ export async function checkUnimicroSyncHealth(
           recentSyncs: recentSyncs.map(s => ({
             id: s.id,
             status: s.status,
-            startedAt: s.syncStartedAt,
+            startedAt: s.createdAt,
             error: s.errorMessage,
           })),
         },
@@ -250,17 +248,17 @@ export async function getRecentSyncFailures(
           eq(unimicroSyncLog.status, "failed")
         )
       )
-      .orderBy(desc(unimicroSyncLog.syncStartedAt))
+      .orderBy(desc(unimicroSyncLog.createdAt))
       .limit(limit);
 
     return failures.map(failure => ({
       id: failure.id,
-      startedAt: failure.syncStartedAt,
-      completedAt: failure.syncCompletedAt,
-      syncType: failure.syncType,
+      startedAt: failure.createdAt,
+      completedAt: failure.createdAt,
+      syncType: failure.operation,
       errorMessage: failure.errorMessage,
-      errorDetails: failure.errorDetails,
-      recordsSynced: failure.recordsSynced,
+      errorDetails: failure.details,
+      recordsSynced: failure.itemsProcessed,
     }));
   } catch (error) {
     logDb.error("Failed to get recent sync failures", {
@@ -290,14 +288,14 @@ export async function getSyncStatsByType(
       .where(
         and(
           eq(unimicroSyncLog.tenantId, tenantId),
-          gte(unimicroSyncLog.syncStartedAt, cutoffTime)
+          gte(unimicroSyncLog.createdAt, cutoffTime)
         )
       );
 
-    // Group by sync type
-    const statsByType: Record<string, any[]> = {};
+    // Group by sync operation
+    const statsByType: Record<string, SyncLogRow[]> = {};
     syncLogs.forEach(log => {
-      const type = log.syncType || "unknown";
+      const type = log.operation || "unknown";
       if (!statsByType[type]) {
         statsByType[type] = [];
       }
@@ -312,34 +310,18 @@ export async function getSyncStatsByType(
       ).length;
       const failedSyncs = logs.filter(log => log.status === "failed").length;
 
-      const completedSyncs = logs.filter(
-        log => log.syncCompletedAt && log.syncStartedAt
-      );
-      const totalDuration = completedSyncs.reduce((sum, log) => {
-        if (log.syncCompletedAt && log.syncStartedAt) {
-          return (
-            sum + (log.syncCompletedAt.getTime() - log.syncStartedAt.getTime())
-          );
-        }
-        return sum;
-      }, 0);
-      const averageDuration =
-        completedSyncs.length > 0
-          ? totalDuration / completedSyncs.length / 1000
-          : 0;
-
-      const lastSync = logs.sort(
-        (a, b) => b.syncStartedAt.getTime() - a.syncStartedAt.getTime()
+      const lastSync = [...logs].sort(
+        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
       )[0];
 
       result[type] = {
         totalSyncs: logs.length,
         successfulSyncs,
-        failedSyncs,
+        failedCount: failedSyncs,
         successRate:
           logs.length > 0 ? (successfulSyncs / logs.length) * 100 : 0,
-        averageDuration: Math.round(averageDuration * 100) / 100,
-        lastSyncTime: lastSync.syncStartedAt,
+        averageDuration: averageDurationSeconds(logs),
+        lastSyncTime: lastSync.createdAt,
         lastSyncStatus: lastSync.status,
       };
     }

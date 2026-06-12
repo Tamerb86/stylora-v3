@@ -241,7 +241,7 @@ export const onboardingRouter = router({
             name: emp.name,
             email: emp.email || null,
             phone: emp.phone || null,
-            role: emp.role || "employee",
+            role: (emp.role || "employee") as "owner" | "admin" | "employee",
             pin,
             isActive: true,
             deactivatedAt: null,

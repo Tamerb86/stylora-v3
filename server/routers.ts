@@ -47,7 +47,7 @@ const tenantProcedure = protectedProcedure.use(async ({ ctx, next }) => {
     throw new TRPCError({ 
       code: "FORBIDDEN", 
       message: "No tenant access",
-      data: { messageKey: "errors.noTenantAccess" }
+      cause: { messageKey: "errors.noTenantAccess" }
     });
   }
 
@@ -57,7 +57,7 @@ const tenantProcedure = protectedProcedure.use(async ({ ctx, next }) => {
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
       message: "Database not available",
-      data: { messageKey: "errors.databaseUnavailable" }
+      cause: { messageKey: "errors.databaseUnavailable" }
     });
   }
 
@@ -74,7 +74,7 @@ const tenantProcedure = protectedProcedure.use(async ({ ctx, next }) => {
     throw new TRPCError({ 
       code: "NOT_FOUND", 
       message: "Tenant not found",
-      data: { messageKey: "errors.tenantNotFound" }
+      cause: { messageKey: "errors.tenantNotFound" }
     });
   }
 
@@ -82,7 +82,7 @@ const tenantProcedure = protectedProcedure.use(async ({ ctx, next }) => {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "EMAIL_NOT_VERIFIED",
-      data: { messageKey: "errors.emailNotVerified" }
+      cause: { messageKey: "errors.emailNotVerified" }
     });
   }
 
@@ -100,7 +100,7 @@ const wizardProcedure = protectedProcedure.use(async ({ ctx, next }) => {
     throw new TRPCError({ 
       code: "FORBIDDEN", 
       message: "No tenant access",
-      data: { messageKey: "errors.noTenantAccess" }
+      cause: { messageKey: "errors.noTenantAccess" }
     });
   }
 
@@ -118,7 +118,7 @@ const adminProcedure = tenantProcedure.use(({ ctx, next }) => {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "Admin access required",
-      data: { messageKey: "errors.accessDenied" }
+      cause: { messageKey: "errors.accessDenied" }
     });
   }
   return next({ ctx });
@@ -162,6 +162,34 @@ export const appRouter = router({
   loyaltyCustomer: loyaltyRouter,
   onboarding: onboardingRouter,
   monitoring: monitoringRouter,
+
+  // Payroll (admin-only, tenant-scoped) — computes monthly staff earnings from
+  // completed appointments and commission rates.
+  payroll: router({
+    getMonthlyPayroll: adminProcedure
+      .input(z.object({ month: z.number().int(), year: z.number().int() }))
+      .query(async ({ ctx, input }) => {
+        const { getMonthlyPayrollData } = await import("./payroll");
+        return getMonthlyPayrollData(ctx.tenantId, input.month, input.year);
+      }),
+    getEmployeePayslip: adminProcedure
+      .input(
+        z.object({
+          employeeId: z.number().int(),
+          month: z.number().int(),
+          year: z.number().int(),
+        })
+      )
+      .query(async ({ ctx, input }) => {
+        const { getEmployeePayslipData } = await import("./payroll");
+        return getEmployeePayslipData(
+          ctx.tenantId,
+          input.employeeId,
+          input.month,
+          input.year
+        );
+      }),
+  }),
 
   // ============================================================================
   // STRIPE CONNECT (OAuth for SaaS)
@@ -2287,7 +2315,7 @@ export const appRouter = router({
 
         const { customers } = await import("../drizzle/schema");
 
-        await dbInstance.insert(customers).values({
+        const [result] = await dbInstance.insert(customers).values({
           tenantId: ctx.tenantId,
           firstName: input.firstName,
           lastName: input.lastName || null,
@@ -2305,7 +2333,7 @@ export const appRouter = router({
           consentIp: ctx.req.ip || null,
         });
 
-        return { success: true };
+        return { success: true, id: (result as any).insertId as number };
       }),
 
     update: tenantProcedure

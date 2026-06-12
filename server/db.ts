@@ -12,13 +12,17 @@ import {
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
-let _connection: mysql.Connection | null = null;
+let _pool: mysql.Pool | null = null;
 
 // ============================================================================
 // DATABASE CONNECTION
 // ============================================================================
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
+// Use a connection POOL, not a single connection. A single connection dies
+// permanently if MySQL closes it (idle timeout, restart, network blip) —
+// every later query then throws "Can't add new command when connection is in
+// closed state" until the process restarts. A pool transparently replaces dead
+// connections, so the app keeps working.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -27,15 +31,21 @@ export async function getDb() {
         process.env.DATABASE_URL.replace(/:\/\/.*@/, "://***@")
       );
 
-      _connection = await mysql.createConnection(process.env.DATABASE_URL);
-      await _connection.ping();
+      _pool = mysql.createPool({
+        uri: process.env.DATABASE_URL,
+        waitForConnections: true,
+        connectionLimit: 10,
+        enableKeepAlive: true,
+        keepAliveInitialDelay: 10000,
+      });
+      await _pool.query("SELECT 1"); // verify connectivity up front
 
       console.log("[Database] Connection successful");
-      _db = drizzle(_connection);
+      _db = drizzle(_pool) as unknown as ReturnType<typeof drizzle>;
     } catch (error) {
       console.error("[Database] Failed to connect:", error);
       _db = null;
-      _connection = null;
+      _pool = null;
     }
   }
   return _db;
@@ -43,9 +53,9 @@ export async function getDb() {
 
 // Graceful shutdown
 export async function closeDb() {
-  if (_connection) {
-    await _connection.end();
-    _connection = null;
+  if (_pool) {
+    await _pool.end();
+    _pool = null;
     _db = null;
     console.log("[Database] Connection closed");
   }
@@ -245,25 +255,42 @@ export async function getAppointmentById(
 
 export async function globalSearch(tenantId: string, query: string) {
   const db = await getDb();
-  if (!db) return { customers: [], appointments: [], services: [] };
+  if (!db)
+    return { customers: [], appointments: [], orders: [], services: [] };
 
   const term = `%${query}%`;
+  const { orders, users } = await import("../drizzle/schema");
 
   const customerResults = await db
     .select()
     .from(customers)
     .where(
-      and(
-        eq(customers.tenantId, tenantId),
-        like(customers.firstName, term)
-      )
+      and(eq(customers.tenantId, tenantId), like(customers.firstName, term))
     )
     .limit(5);
 
+  // Appointments matched by customer name, with customer + employee attached
+  // so the UI can show "<customer> • <employee>".
   const appointmentResults = await db
-    .select()
+    .select({
+      appointment: appointments,
+      customer: customers,
+      employee: users,
+    })
     .from(appointments)
-    .where(eq(appointments.tenantId, tenantId))
+    .leftJoin(customers, eq(appointments.customerId, customers.id))
+    .leftJoin(users, eq(appointments.employeeId, users.id))
+    .where(
+      and(eq(appointments.tenantId, tenantId), like(customers.firstName, term))
+    )
+    .limit(5);
+
+  // Orders matched by customer name, with the customer attached.
+  const orderResults = await db
+    .select({ order: orders, customer: customers })
+    .from(orders)
+    .leftJoin(customers, eq(orders.customerId, customers.id))
+    .where(and(eq(orders.tenantId, tenantId), like(customers.firstName, term)))
     .limit(5);
 
   const serviceResults = await db
@@ -275,6 +302,7 @@ export async function globalSearch(tenantId: string, query: string) {
   return {
     customers: customerResults,
     appointments: appointmentResults,
+    orders: orderResults,
     services: serviceResults,
   };
 }
@@ -379,15 +407,15 @@ export async function createPayment(paymentData: {
     tenantId: paymentData.tenantId,
     orderId: paymentData.orderId,
     appointmentId: paymentData.appointmentId,
-    paymentMethod: paymentData.paymentMethod,
-    paymentGateway: paymentData.paymentGateway,
+    paymentMethod: paymentData.paymentMethod as any,
+    paymentGateway: paymentData.paymentGateway as any,
     amount: paymentData.amount,
     currency: paymentData.currency,
-    status: paymentData.status,
+    status: paymentData.status as any,
     gatewaySessionId: paymentData.gatewaySessionId,
     gatewayPaymentId: paymentData.gatewayPaymentId,
     gatewayMetadata: paymentData.gatewayMetadata,
-    lastFour: paymentData.lastFour,
+    cardLast4: paymentData.lastFour,
     cardBrand: paymentData.cardBrand,
     processedBy: paymentData.processedBy,
     processedAt: paymentData.processedAt,
@@ -405,7 +433,10 @@ export async function createPayment(paymentData: {
   return payment;
 }
 
-export async function updateOrderStatus(orderId: number, status: string) {
+export async function updateOrderStatus(
+  orderId: number,
+  status: "pending" | "completed" | "refunded" | "partially_refunded"
+) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
@@ -443,6 +474,8 @@ export async function getOrderById(orderId: number, tenantId: string) {
       customerId: orders.customerId,
       employeeId: orders.employeeId,
       appointmentId: orders.appointmentId,
+      orderDate: orders.orderDate,
+      orderTime: orders.orderTime,
       subtotal: orders.subtotal,
       vatAmount: orders.vatAmount,
       total: orders.total,
@@ -450,7 +483,7 @@ export async function getOrderById(orderId: number, tenantId: string) {
       notes: orders.notes,
       createdAt: orders.createdAt,
       updatedAt: orders.updatedAt,
-      customerName: customers.name,
+      customerName: sql<string>`CONCAT(${customers.firstName}, ' ', COALESCE(${customers.lastName}, ''))`,
       employeeName: users.name,
     })
     .from(orders)
@@ -478,7 +511,6 @@ export async function getOrderItems(orderId: number, tenantId: string) {
       quantity: orderItems.quantity,
       unitPrice: orderItems.unitPrice,
       vatRate: orderItems.vatRate,
-      vatAmount: orderItems.vatAmount,
       total: orderItems.total,
       serviceName: services.name,
       productName: products.name,

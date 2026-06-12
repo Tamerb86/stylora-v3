@@ -30,10 +30,10 @@ export function StripeTerminalSettings() {
   // Get Stripe API key from payment settings
   const { data: settings } = (trpc as any).paymentSettings.get.useQuery();
 
-  // Stripe Terminal mutations
+  // Stripe Terminal
+  const utils = trpc.useUtils();
   const connectionTokenMutation =
     trpc.stripeTerminal.createConnectionToken.useMutation();
-  const listReadersMutation = trpc.stripeTerminal.listReaders.useMutation();
 
   useEffect(() => {
     if (settings?.stripeSecretKey) {
@@ -49,9 +49,7 @@ export function StripeTerminalSettings() {
 
     setIsDiscovering(true);
     try {
-      const result = await listReadersMutation.mutateAsync({
-        apiKey: stripeApiKey,
-      });
+      const result = await utils.stripeTerminal.listReaders.fetch({});
 
       setReaders(result);
 

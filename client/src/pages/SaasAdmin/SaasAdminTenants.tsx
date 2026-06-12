@@ -74,8 +74,7 @@ export default function SaasAdminTenants() {
       // stash session tokens in localStorage (the real cookie is httpOnly).
 
       // Clear all tRPC/ReactQuery caches to prevent stale admin data
-      utils.invalidate();
-      await utils.client.resetQueries();
+      await utils.invalidate();
 
       toast.success(`Innlogget som: ${result.tenantName}`);
       

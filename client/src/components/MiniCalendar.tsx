@@ -5,13 +5,15 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 
 interface MiniCalendarProps {
-  appointments: {
+  appointments?: {
     appointmentDate: string;
     status: string;
   }[];
 }
 
-export default function MiniCalendar({ appointments }: MiniCalendarProps) {
+export default function MiniCalendar({
+  appointments = [],
+}: MiniCalendarProps) {
   const { t, i18n } = useTranslation();
   const [, setLocation] = useLocation();
   const [currentDate, setCurrentDate] = useState(new Date());

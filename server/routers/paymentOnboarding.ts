@@ -315,7 +315,10 @@ export const paymentOnboardingRouter = router({
         tenantId: ctx.tenantId,
         ...recommendedSettings,
         stripeConnectedAccountId: stripeStatus.accountId,
-        stripeAccountStatus: stripeStatus.status,
+        stripeAccountStatus: stripeStatus.status as
+          | "connected"
+          | "disconnected"
+          | "pending",
         stripeConnectedAt: stripeStatus.connectedAt,
       });
     }

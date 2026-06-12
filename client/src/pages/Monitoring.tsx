@@ -353,7 +353,7 @@ export default function Monitoring() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="text-2xl font-bold text-red-600">
-                    {unimicroMetrics.failedSyncs}
+                    {unimicroMetrics.failedCount}
                   </div>
                   <p className="text-xs text-muted-foreground">Feilet</p>
                 </CardContent>

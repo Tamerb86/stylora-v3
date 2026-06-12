@@ -419,11 +419,14 @@ export const paymentMonitoringRouter = router({
    * Get dashboard summary
    */
   getDashboardSummary: adminProcedure.query(async ({ ctx }) => {
+    // `any` breaks the self-referential type cycle (this procedure lives inside
+    // the same router whose caller it invokes).
+    const caller: any = paymentMonitoringRouter.createCaller(ctx);
     const [health, metrics24h, metrics7d, alerts] = await Promise.all([
-      paymentMonitoringRouter.createCaller(ctx).getHealthStatus(),
-      paymentMonitoringRouter.createCaller(ctx).getMetrics({ hoursBack: 24 }),
-      paymentMonitoringRouter.createCaller(ctx).getMetrics({ hoursBack: 168 }),
-      paymentMonitoringRouter.createCaller(ctx).getAlerts(),
+      caller.getHealthStatus(),
+      caller.getMetrics({ hoursBack: 24 }),
+      caller.getMetrics({ hoursBack: 168 }),
+      caller.getAlerts(),
     ]);
 
     return {
@@ -441,7 +444,7 @@ export const paymentMonitoringRouter = router({
       },
       alerts,
       alertCount: alerts.length,
-      criticalAlerts: alerts.filter((a) => a.type === "critical").length,
+      criticalAlerts: alerts.filter((a: any) => a.type === "critical").length,
     };
   }),
 });

@@ -1409,6 +1409,7 @@ export const paymentProviders = mysqlTable(
     tenantId: varchar("tenantId", { length: 36 }).notNull(),
     providerType: mysqlEnum("providerType", [
       "stripe_terminal",
+      "izettle",
       "vipps",
       "nets",
       "manual_card",
