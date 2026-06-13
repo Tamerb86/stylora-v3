@@ -7,6 +7,7 @@ import {
   services,
   serviceCategories,
   settings,
+  businessHours as businessHoursTable,
 } from "../../drizzle/schema";
 import { hash } from "bcryptjs";
 import { nanoid } from "nanoid";
@@ -139,9 +140,13 @@ export const onboardingRouter = router({
         throw new Error("Subdomain not available");
       }
 
-      // 2. Create tenant
+      // 2. Create tenant + every child record atomically. If any step fails the
+      // whole salon setup rolls back instead of leaving an orphaned, half-built
+      // tenant. The transaction parameter is intentionally named `db` so the
+      // existing inserts below run on the transaction without modification.
       const tenantId = nanoid();
-      await db.insert(tenants).values({
+      await db.transaction(async (db) => {
+        await db.insert(tenants).values({
         id: tenantId,
         name: salonInfo.salonName,
         subdomain: salonInfo.subdomain,
@@ -209,6 +214,34 @@ export const onboardingRouter = router({
         settingValue: JSON.stringify(businessHoursJson),
       });
 
+      // Persist opening hours to the businessHours TABLE as well — that is the
+      // representation the public booking engine (getAvailableTimeSlots /
+      // createBooking) actually enforces. The settings JSON above is read by
+      // other surfaces, so we keep both in sync. dayOfWeek: 0=Sunday..6=Saturday.
+      const onboardingDays = [
+        { dayOfWeek: 1, open: businessHours.mondayOpen, close: businessHours.mondayClose },
+        { dayOfWeek: 2, open: businessHours.tuesdayOpen, close: businessHours.tuesdayClose },
+        { dayOfWeek: 3, open: businessHours.wednesdayOpen, close: businessHours.wednesdayClose },
+        { dayOfWeek: 4, open: businessHours.thursdayOpen, close: businessHours.thursdayClose },
+        { dayOfWeek: 5, open: businessHours.fridayOpen, close: businessHours.fridayClose },
+        { dayOfWeek: 6, open: businessHours.saturdayOpen, close: businessHours.saturdayClose },
+        {
+          dayOfWeek: 0,
+          open: businessHours.sundayClosed ? null : "10:00",
+          close: businessHours.sundayClosed ? null : "16:00",
+        },
+      ];
+      for (const day of onboardingDays) {
+        const isOpen = Boolean(day.open && day.close);
+        await db.insert(businessHoursTable).values({
+          tenantId,
+          dayOfWeek: day.dayOfWeek,
+          isOpen,
+          openTime: isOpen ? day.open : null,
+          closeTime: isOpen ? day.close : null,
+        });
+      }
+
       // 5. Create default settings
       const defaultSettings = [
         { key: "booking_enabled", value: "true" },
@@ -233,7 +266,9 @@ export const onboardingRouter = router({
       if (initialEmployees && initialEmployees.length > 0) {
         for (const emp of initialEmployees) {
           const empId = nanoid();
-          const pin = Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit PIN
+          // 4-digit PIN via CSPRNG (Math.random is not cryptographically secure)
+          const { randomInt } = await import("crypto");
+          const pin = randomInt(1000, 10000).toString(); // 1000-9999
 
           await db.insert(users).values({
             tenantId,
@@ -332,8 +367,21 @@ export const onboardingRouter = router({
           });
         }
       }
+      }); // end transaction — tenant + all child records committed atomically
 
-      // 9. Send welcome email
+      // 9. Send verification email. The tenant is created with emailVerified
+      // defaulting to false, and tenantProcedure blocks EVERY tenant query with
+      // EMAIL_NOT_VERIFIED until it is verified. Without this link the owner can
+      // log in but is locked out of the entire app with no way to unblock.
+      try {
+        const { sendVerificationEmail } = await import("../emailService");
+        await sendVerificationEmail(tenantId, ownerAccount.ownerEmail);
+      } catch (emailError) {
+        console.error("Failed to send verification email:", emailError);
+        // Don't fail onboarding if email fails; owner can request a resend.
+      }
+
+      // 10. Send welcome email
       try {
         await sendWelcomeEmail({
           salonName: salonInfo.salonName,

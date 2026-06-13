@@ -111,9 +111,10 @@ export async function cancelPaymentIntent(
 export async function refundTerminalPayment(
   paymentIntentId: string,
   amount?: number,
-  apiKey?: string
+  apiKey?: string,
+  connectedAccountId?: string
 ) {
-  const stripe = getStripeClient(apiKey);
+  const stripe = getStripeClient(apiKey, connectedAccountId);
 
   const refundData: Stripe.RefundCreateParams = {
     payment_intent: paymentIntentId,

@@ -150,6 +150,92 @@ const platformAdminProcedure = protectedProcedure.use(({ ctx, next }) => {
   return next({ ctx });
 });
 
+// Redact secret-looking keys (API/secret keys, tokens, passwords) from a
+// payment-provider config object before returning it to the client. Keeps
+// non-sensitive metadata (display names, location ids, publishable keys) intact.
+const PROVIDER_SECRET_KEY_PATTERNS = [
+  "secret",
+  "apikey",
+  "api_key",
+  "privatekey",
+  "private_key",
+  "token",
+  "password",
+  "subscriptionkey",
+  "subscription_key",
+  "clientsecret",
+  "client_secret",
+];
+function redactProviderSecrets(config: unknown): unknown {
+  if (!config || typeof config !== "object" || Array.isArray(config)) {
+    return config;
+  }
+  const out: Record<string, unknown> = { ...(config as Record<string, unknown>) };
+  for (const key of Object.keys(out)) {
+    const normalized = key.toLowerCase().replace(/[^a-z]/g, "");
+    const isSecret = PROVIDER_SECRET_KEY_PATTERNS.some(p =>
+      normalized.includes(p.replace(/[^a-z]/g, ""))
+    );
+    if (isSecret && out[key]) {
+      out[key] = "********";
+    }
+  }
+  return out;
+}
+
+// Payment-provider config / payment metadata: a flat key→primitive map (e.g.
+// { secretKey, terminalId, merchantId }). Replaces `z.any()` so callers can't
+// smuggle arbitrary nested structures or oversized payloads into stored config.
+const providerConfigSchema = z.record(
+  z.string().max(100),
+  z.union([z.string().max(4000), z.number(), z.boolean(), z.null()])
+);
+
+// Resolve which Stripe credentials a tenant's Terminal operations should use.
+// Default: the PLATFORM secret key scoped to the salon's OWN Stripe Connect
+// account, so each salon's readers / payments / locations are isolated instead
+// of all tenants sharing the platform account (the prior behaviour). A tenant
+// that configured a legacy `stripe_terminal` provider with its own API key uses
+// that key directly (a standalone account, so no Connect account is applied).
+async function resolveTerminalStripe(
+  dbInstance: NonNullable<Awaited<ReturnType<typeof db.getDb>>>,
+  tenantId: string,
+  providerId?: number
+): Promise<{ apiKey: string | undefined; connectedAccountId: string | undefined }> {
+  const { paymentSettings, paymentProviders } = await import("../drizzle/schema");
+  const { eq, and } = await import("drizzle-orm");
+
+  if (providerId) {
+    const [provider] = await dbInstance
+      .select()
+      .from(paymentProviders)
+      .where(
+        and(
+          eq(paymentProviders.id, providerId),
+          eq(paymentProviders.tenantId, tenantId),
+          eq(paymentProviders.providerType, "stripe_terminal")
+        )
+      );
+    if (provider) {
+      return {
+        apiKey: (provider.config as { apiKey?: string } | null)?.apiKey,
+        connectedAccountId: undefined,
+      };
+    }
+  }
+
+  const [settings] = await dbInstance
+    .select()
+    .from(paymentSettings)
+    .where(eq(paymentSettings.tenantId, tenantId))
+    .limit(1);
+
+  return {
+    apiKey: ENV.stripeSecretKey,
+    connectedAccountId: settings?.stripeConnectedAccountId ?? undefined,
+  };
+}
+
 // ============================================================================
 // ROUTERS
 // ============================================================================
@@ -1812,9 +1898,9 @@ export const appRouter = router({
     uploadReceiptLogo: adminProcedure
       .input(
         z.object({
-          fileData: z.string(), // base64 encoded image
-          fileName: z.string(),
-          mimeType: z.string(),
+          fileData: z.string().max(15_000_000), // base64 image, ~11MB binary cap
+          fileName: z.string().max(255),
+          mimeType: z.string().max(100),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -2481,18 +2567,35 @@ export const appRouter = router({
           userAgent: ctx.req.headers["user-agent"] || null,
         });
 
-        // Delete loyalty data
+        // Delete loyalty data. The customer was already confirmed to belong to
+        // ctx.tenantId above; the tenantId filters here are defense-in-depth so a
+        // global-id never reaches another tenant's rows.
         await dbInstance
           .delete(loyaltyRedemptions)
-          .where(eq(loyaltyRedemptions.customerId, input.customerId));
+          .where(
+            and(
+              eq(loyaltyRedemptions.customerId, input.customerId),
+              eq(loyaltyRedemptions.tenantId, ctx.tenantId)
+            )
+          );
 
         await dbInstance
           .delete(loyaltyTransactions)
-          .where(eq(loyaltyTransactions.customerId, input.customerId));
+          .where(
+            and(
+              eq(loyaltyTransactions.customerId, input.customerId),
+              eq(loyaltyTransactions.tenantId, ctx.tenantId)
+            )
+          );
 
         await dbInstance
           .delete(loyaltyPoints)
-          .where(eq(loyaltyPoints.customerId, input.customerId));
+          .where(
+            and(
+              eq(loyaltyPoints.customerId, input.customerId),
+              eq(loyaltyPoints.tenantId, ctx.tenantId)
+            )
+          );
 
         // Anonymize appointments (keep for business records but remove personal data)
         await dbInstance
@@ -2500,12 +2603,22 @@ export const appRouter = router({
           .set({
             notes: "[GDPR - Data slettet]",
           })
-          .where(eq(appointments.customerId, input.customerId));
+          .where(
+            and(
+              eq(appointments.customerId, input.customerId),
+              eq(appointments.tenantId, ctx.tenantId)
+            )
+          );
 
         // Permanently delete customer record
         await dbInstance
           .delete(customers)
-          .where(eq(customers.id, input.customerId));
+          .where(
+            and(
+              eq(customers.id, input.customerId),
+              eq(customers.tenantId, ctx.tenantId)
+            )
+          );
 
         return {
           success: true,
@@ -2656,10 +2769,10 @@ export const appRouter = router({
     create: tenantProcedure
       .input(
         z.object({
-          name: z.string().min(1),
-          description: z.string().optional(),
-          durationMinutes: z.number(),
-          price: z.string(), // decimal as string
+          name: z.string().min(1).max(200),
+          description: z.string().max(2000).optional(),
+          durationMinutes: z.number().int().min(1).max(1440),
+          price: z.string().regex(/^\d+(\.\d{1,2})?$/, "Invalid price"), // decimal as string
           categoryId: z.number().optional(),
         })
       )
@@ -2983,31 +3096,35 @@ export const appRouter = router({
         // Insert appointment
         // Date already converted above for conflict check
 
-        const [appointment] = await dbInstance.insert(appointments).values({
-          tenantId: ctx.tenantId,
-          customerId: input.customerId,
-          employeeId: input.employeeId,
-          appointmentDate: appointmentDateObj,
-          startTime: input.startTime,
-          endTime: input.endTime,
-          notes: input.notes || null,
-          status: "pending",
-        });
+        // Insert the appointment and its service links atomically so a partial
+        // failure can't leave an appointment with no services attached.
+        let appointmentId = 0;
+        await dbInstance.transaction(async tx => {
+          const [appointment] = await tx.insert(appointments).values({
+            tenantId: ctx.tenantId,
+            customerId: input.customerId,
+            employeeId: input.employeeId,
+            appointmentDate: appointmentDateObj,
+            startTime: input.startTime,
+            endTime: input.endTime,
+            notes: input.notes || null,
+            status: "pending",
+          });
 
-        // Get appointment ID
-        const appointmentId = appointment.insertId;
+          appointmentId = Number(appointment.insertId);
 
-        // Insert services
-        for (const serviceId of input.serviceIds) {
-          const service = await db.getServiceById(serviceId, ctx.tenantId);
-          if (service) {
-            await dbInstance.insert(appointmentServices).values({
-              appointmentId: Number(appointmentId),
-              serviceId,
-              price: service.price,
-            });
+          // Insert services (price lookups read via the pool; inserts on the tx)
+          for (const serviceId of input.serviceIds) {
+            const service = await db.getServiceById(serviceId, ctx.tenantId);
+            if (service) {
+              await tx.insert(appointmentServices).values({
+                appointmentId,
+                serviceId,
+                price: service.price,
+              });
+            }
           }
-        }
+        });
 
         return { success: true, appointmentId };
       }),
@@ -3059,7 +3176,12 @@ export const appRouter = router({
             startTime: input.newTime,
             endTime: newEndTimeStr,
           })
-          .where(eq(appointments.id, input.id));
+          .where(
+            and(
+              eq(appointments.id, input.id),
+              eq(appointments.tenantId, ctx.tenantId)
+            )
+          );
 
         return { success: true, updated: result };
       }),
@@ -3593,7 +3715,12 @@ export const appRouter = router({
           await dbInstance
             .update(payments)
             .set({ status: "refunded", refundedAt: new Date() })
-            .where(eq(payments.id, input.paymentId));
+            .where(
+              and(
+                eq(payments.id, input.paymentId),
+                eq(payments.tenantId, ctx.tenantId)
+              )
+            );
         }
 
         return {
@@ -4249,7 +4376,12 @@ export const appRouter = router({
         await dbInstance
           .update(products)
           .set(updateData)
-          .where(eq(products.id, input.productId));
+          .where(
+            and(
+              eq(products.id, input.productId),
+              eq(products.tenantId, ctx.tenantId)
+            )
+          );
 
         return { success: true };
       }),
@@ -4608,7 +4740,12 @@ export const appRouter = router({
         await dbInstance
           .update(appointments)
           .set({ status: input.status })
-          .where(eq(appointments.id, input.appointmentId));
+          .where(
+            and(
+              eq(appointments.id, input.appointmentId),
+              eq(appointments.tenantId, ctx.tenantId)
+            )
+          );
 
         return { success: true };
       }),
@@ -4657,7 +4794,12 @@ export const appRouter = router({
         await dbInstance
           .update(appointments)
           .set({ notes: newNote })
-          .where(eq(appointments.id, input.appointmentId));
+          .where(
+            and(
+              eq(appointments.id, input.appointmentId),
+              eq(appointments.tenantId, ctx.tenantId)
+            )
+          );
 
         return { success: true };
       }),
@@ -5162,27 +5304,23 @@ export const appRouter = router({
         };
       }),
 
-    // Clock out all active employees (for end of day or manual intervention)
-    clockOutAll: publicProcedure
-      .input(
-        z.object({
-          tenantId: z.string(),
-        })
-      )
-      .mutation(async ({ input }) => {
-        const dbInstance = await db.getDb();
-        if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    // Clock out all active employees (for end of day or manual intervention).
+    // Admin-only and tenant-scoped from the session — never trust a tenantId
+    // from the request, or anyone could clock out any salon's staff.
+    clockOutAll: adminProcedure.mutation(async ({ ctx }) => {
+      const dbInstance = await db.getDb();
+      if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
-        const { sql } = await import("drizzle-orm");
+      const { sql } = await import("drizzle-orm");
 
-        // Clock out all employees with open shifts
-        const result = await dbInstance.execute(
-          sql`UPDATE timesheets 
+      // Clock out all employees with open shifts
+      const result = await dbInstance.execute(
+        sql`UPDATE timesheets
               SET clockOut = NOW(),
                   totalHours = TIMESTAMPDIFF(SECOND, clockIn, NOW()) / 3600
-              WHERE tenantId = ${input.tenantId} 
+              WHERE tenantId = ${ctx.tenantId}
               AND clockOut IS NULL`
-        );
+      );
 
         const affectedRows = (result as any).rowsAffected || 0;
 
@@ -5999,9 +6137,8 @@ export const appRouter = router({
         const dbInstance = await db.getDb();
         if (!dbInstance) return [];
 
-        const { appointments, services, users, employeeLeaves } = await import(
-          "../drizzle/schema"
-        );
+        const { appointments, services, users, employeeLeaves, businessHours } =
+          await import("../drizzle/schema");
         const { eq, and, lte, gte, inArray } = await import("drizzle-orm");
 
         // Get service duration
@@ -6078,52 +6215,89 @@ export const appRouter = router({
             )
           );
 
-        // Generate time slots (8:00 - 20:00, 30-minute intervals)
+        // Resolve the salon's opening window for this weekday from the
+        // businessHours table. Falls back to 08:00–20:00 when no row is
+        // configured (so salons that never set hours keep working); a row with
+        // isOpen=false means the salon is closed that day → no slots.
+        const [by, bmo, bd] = input.date.split("-").map(Number);
+        const dayOfWeek = new Date(Date.UTC(by, bmo - 1, bd)).getUTCDay();
+        const [hoursRow] = await dbInstance
+          .select({
+            isOpen: businessHours.isOpen,
+            openTime: businessHours.openTime,
+            closeTime: businessHours.closeTime,
+          })
+          .from(businessHours)
+          .where(
+            and(
+              eq(businessHours.tenantId, input.tenantId),
+              eq(businessHours.dayOfWeek, dayOfWeek)
+            )
+          );
+
+        if (hoursRow && !hoursRow.isOpen) {
+          return [];
+        }
+
+        const toMinutes = (t: string | null, fallback: number) => {
+          if (!t) return fallback;
+          const [h, m] = t.split(":").map(Number);
+          return h * 60 + m;
+        };
+        const openMinutes = toMinutes(hoursRow?.openTime ?? null, 8 * 60);
+        const closeMinutes = toMinutes(hoursRow?.closeTime ?? null, 20 * 60);
+
+        // Generate 30-minute slots within the opening window. A start time is
+        // only offered if the whole service finishes by closing time.
         const slots: {
           time: string;
           available: boolean;
           employeeId?: number;
         }[] = [];
-        const startHour = 8;
-        const endHour = 20;
 
-        for (let hour = startHour; hour < endHour; hour++) {
-          for (let minute = 0; minute < 60; minute += 30) {
-            const timeStr = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}:00`;
+        for (
+          let startMinutes = openMinutes;
+          startMinutes + service.durationMinutes <= closeMinutes;
+          startMinutes += 30
+        ) {
+          const timeStr = `${Math.floor(startMinutes / 60)
+            .toString()
+            .padStart(2, "0")}:${(startMinutes % 60)
+            .toString()
+            .padStart(2, "0")}:00`;
 
-            // Calculate end time based on service duration
-            const startMinutes = hour * 60 + minute;
-            const endMinutes = startMinutes + service.durationMinutes;
-            const endHour = Math.floor(endMinutes / 60);
-            const endMinute = endMinutes % 60;
-            const endTimeStr = `${endHour.toString().padStart(2, "0")}:${endMinute.toString().padStart(2, "0")}:00`;
+          const endMinutes = startMinutes + service.durationMinutes;
+          const endTimeStr = `${Math.floor(endMinutes / 60)
+            .toString()
+            .padStart(2, "0")}:${(endMinutes % 60)
+            .toString()
+            .padStart(2, "0")}:00`;
 
-            // Check if any employee is available (excluding those on leave)
-            let availableEmployeeId: number | undefined;
-            for (const empId of availableEmployeeIds) {
-              const hasConflict = existingAppointments.some(appt => {
-                if (appt.employeeId !== empId) return false;
-                // Check for time overlap
-                return (
-                  (timeStr >= appt.startTime && timeStr < appt.endTime) ||
-                  (endTimeStr > appt.startTime && endTimeStr <= appt.endTime) ||
-                  (timeStr <= appt.startTime && endTimeStr >= appt.endTime)
-                );
-              });
+          // Check if any employee is available (excluding those on leave)
+          let availableEmployeeId: number | undefined;
+          for (const empId of availableEmployeeIds) {
+            const hasConflict = existingAppointments.some(appt => {
+              if (appt.employeeId !== empId) return false;
+              // Check for time overlap
+              return (
+                (timeStr >= appt.startTime && timeStr < appt.endTime) ||
+                (endTimeStr > appt.startTime && endTimeStr <= appt.endTime) ||
+                (timeStr <= appt.startTime && endTimeStr >= appt.endTime)
+              );
+            });
 
-              if (!hasConflict) {
-                availableEmployeeId = empId;
-                break;
-              }
+            if (!hasConflict) {
+              availableEmployeeId = empId;
+              break;
             }
+          }
 
-            if (availableEmployeeId) {
-              slots.push({
-                time: timeStr,
-                available: true,
-                employeeId: availableEmployeeId,
-              });
-            }
+          if (availableEmployeeId) {
+            slots.push({
+              time: timeStr,
+              available: true,
+              employeeId: availableEmployeeId,
+            });
           }
         }
 
@@ -6150,8 +6324,13 @@ export const appRouter = router({
         const dbInstance = await db.getDb();
         if (!dbInstance) throw new Error("Database not available");
 
-        const { customers, appointments, services, appointmentServices } =
-          await import("../drizzle/schema");
+        const {
+          customers,
+          appointments,
+          services,
+          appointmentServices,
+          businessHours,
+        } = await import("../drizzle/schema");
         const { eq, and } = await import("drizzle-orm");
 
         // Get service details
@@ -6173,6 +6352,44 @@ export const appRouter = router({
         const endHour = Math.floor(endMinutes / 60);
         const endMinute = endMinutes % 60;
         const endTime = `${endHour.toString().padStart(2, "0")}:${endMinute.toString().padStart(2, "0")}:00`;
+
+        // Enforce opening hours server-side (mirrors getAvailableTimeSlots) so
+        // the booking API can't be used to schedule on a closed day or outside
+        // the salon's hours even though the slot UI never offers those times.
+        const [eby, ebmo, ebd] = input.date.split("-").map(Number);
+        const bookingDayOfWeek = new Date(
+          Date.UTC(eby, ebmo - 1, ebd)
+        ).getUTCDay();
+        const [bookingHours] = await dbInstance
+          .select({
+            isOpen: businessHours.isOpen,
+            openTime: businessHours.openTime,
+            closeTime: businessHours.closeTime,
+          })
+          .from(businessHours)
+          .where(
+            and(
+              eq(businessHours.tenantId, input.tenantId),
+              eq(businessHours.dayOfWeek, bookingDayOfWeek)
+            )
+          );
+        const toMin = (t: string | null, fallback: number) => {
+          if (!t) return fallback;
+          const [h, m] = t.split(":").map(Number);
+          return h * 60 + m;
+        };
+        const openMin = toMin(bookingHours?.openTime ?? null, 8 * 60);
+        const closeMin = toMin(bookingHours?.closeTime ?? null, 20 * 60);
+        if (
+          (bookingHours && !bookingHours.isOpen) ||
+          startMinutes < openMin ||
+          endMinutes > closeMin
+        ) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Valgt tidspunkt er utenfor salongens åpningstider.",
+          });
+        }
 
         // Check or create customer
         let customerId: number;
@@ -6202,25 +6419,29 @@ export const appRouter = router({
         // Generate unique management token
         const managementToken = nanoid(32);
 
-        // Create appointment
-        const [appointment] = await dbInstance.insert(appointments).values({
-          tenantId: input.tenantId,
-          customerId,
-          employeeId: input.employeeId,
-          appointmentDate: new Date(input.date),
-          startTime: input.time,
-          endTime,
-          status: "pending",
-          managementToken,
-        });
+        // Create the appointment and its service link atomically so a partial
+        // failure can't leave an appointment with no linked service/price.
+        let appointmentId = 0;
+        await dbInstance.transaction(async tx => {
+          const [appointment] = await tx.insert(appointments).values({
+            tenantId: input.tenantId,
+            customerId,
+            employeeId: input.employeeId,
+            appointmentDate: new Date(input.date),
+            startTime: input.time,
+            endTime,
+            status: "pending",
+            managementToken,
+          });
 
-        const appointmentId = appointment.insertId;
+          appointmentId = appointment.insertId;
 
-        // Link service to appointment
-        await dbInstance.insert(appointmentServices).values({
-          appointmentId,
-          serviceId: service.id,
-          price: service.price,
+          // Link service to appointment
+          await tx.insert(appointmentServices).values({
+            appointmentId,
+            serviceId: service.id,
+            price: service.price,
+          });
         });
 
         return {
@@ -6299,53 +6520,54 @@ export const appRouter = router({
         const endMinute = endMinutes % 60;
         const endTime = `${endHour.toString().padStart(2, "0")}:${endMinute.toString().padStart(2, "0")}:00`;
 
-        // Check or create customer
-        let customerId: number;
-        const [existingCustomer] = await dbInstance
-          .select({ id: customers.id })
-          .from(customers)
-          .where(
-            and(
-              eq(customers.tenantId, input.tenantId),
-              eq(customers.phone, input.customerInfo.phone)
-            )
-          );
-
-        if (existingCustomer) {
-          customerId = existingCustomer.id;
-        } else {
-          const [newCustomer] = await dbInstance.insert(customers).values({
-            tenantId: input.tenantId,
-            firstName: input.customerInfo.firstName,
-            lastName: input.customerInfo.lastName || "",
-            phone: input.customerInfo.phone,
-            email: input.customerInfo.email || null,
-          });
-          customerId = newCustomer.insertId;
-        }
-
-        // Generate unique management token
+        // Persist customer + appointment + service link atomically BEFORE talking
+        // to Stripe. The external call is deliberately kept OUTSIDE the
+        // transaction so a slow network never holds DB locks open.
         const managementToken = nanoid(32);
+        let customerId = 0;
+        let appointmentId = 0;
+        await dbInstance.transaction(async tx => {
+          const [existingCustomer] = await tx
+            .select({ id: customers.id })
+            .from(customers)
+            .where(
+              and(
+                eq(customers.tenantId, input.tenantId),
+                eq(customers.phone, input.customerInfo.phone)
+              )
+            );
 
-        // Create appointment
-        const [appointment] = await dbInstance.insert(appointments).values({
-          tenantId: input.tenantId,
-          customerId,
-          employeeId: input.employeeId,
-          appointmentDate: new Date(input.date),
-          startTime: input.time,
-          endTime,
-          status: "pending",
-          managementToken,
-        });
+          if (existingCustomer) {
+            customerId = existingCustomer.id;
+          } else {
+            const [newCustomer] = await tx.insert(customers).values({
+              tenantId: input.tenantId,
+              firstName: input.customerInfo.firstName,
+              lastName: input.customerInfo.lastName || "",
+              phone: input.customerInfo.phone,
+              email: input.customerInfo.email || null,
+            });
+            customerId = Number(newCustomer.insertId);
+          }
 
-        const appointmentId = appointment.insertId;
+          const [appointment] = await tx.insert(appointments).values({
+            tenantId: input.tenantId,
+            customerId,
+            employeeId: input.employeeId,
+            appointmentDate: new Date(input.date),
+            startTime: input.time,
+            endTime,
+            status: "pending",
+            managementToken,
+          });
 
-        // Link service to appointment
-        await dbInstance.insert(appointmentServices).values({
-          appointmentId,
-          serviceId: service.id,
-          price: service.price,
+          appointmentId = Number(appointment.insertId);
+
+          await tx.insert(appointmentServices).values({
+            appointmentId,
+            serviceId: service.id,
+            price: service.price,
+          });
         });
 
         // ========================================
@@ -6512,53 +6734,54 @@ export const appRouter = router({
         const endMins = endMinutes % 60;
         const endTime = `${String(endHours).padStart(2, "0")}:${String(endMins).padStart(2, "0")}`;
 
-        // Find or create customer
-        let customerId: number;
-        const [existingCustomer] = await dbInstance
-          .select()
-          .from(customers)
-          .where(
-            and(
-              eq(customers.phone, input.customerInfo.phone),
-              eq(customers.tenantId, input.tenantId)
-            )
-          );
-
-        if (existingCustomer) {
-          customerId = existingCustomer.id;
-        } else {
-          const [newCustomer] = await dbInstance.insert(customers).values({
-            tenantId: input.tenantId,
-            firstName: input.customerInfo.firstName,
-            lastName: input.customerInfo.lastName || null,
-            phone: input.customerInfo.phone,
-            email: input.customerInfo.email || null,
-          });
-          customerId = newCustomer.insertId;
-        }
-
-        // Generate unique management token
+        // Persist customer + appointment + service link atomically BEFORE
+        // initiating Vipps. The external call is kept OUTSIDE the transaction so
+        // a slow network never holds DB locks open.
         const managementToken = nanoid(32);
+        let customerId = 0;
+        let appointmentId = 0;
+        await dbInstance.transaction(async tx => {
+          const [existingCustomer] = await tx
+            .select()
+            .from(customers)
+            .where(
+              and(
+                eq(customers.phone, input.customerInfo.phone),
+                eq(customers.tenantId, input.tenantId)
+              )
+            );
 
-        // Create appointment
-        const [appointment] = await dbInstance.insert(appointments).values({
-          tenantId: input.tenantId,
-          customerId,
-          employeeId: input.employeeId,
-          appointmentDate: new Date(input.date),
-          startTime: input.time,
-          endTime,
-          status: "pending",
-          managementToken,
-        });
+          if (existingCustomer) {
+            customerId = existingCustomer.id;
+          } else {
+            const [newCustomer] = await tx.insert(customers).values({
+              tenantId: input.tenantId,
+              firstName: input.customerInfo.firstName,
+              lastName: input.customerInfo.lastName || null,
+              phone: input.customerInfo.phone,
+              email: input.customerInfo.email || null,
+            });
+            customerId = Number(newCustomer.insertId);
+          }
 
-        const appointmentId = appointment.insertId;
+          const [appointment] = await tx.insert(appointments).values({
+            tenantId: input.tenantId,
+            customerId,
+            employeeId: input.employeeId,
+            appointmentDate: new Date(input.date),
+            startTime: input.time,
+            endTime,
+            status: "pending",
+            managementToken,
+          });
 
-        // Link service to appointment
-        await dbInstance.insert(appointmentServices).values({
-          appointmentId,
-          serviceId: service.id,
-          price: service.price,
+          appointmentId = Number(appointment.insertId);
+
+          await tx.insert(appointmentServices).values({
+            appointmentId,
+            serviceId: service.id,
+            price: service.price,
+          });
         });
 
         // ========================================
@@ -10941,13 +11164,15 @@ export const appRouter = router({
           });
         }
 
-        // Generate secure password (8 characters: letters + numbers)
+        // Generate a secure 8-char password using a CSPRNG. Math.random() is not
+        // cryptographically secure and must never mint credentials.
+        const { randomInt } = await import("crypto");
         const generatePassword = () => {
           const chars =
             "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
           let password = "";
           for (let i = 0; i < 8; i++) {
-            password += chars.charAt(Math.floor(Math.random() * chars.length));
+            password += chars.charAt(randomInt(chars.length));
           }
           return password;
         };
@@ -10959,7 +11184,11 @@ export const appRouter = router({
         const tenantId = `tenant-${Date.now()}`;
 
         try {
-          // Start transaction by creating tenant
+          // Start transaction by creating tenant. The salon is provisioned by a
+          // platform operator who has vouched for the contact email, so mark it
+          // verified immediately — otherwise tenantProcedure would block every
+          // query (EMAIL_NOT_VERIFIED) and the admin would land in an empty,
+          // unusable salon despite the wizard having set everything up.
           await dbInstance.insert(tenants).values({
             id: tenantId,
             name: input.name,
@@ -10968,10 +11197,14 @@ export const appRouter = router({
             email: input.contactEmail,
             phone: input.contactPhone,
             status: "trial",
+            emailVerified: true,
+            emailVerifiedAt: new Date(),
             trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days trial
           });
 
-          // Create admin user
+          // Create admin user. The generated password MUST be persisted as a
+          // hash — without it the account has a NULL passwordHash and the admin
+          // cannot log in with the credentials the wizard displays to them.
           await dbInstance.insert(users).values({
             tenantId,
             openId: `admin-${tenantId}`,
@@ -10979,6 +11212,25 @@ export const appRouter = router({
             email: input.adminEmail,
             phone: input.adminPhone,
             role: "admin",
+            passwordHash: hashedPassword,
+            loginMethod: "email",
+            isActive: true,
+          });
+
+          // Create a default bookable employee. Public booking availability
+          // (getAvailableTimeSlots / getAvailableEmployees) only considers users
+          // with role "employee"; an admin alone yields ZERO slots, so the salon
+          // would be unbookable despite the wizard reporting it "ready to take
+          // bookings". Seed the owner as a stylist so booking works immediately;
+          // the operator can rename or add staff later.
+          await dbInstance.insert(users).values({
+            tenantId,
+            openId: `employee-${tenantId}`,
+            name: `${input.adminFirstName} ${input.adminLastName}`,
+            email: null,
+            phone: input.adminPhone,
+            role: "employee",
+            isActive: true,
           });
 
           // Create subscription
@@ -12201,7 +12453,13 @@ export const appRouter = router({
         .from(paymentProviders)
         .where(eq(paymentProviders.tenantId, ctx.tenantId));
 
-      return providers;
+      // Never expose provider secrets (API/secret keys, tokens) to the client.
+      // listProviders is readable by any tenant user, so redact secret-looking
+      // config fields while keeping non-sensitive metadata for the settings UI.
+      return providers.map(p => ({
+        ...p,
+        config: redactProviderSecrets(p.config),
+      }));
     }),
 
     // Add new payment provider
@@ -12217,7 +12475,7 @@ export const appRouter = router({
             "generic",
           ]),
           providerName: z.string().min(1, "Provider name is required"),
-          config: z.any().optional(),
+          config: providerConfigSchema.optional(),
           isDefault: z.boolean().default(false),
         })
       )
@@ -12270,8 +12528,8 @@ export const appRouter = router({
           amount: z.number().min(0.01, "Amount must be positive"),
           paymentMethod: z.enum(["cash", "card", "vipps", "stripe"]),
           paymentProviderId: z.number().optional(),
-          metadata: z.any().optional(),
-          notes: z.string().optional(),
+          metadata: providerConfigSchema.optional(),
+          notes: z.string().max(2000).optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -12348,37 +12606,41 @@ export const appRouter = router({
           });
         }
 
-        // Create parent payment
-        const [payment] = await dbInstance.insert(payments).values({
-          tenantId: ctx.tenantId,
-          orderId: input.orderId || null,
-          appointmentId: input.appointmentId || null,
-          amount: input.totalAmount.toString(),
-          currency: "NOK",
-          paymentMethod: "split", // Mark as split
-          status: "completed",
-          processedBy: ctx.user.id,
-          processedAt: new Date(),
-        });
-
-        const paymentId = payment.insertId;
-
-        // Create split records
-        for (const split of input.splits) {
-          await dbInstance.insert(paymentSplits).values({
+        // Create the parent payment and all split records atomically so the
+        // parent total can never diverge from the sum of its splits.
+        let paymentId = 0;
+        await dbInstance.transaction(async tx => {
+          const [payment] = await tx.insert(payments).values({
             tenantId: ctx.tenantId,
             orderId: input.orderId || null,
-            paymentId,
-            amount: split.amount.toString(),
-            paymentMethod: split.paymentMethod,
-            paymentProviderId: split.paymentProviderId || null,
-            cardLast4: split.cardLast4 || null,
-            cardBrand: split.cardBrand || null,
-            transactionId: split.transactionId || null,
+            appointmentId: input.appointmentId || null,
+            amount: input.totalAmount.toString(),
+            currency: "NOK",
+            paymentMethod: "split", // Mark as split
             status: "completed",
             processedBy: ctx.user.id,
+            processedAt: new Date(),
           });
-        }
+
+          paymentId = Number(payment.insertId);
+
+          // Create split records
+          for (const split of input.splits) {
+            await tx.insert(paymentSplits).values({
+              tenantId: ctx.tenantId,
+              orderId: input.orderId || null,
+              paymentId,
+              amount: split.amount.toString(),
+              paymentMethod: split.paymentMethod,
+              paymentProviderId: split.paymentProviderId || null,
+              cardLast4: split.cardLast4 || null,
+              cardBrand: split.cardBrand || null,
+              transactionId: split.transactionId || null,
+              status: "completed",
+              processedBy: ctx.user.id,
+            });
+          }
+        });
 
         return {
           success: true,
@@ -12485,7 +12747,7 @@ export const appRouter = router({
         z.object({
           providerId: z.number(),
           providerName: z.string().min(1).optional(),
-          config: z.any().optional(),
+          config: providerConfigSchema.optional(),
           isActive: z.boolean().optional(),
           isDefault: z.boolean().optional(),
         })
@@ -12604,7 +12866,7 @@ export const appRouter = router({
             "cash",
             "generic",
           ]),
-          config: z.any(),
+          config: providerConfigSchema,
         })
       )
       .mutation(async ({ input }) => {
@@ -12671,45 +12933,11 @@ export const appRouter = router({
           });
         }
 
-        let apiKey: string | undefined;
-        let connectedAccountId: string | undefined;
-
-        // Check for Stripe Connect first (preferred)
-        const { paymentSettings } = await import("../drizzle/schema");
-        const [settings] = await dbInstance
-          .select()
-          .from(paymentSettings)
-          .where(eq(paymentSettings.tenantId, ctx.tenantId))
-          .limit(1);
-
-        // For Terminal, always use Platform account directly (not Connected Account)
-        // This allows the platform's registered readers to be used by all tenants
-        apiKey = ENV.stripeSecretKey;
-        // connectedAccountId is intentionally NOT set for Terminal operations
-        
-        if (input.providerId) {
-          // Fallback: Use legacy API key from provider
-          const { paymentProviders } = await import("../drizzle/schema");
-          const [provider] = await dbInstance
-            .select()
-            .from(paymentProviders)
-            .where(
-              and(
-                eq(paymentProviders.id, input.providerId),
-                eq(paymentProviders.tenantId, ctx.tenantId),
-                eq(paymentProviders.providerType, "stripe_terminal")
-              )
-            );
-
-          if (!provider) {
-            throw new TRPCError({
-              code: "NOT_FOUND",
-              message: "Stripe Terminal provider not found",
-            });
-          }
-
-          apiKey = (provider.config as any)?.apiKey;
-        }
+        const { apiKey, connectedAccountId } = await resolveTerminalStripe(
+          dbInstance,
+          ctx.tenantId,
+          input.providerId
+        );
 
         const { createConnectionToken } = await import("./stripeTerminal");
         const secret = await createConnectionToken(apiKey, connectedAccountId);
@@ -12732,38 +12960,11 @@ export const appRouter = router({
           });
         }
 
-        let apiKey: string | undefined;
-        let connectedAccountId: string | undefined;
-
-        // Check for Stripe Connect first (preferred)
-        const { paymentSettings } = await import("../drizzle/schema");
-        const [settings] = await dbInstance
-          .select()
-          .from(paymentSettings)
-          .where(eq(paymentSettings.tenantId, ctx.tenantId))
-          .limit(1);
-
-        // For Terminal, always use Platform account directly
-        apiKey = ENV.stripeSecretKey;
-        // connectedAccountId is NOT used for Terminal reader operations
-        
-        if (input.providerId) {
-          const { paymentProviders } = await import("../drizzle/schema");
-          const [provider] = await dbInstance
-            .select()
-            .from(paymentProviders)
-            .where(
-              and(
-                eq(paymentProviders.id, input.providerId),
-                eq(paymentProviders.tenantId, ctx.tenantId),
-                eq(paymentProviders.providerType, "stripe_terminal")
-              )
-            );
-
-          if (provider) {
-            apiKey = (provider.config as any)?.apiKey;
-          }
-        }
+        const { apiKey, connectedAccountId } = await resolveTerminalStripe(
+          dbInstance,
+          ctx.tenantId,
+          input.providerId
+        );
 
         const { listReaders } = await import("./stripeTerminal");
         const readers = await listReaders(apiKey, connectedAccountId);
@@ -12789,38 +12990,11 @@ export const appRouter = router({
           });
         }
 
-        let apiKey: string | undefined;
-        let connectedAccountId: string | undefined;
-
-        // Check for Stripe Connect first (preferred)
-        const { paymentSettings } = await import("../drizzle/schema");
-        const [settings] = await dbInstance
-          .select()
-          .from(paymentSettings)
-          .where(eq(paymentSettings.tenantId, ctx.tenantId))
-          .limit(1);
-
-        // For Terminal, always use Platform account directly
-        apiKey = ENV.stripeSecretKey;
-        // connectedAccountId is NOT used for Terminal reader operations
-        
-        if (input.providerId) {
-          const { paymentProviders } = await import("../drizzle/schema");
-          const [provider] = await dbInstance
-            .select()
-            .from(paymentProviders)
-            .where(
-              and(
-                eq(paymentProviders.id, input.providerId),
-                eq(paymentProviders.tenantId, ctx.tenantId),
-                eq(paymentProviders.providerType, "stripe_terminal")
-              )
-            );
-
-          if (provider) {
-            apiKey = (provider.config as any)?.apiKey;
-          }
-        }
+        const { apiKey, connectedAccountId } = await resolveTerminalStripe(
+          dbInstance,
+          ctx.tenantId,
+          input.providerId
+        );
 
         const { createTerminalPaymentIntent } = await import(
           "./stripeTerminal"
@@ -12863,30 +13037,17 @@ export const appRouter = router({
           });
         }
 
-        let apiKey: string | undefined;
-
-        if (input.providerId) {
-          const { paymentProviders } = await import("../drizzle/schema");
-          const [provider] = await dbInstance
-            .select()
-            .from(paymentProviders)
-            .where(
-              and(
-                eq(paymentProviders.id, input.providerId),
-                eq(paymentProviders.tenantId, ctx.tenantId),
-                eq(paymentProviders.providerType, "stripe_terminal")
-              )
-            );
-
-          if (provider) {
-            apiKey = (provider.config as any)?.apiKey;
-          }
-        }
+        const { apiKey, connectedAccountId } = await resolveTerminalStripe(
+          dbInstance,
+          ctx.tenantId,
+          input.providerId
+        );
 
         const { cancelPaymentIntent } = await import("./stripeTerminal");
         const paymentIntent = await cancelPaymentIntent(
           input.paymentIntentId,
-          apiKey
+          apiKey,
+          connectedAccountId
         );
         return { success: true, status: paymentIntent.status };
       }),
@@ -12909,31 +13070,18 @@ export const appRouter = router({
           });
         }
 
-        let apiKey: string | undefined;
-
-        if (input.providerId) {
-          const { paymentProviders } = await import("../drizzle/schema");
-          const [provider] = await dbInstance
-            .select()
-            .from(paymentProviders)
-            .where(
-              and(
-                eq(paymentProviders.id, input.providerId),
-                eq(paymentProviders.tenantId, ctx.tenantId),
-                eq(paymentProviders.providerType, "stripe_terminal")
-              )
-            );
-
-          if (provider) {
-            apiKey = (provider.config as any)?.apiKey;
-          }
-        }
+        const { apiKey, connectedAccountId } = await resolveTerminalStripe(
+          dbInstance,
+          ctx.tenantId,
+          input.providerId
+        );
 
         const { refundTerminalPayment } = await import("./stripeTerminal");
         const refund = await refundTerminalPayment(
           input.paymentIntentId,
           input.amount,
-          apiKey
+          apiKey,
+          connectedAccountId
         );
 
         return {
@@ -12953,22 +13101,13 @@ export const appRouter = router({
         });
       }
 
-      let apiKey: string | undefined;
-      let connectedAccountId: string | undefined;
-
-      const { paymentSettings } = await import("../drizzle/schema");
-      const [settings] = await dbInstance
-        .select()
-        .from(paymentSettings)
-        .where(eq(paymentSettings.tenantId, ctx.tenantId))
-        .limit(1);
-
-      // For Terminal, always use Platform account directly
-      apiKey = ENV.stripeSecretKey;
-      // connectedAccountId is NOT used for Terminal location operations
+      const { apiKey, connectedAccountId } = await resolveTerminalStripe(
+        dbInstance,
+        ctx.tenantId
+      );
 
       const { listLocations } = await import("./stripeTerminal");
-      return await listLocations(apiKey);
+      return await listLocations(apiKey, connectedAccountId);
     }),
 
     // Create Terminal Location
@@ -12993,25 +13132,17 @@ export const appRouter = router({
           });
         }
 
-        let apiKey: string | undefined;
-        let connectedAccountId: string | undefined;
-
-        const { paymentSettings } = await import("../drizzle/schema");
-        const [settings] = await dbInstance
-          .select()
-          .from(paymentSettings)
-          .where(eq(paymentSettings.tenantId, ctx.tenantId))
-          .limit(1);
-
-        // For Terminal, always use Platform account directly
-        apiKey = ENV.stripeSecretKey;
-        // connectedAccountId is NOT used for Terminal location operations
+        const { apiKey, connectedAccountId } = await resolveTerminalStripe(
+          dbInstance,
+          ctx.tenantId
+        );
 
         const { createLocation } = await import("./stripeTerminal");
         return await createLocation(
           input.displayName,
           input.address,
-          apiKey
+          apiKey,
+          connectedAccountId
         );
       }),
 
@@ -13032,25 +13163,17 @@ export const appRouter = router({
           });
         }
 
-        let apiKey: string | undefined;
-        let connectedAccountId: string | undefined;
-
-        const { paymentSettings } = await import("../drizzle/schema");
-        const [settings] = await dbInstance
-          .select()
-          .from(paymentSettings)
-          .where(eq(paymentSettings.tenantId, ctx.tenantId))
-          .limit(1);
-
-        // For Terminal, always use Platform account directly
-        apiKey = ENV.stripeSecretKey;
-        // connectedAccountId is NOT used for Terminal operations
+        const { apiKey, connectedAccountId } = await resolveTerminalStripe(
+          dbInstance,
+          ctx.tenantId
+        );
 
         const { registerSimulatedReader } = await import("./stripeTerminal");
         return await registerSimulatedReader(
           input.locationId,
           input.label,
-          apiKey
+          apiKey,
+          connectedAccountId
         );
       }),
 
@@ -13077,19 +13200,10 @@ export const appRouter = router({
           });
         }
 
-        let apiKey: string | undefined;
-        let connectedAccountId: string | undefined;
-
-        const { paymentSettings } = await import("../drizzle/schema");
-        const [settings] = await dbInstance
-          .select()
-          .from(paymentSettings)
-          .where(eq(paymentSettings.tenantId, ctx.tenantId))
-          .limit(1);
-
-        // For Terminal, always use Platform account directly
-        apiKey = ENV.stripeSecretKey;
-        // connectedAccountId is NOT used for Terminal operations
+        const { apiKey, connectedAccountId } = await resolveTerminalStripe(
+          dbInstance,
+          ctx.tenantId
+        );
 
         const { getOrCreateDefaultLocation, registerSimulatedReader } = await import("./stripeTerminal");
         
@@ -13097,7 +13211,8 @@ export const appRouter = router({
         const location = await getOrCreateDefaultLocation(
           input.salonName,
           input.address,
-          apiKey
+          apiKey,
+          connectedAccountId
         );
 
         let reader = null;
@@ -13106,7 +13221,8 @@ export const appRouter = router({
             reader = await registerSimulatedReader(
               location.id,
               `${input.salonName} - Test Reader`,
-              apiKey
+              apiKey,
+              connectedAccountId
             );
           } catch (error: any) {
             // Simulated reader might already exist

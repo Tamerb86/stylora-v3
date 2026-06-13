@@ -78,7 +78,12 @@ try {
 
   console.log("\n✅ Platform admin ready.");
   console.log(`   Login as: ${email}`);
-  console.log("   Then open /saas-admin on the site to manage all salons.\n");
+  console.log("   Then open /saas-admin on the site to manage all salons.");
+  console.log(
+    "\n   ⚠️  Next: seed subscription plans so the 'Opprett ny salong' wizard\n" +
+      "       can complete (step 2 requires an active plan):\n" +
+      "         node scripts/seed-subscription-plans.mjs\n"
+  );
 } catch (e) {
   await conn.rollback().catch(() => {});
   console.error("❌ Failed:", e.message);

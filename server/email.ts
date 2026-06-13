@@ -3,6 +3,19 @@ import { ENV } from "./_core/env";
 import { sendEmailViaSES, isAWSSESConfigured } from "./_core/aws-ses";
 
 /**
+ * Escape HTML special characters so user-controlled values (customer name,
+ * salon name, service names) can't inject markup into rendered email HTML.
+ */
+function escapeHtml(value: string): string {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
  * Email sending helper using nodemailer with SMTP
  *
  * Configured via environment variables:
@@ -185,7 +198,7 @@ export function renderBookingConfirmationEmail(params: {
   time: string; // "14:30"
   services: string[];
 }) {
-  const servicesList = params.services.join(", ");
+  const servicesList = params.services.map(s => escapeHtml(s)).join(", ");
 
   return {
     subject: `Bekreftelse på timebestilling hos ${params.salonName}`,
@@ -241,8 +254,8 @@ export function renderBookingConfirmationEmail(params: {
           <h1 style="margin: 0;">✂️ Timebestilling bekreftet</h1>
         </div>
         <div class="content">
-          <p>Hei ${params.customerName},</p>
-          <p>Vi bekrefter din timebestilling hos <strong>${params.salonName}</strong>.</p>
+          <p>Hei ${escapeHtml(params.customerName)},</p>
+          <p>Vi bekrefter din timebestilling hos <strong>${escapeHtml(params.salonName)}</strong>.</p>
           
           <div class="details">
             <div class="detail-row">
@@ -257,7 +270,7 @@ export function renderBookingConfirmationEmail(params: {
           </div>
           
           <p>Velkommen!</p>
-          <p style="margin-top: 30px;">Hilsen<br/><strong>${params.salonName}</strong></p>
+          <p style="margin-top: 30px;">Hilsen<br/><strong>${escapeHtml(params.salonName)}</strong></p>
         </div>
         <div class="footer">
           <p>Denne e-posten ble sendt automatisk fra Stylora</p>
@@ -282,7 +295,7 @@ export function renderBookingRescheduleEmail(params: {
   newTime: string;
   services: string[];
 }) {
-  const servicesList = params.services.join(", ");
+  const servicesList = params.services.map(s => escapeHtml(s)).join(", ");
 
   const subject = `Tidspunkt endret - ${params.salonName}`;
   const html = `
@@ -313,8 +326,8 @@ export function renderBookingRescheduleEmail(params: {
           <h1>📅 Tidspunkt endret</h1>
         </div>
         <div class="content">
-          <p>Hei ${params.customerName},</p>
-          <p>Din booking hos <strong>${params.salonName}</strong> har blitt flyttet til et nytt tidspunkt.</p>
+          <p>Hei ${escapeHtml(params.customerName)},</p>
+          <p>Din booking hos <strong>${escapeHtml(params.salonName)}</strong> har blitt flyttet til et nytt tidspunkt.</p>
           
           <div class="info-box">
             <p><strong>⚠️ Viktig:</strong> Tidspunktet for din avtale er endret.</p>
@@ -330,7 +343,7 @@ export function renderBookingRescheduleEmail(params: {
           <p>Vi gleder oss til å se deg!</p>
         </div>
         <div class="footer">
-          <p><strong>${params.salonName}</strong></p>
+          <p><strong>${escapeHtml(params.salonName)}</strong></p>
           <p>Dette er en automatisk e-post. Vennligst ikke svar på denne meldingen.</p>
         </div>
       </div>
@@ -401,8 +414,8 @@ export function renderBookingCancellationEmail(params: {
           <h1 style="margin: 0;">❌ Timebestilling kansellert</h1>
         </div>
         <div class="content">
-          <p>Hei ${params.customerName},</p>
-          <p>Vi informerer om at din time hos <strong>${params.salonName}</strong> er kansellert.</p>
+          <p>Hei ${escapeHtml(params.customerName)},</p>
+          <p>Vi informerer om at din time hos <strong>${escapeHtml(params.salonName)}</strong> er kansellert.</p>
           
           <div class="details">
             <div class="detail-row">
@@ -414,7 +427,7 @@ export function renderBookingCancellationEmail(params: {
           </div>
           
           <p>Ta gjerne kontakt dersom du ønsker å bestille ny time.</p>
-          <p style="margin-top: 30px;">Hilsen<br/><strong>${params.salonName}</strong></p>
+          <p style="margin-top: 30px;">Hilsen<br/><strong>${escapeHtml(params.salonName)}</strong></p>
         </div>
         <div class="footer">
           <p>Denne e-posten ble sendt automatisk fra Stylora</p>
@@ -559,8 +572,8 @@ export function renderReceiptEmail(params: {
           <h1 style="margin: 0;">🧾 Kvittering</h1>
         </div>
         <div class="content">
-          <p>Hei ${params.customerName},</p>
-          <p>Takk for besøket hos <strong>${params.salonName}</strong>!</p>
+          <p>Hei ${escapeHtml(params.customerName)},</p>
+          <p>Takk for besøket hos <strong>${escapeHtml(params.salonName)}</strong>!</p>
           
           <div class="details">
             <div class="detail-row">
@@ -576,7 +589,7 @@ export function renderReceiptEmail(params: {
           </div>
           
           <p>Velkommen tilbake!</p>
-          <p style="margin-top: 30px;">Hilsen<br/><strong>${params.salonName}</strong></p>
+          <p style="margin-top: 30px;">Hilsen<br/><strong>${escapeHtml(params.salonName)}</strong></p>
         </div>
         <div class="footer">
           <p>Denne e-posten ble sendt automatisk fra Stylora</p>
