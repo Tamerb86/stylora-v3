@@ -13,7 +13,9 @@
     "check:i18n": "node scripts/check-locales.cjs && node scripts/check-i18n.cjs",
     "format": "prettier --write .",
     "test": "vitest run",
-    "db:push": "drizzle-kit generate && drizzle-kit migrate"
+    "db:push": "drizzle-kit generate && drizzle-kit migrate",
+    "seed:plans": "node scripts/seed-subscription-plans.mjs",
+    "bootstrap:platform-admin": "node scripts/bootstrap-platform-admin.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.948.0",
