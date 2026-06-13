@@ -22,6 +22,7 @@ import {
   getEnvironmentSummary,
 } from "./validate-env";
 import { logger } from "./logger";
+import { runStartupMigrations } from "./migrate-on-start";
 
 const getRequestPath = (req: express.Request) =>
   req.path || (req.url ? req.url.split("?")[0] : "");
@@ -136,6 +137,11 @@ async function startServer() {
   // into a half-broken state where requests fail later with opaque errors.
   validateEnvironmentOrExit();
   logger.info("Starting server", getEnvironmentSummary());
+
+  // Create/upgrade the database schema on boot when MIGRATE_ON_START=true, so a
+  // freshly-provisioned environment isn't left with an empty DB (which silently
+  // breaks signup/onboarding). No-op once migrations are applied.
+  await runStartupMigrations();
 
   const app = express();
   const server = createServer(app);
