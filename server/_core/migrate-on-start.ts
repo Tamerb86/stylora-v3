@@ -20,7 +20,9 @@ import { migrate } from "drizzle-orm/mysql2/migrator";
  * retries automatically.
  */
 export async function runStartupMigrations(): Promise<void> {
-  if (process.env.MIGRATE_ON_START !== "true") return;
+  // Accept common truthy spellings so a "TRUE"/"1"/"yes" value still works.
+  const flag = (process.env.MIGRATE_ON_START || "").trim().toLowerCase();
+  if (!["true", "1", "yes", "on"].includes(flag)) return;
 
   const url = process.env.DATABASE_URL;
   if (!url) {
