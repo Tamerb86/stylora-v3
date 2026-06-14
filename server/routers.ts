@@ -15879,15 +15879,25 @@ export const appRouter = router({
         .where(eq(paymentSettings.tenantId, ctx.tenantId))
         .limit(1);
 
-      // Return default settings if none exist
+      // Return default settings if none exist. Shape matches the columns the
+      // client reads from a real row so the query's return type is consistent
+      // (no "property may not exist" on the default branch).
       if (!settings) {
         return {
           vippsEnabled: false,
           cardEnabled: false,
           cashEnabled: true,
           payAtSalonEnabled: true,
+          vippsClientId: null as string | null,
+          vippsClientSecret: null as string | null,
+          vippsSubscriptionKey: null as string | null,
+          vippsMerchantSerialNumber: null as string | null,
           vippsTestMode: true,
-          defaultPaymentMethod: "pay_at_salon" as const,
+          defaultPaymentMethod: "pay_at_salon" as
+            | "vipps"
+            | "card"
+            | "cash"
+            | "pay_at_salon",
         };
       }
 

@@ -22,28 +22,24 @@ import {
 } from "lucide-react";
 
 export function StripeTerminalSettings() {
-  const [stripeApiKey, setStripeApiKey] = useState("");
   const [isDiscovering, setIsDiscovering] = useState(false);
   const [readers, setReaders] = useState<any[]>([]);
   const [connectedReader, setConnectedReader] = useState<any>(null);
 
-  // Get Stripe API key from payment settings
-  const { data: settings } = (trpc as any).paymentSettings.get.useQuery();
+  // Whether card payments (Stripe Terminal) are enabled. The actual Stripe key
+  // is resolved server-side per tenant (paymentProviders / Stripe Connect), so
+  // the client only needs to know if it's configured — it never holds the key.
+  const { data: settings } = trpc.paymentSettings.get.useQuery();
+  const isStripeConfigured = !!settings?.cardEnabled;
 
   // Stripe Terminal
   const utils = trpc.useUtils();
   const connectionTokenMutation =
     trpc.stripeTerminal.createConnectionToken.useMutation();
 
-  useEffect(() => {
-    if (settings?.stripeSecretKey) {
-      setStripeApiKey(settings.stripeSecretKey);
-    }
-  }, [settings]);
-
   const handleDiscoverReaders = async () => {
-    if (!stripeApiKey) {
-      toast.error("Vennligst legg til Stripe API-nøkkel først");
+    if (!isStripeConfigured) {
+      toast.error("Aktiver kortbetaling i betalingsinnstillinger først");
       return;
     }
 
@@ -107,7 +103,7 @@ export function StripeTerminalSettings() {
             <div className="space-y-1">
               <p className="text-sm font-medium">Stripe API-nøkkel</p>
               <p className="text-xs text-muted-foreground">
-                {stripeApiKey ? (
+                {isStripeConfigured ? (
                   <span className="flex items-center gap-1 text-green-600">
                     <CheckCircle2 className="h-3 w-3" />
                     Konfigurert
@@ -120,7 +116,7 @@ export function StripeTerminalSettings() {
                 )}
               </p>
             </div>
-            {!stripeApiKey && (
+            {!isStripeConfigured && (
               <Button variant="outline" size="sm" asChild>
                 <a href="#payment-settings">Legg til API-nøkkel</a>
               </Button>
@@ -129,7 +125,7 @@ export function StripeTerminalSettings() {
         </div>
 
         {/* Discover Readers */}
-        {stripeApiKey && (
+        {isStripeConfigured && (
           <>
             <div className="space-y-4">
               <div className="flex items-center justify-between">

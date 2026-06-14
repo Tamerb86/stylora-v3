@@ -37,16 +37,12 @@ export function PaymentSettingsTab() {
     useState("");
 
   // Stripe credentials
-  const [stripePublishableKey, setStripePublishableKey] = useState("");
-  const [stripeSecretKey, setStripeSecretKey] = useState("");
-
   // Load payment settings
-  const { data: settings, isLoading } = (
-    trpc as any
-  ).paymentSettings.get.useQuery();
+  const { data: settings, isLoading } =
+    trpc.paymentSettings.get.useQuery();
 
   // Update mutation
-  const updateMutation = (trpc as any).paymentSettings.update.useMutation({
+  const updateMutation = trpc.paymentSettings.update.useMutation({
     onSuccess: () => {
       toast.success("Betalingsinnstillinger lagret!");
     },
@@ -67,9 +63,6 @@ export function PaymentSettingsTab() {
       setVippsClientSecret(settings.vippsClientSecret || "");
       setVippsSubscriptionKey(settings.vippsSubscriptionKey || "");
       setVippsMerchantSerialNumber(settings.vippsMerchantSerialNumber || "");
-
-      setStripePublishableKey(settings.stripePublishableKey || "");
-      setStripeSecretKey(settings.stripeSecretKey || "");
     }
   }, [settings]);
 
@@ -83,8 +76,6 @@ export function PaymentSettingsTab() {
       vippsClientSecret: vippsClientSecret || undefined,
       vippsSubscriptionKey: vippsSubscriptionKey || undefined,
       vippsMerchantSerialNumber: vippsMerchantSerialNumber || undefined,
-      stripePublishableKey: stripePublishableKey || undefined,
-      stripeSecretKey: stripeSecretKey || undefined,
     });
   };
 
@@ -271,49 +262,9 @@ export function PaymentSettingsTab() {
             </div>
           )}
 
-          {/* Stripe Configuration */}
-          {cardEnabled && (
-            <div className="pt-4 border-t space-y-4">
-              <div>
-                <h3 className="font-medium mb-2 flex items-center gap-2">
-                  <CreditCard className="h-4 w-4" />
-                  Stripe-konfigurasjon
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Få Stripe API-nøkler fra{" "}
-                  <a
-                    href="https://dashboard.stripe.com/apikeys"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline"
-                  >
-                    Stripe Dashboard
-                  </a>
-                </p>
-              </div>
-
-              <div>
-                <Label htmlFor="stripePublishableKey">Publishable Key</Label>
-                <Input
-                  id="stripePublishableKey"
-                  placeholder="pk_live_..."
-                  value={stripePublishableKey}
-                  onChange={e => setStripePublishableKey(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="stripeSecretKey">Secret Key</Label>
-                <Input
-                  id="stripeSecretKey"
-                  type="password"
-                  placeholder="sk_live_..."
-                  value={stripeSecretKey}
-                  onChange={e => setStripeSecretKey(e.target.value)}
-                />
-              </div>
-            </div>
-          )}
+          {/* Stripe is configured via the one-click Stripe Connect flow above
+              (and per-tenant keys live in paymentProviders), so manual Stripe
+              key entry was removed — paymentSettings never stored these. */}
 
           {/* Save Button */}
           <div className="flex justify-end pt-4">

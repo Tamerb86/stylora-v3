@@ -148,7 +148,7 @@ export default function PublicBooking() {
       { enabled: !!TENANT_ID }
     );
 
-  const { data: paymentSettings } = (trpc as any).paymentSettings.getPublic.useQuery(
+  const { data: paymentSettings } = trpc.paymentSettings.getPublic.useQuery(
     { tenantId: TENANT_ID },
     { enabled: !!TENANT_ID }
   );
