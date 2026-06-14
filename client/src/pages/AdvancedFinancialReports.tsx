@@ -50,6 +50,7 @@ import {
 } from "date-fns";
 import { nb } from "date-fns/locale";
 import { safeToFixed } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 const COLORS = [
   "#3b82f6",
@@ -80,6 +81,7 @@ export default function AdvancedFinancialReports() {
 }
 
 function AdvancedFinancialReportsContent() {
+  const { t } = useTranslation();
   const [datePreset, setDatePreset] = useState<DatePreset>("thisMonth");
   const [paymentMethod, setPaymentMethod] = useState<
     "all" | "cash" | "card" | "stripe" | "vipps"
@@ -170,7 +172,7 @@ function AdvancedFinancialReportsContent() {
   const employeeChartData = useMemo(() => {
     if (!salesByEmployee) return [];
     return salesByEmployee.map(item => ({
-      name: item.employeeName || "Ukjent",
+      name: item.employeeName || t("advancedFinancialReports.unknown"),
       revenue: parseFloat(item.totalRevenue) || 0,
       orders: item.orderCount,
     }));
@@ -179,7 +181,7 @@ function AdvancedFinancialReportsContent() {
   const serviceChartData = useMemo(() => {
     if (!salesByService) return [];
     return salesByService.map(item => ({
-      name: item.serviceName || "Ukjent",
+      name: item.serviceName || t("advancedFinancialReports.unknown"),
       value: parseFloat(item.totalRevenue) || 0,
       count: item.itemCount,
     }));
@@ -203,13 +205,13 @@ function AdvancedFinancialReportsContent() {
 
     const csvContent = [
       [
-        "Ansatt",
-        "Antall ordre",
-        "Total omsetning",
-        "Gjennomsnittlig ordrebeløp",
+        t("advancedFinancialReports.csvEmployee"),
+        t("advancedFinancialReports.csvOrderCount"),
+        t("advancedFinancialReports.csvTotalRevenue"),
+        t("advancedFinancialReports.csvAverageOrderValue"),
       ],
       ...salesByEmployee.map(item => [
-        item.employeeName || "Ukjent",
+        item.employeeName || t("advancedFinancialReports.unknown"),
         item.orderCount,
         item.totalRevenue,
         item.averageOrderValue,
@@ -231,20 +233,20 @@ function AdvancedFinancialReportsContent() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Avanserte finansrapporter
+            {t("advancedFinancialReports.headerTitle")}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Detaljert analyse av salg og inntekter
+            {t("advancedFinancialReports.headerSubtitle")}
           </p>
         </div>
         <div className="flex gap-2">
           <Button onClick={handleExportPDF} variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
-            Eksporter PDF
+            {t("advancedFinancialReports.exportPdf")}
           </Button>
           <Button onClick={handleExportExcel} variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
-            Eksporter Excel
+            {t("advancedFinancialReports.exportExcel")}
           </Button>
         </div>
       </div>
@@ -254,12 +256,14 @@ function AdvancedFinancialReportsContent() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Filtre
+            {t("advancedFinancialReports.filters")}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-4">
           <div className="flex-1 min-w-[200px]">
-            <label className="text-sm font-medium mb-2 block">Periode</label>
+            <label className="text-sm font-medium mb-2 block">
+              {t("advancedFinancialReports.periodLabel")}
+            </label>
             <Select
               value={datePreset}
               onValueChange={v => setDatePreset(v as DatePreset)}
@@ -268,19 +272,31 @@ function AdvancedFinancialReportsContent() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="today">I dag</SelectItem>
-                <SelectItem value="last7days">Siste 7 dager</SelectItem>
-                <SelectItem value="last30days">Siste 30 dager</SelectItem>
-                <SelectItem value="thisMonth">Denne måneden</SelectItem>
-                <SelectItem value="lastMonth">Forrige måned</SelectItem>
-                <SelectItem value="thisYear">Dette året</SelectItem>
+                <SelectItem value="today">
+                  {t("advancedFinancialReports.presetToday")}
+                </SelectItem>
+                <SelectItem value="last7days">
+                  {t("advancedFinancialReports.presetLast7days")}
+                </SelectItem>
+                <SelectItem value="last30days">
+                  {t("advancedFinancialReports.presetLast30days")}
+                </SelectItem>
+                <SelectItem value="thisMonth">
+                  {t("advancedFinancialReports.presetThisMonth")}
+                </SelectItem>
+                <SelectItem value="lastMonth">
+                  {t("advancedFinancialReports.presetLastMonth")}
+                </SelectItem>
+                <SelectItem value="thisYear">
+                  {t("advancedFinancialReports.presetThisYear")}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="flex-1 min-w-[200px]">
             <label className="text-sm font-medium mb-2 block">
-              Betalingsmetode
+              {t("advancedFinancialReports.paymentMethodLabel")}
             </label>
             <Select
               value={paymentMethod}
@@ -290,9 +306,15 @@ function AdvancedFinancialReportsContent() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Alle</SelectItem>
-                <SelectItem value="cash">Kontant</SelectItem>
-                <SelectItem value="card">Kort</SelectItem>
+                <SelectItem value="all">
+                  {t("advancedFinancialReports.paymentAll")}
+                </SelectItem>
+                <SelectItem value="cash">
+                  {t("advancedFinancialReports.paymentCash")}
+                </SelectItem>
+                <SelectItem value="card">
+                  {t("advancedFinancialReports.paymentCard")}
+                </SelectItem>
                 <SelectItem value="stripe">Stripe</SelectItem>
                 <SelectItem value="vipps">Vipps</SelectItem>
               </SelectContent>
@@ -301,16 +323,22 @@ function AdvancedFinancialReportsContent() {
 
           <div className="flex-1 min-w-[200px]">
             <label className="text-sm font-medium mb-2 block">
-              Trendperiode
+              {t("advancedFinancialReports.trendPeriodLabel")}
             </label>
             <Select value={period} onValueChange={v => setPeriod(v as any)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="daily">Daglig</SelectItem>
-                <SelectItem value="weekly">Ukentlig</SelectItem>
-                <SelectItem value="monthly">Månedlig</SelectItem>
+                <SelectItem value="daily">
+                  {t("advancedFinancialReports.trendDaily")}
+                </SelectItem>
+                <SelectItem value="weekly">
+                  {t("advancedFinancialReports.trendWeekly")}
+                </SelectItem>
+                <SelectItem value="monthly">
+                  {t("advancedFinancialReports.trendMonthly")}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -322,7 +350,7 @@ function AdvancedFinancialReportsContent() {
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">
-              Total omsetning
+              {t("advancedFinancialReports.totalRevenue")}
             </CardTitle>
             <DollarSign className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           </CardHeader>
@@ -338,7 +366,7 @@ function AdvancedFinancialReportsContent() {
         <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-green-900 dark:text-green-100">
-              Antall ordre
+              {t("advancedFinancialReports.orderCount")}
             </CardTitle>
             <ShoppingCart className="h-5 w-5 text-green-600 dark:text-green-400" />
           </CardHeader>
@@ -352,7 +380,7 @@ function AdvancedFinancialReportsContent() {
         <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 border-purple-200 dark:border-purple-800">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-purple-900 dark:text-purple-100">
-              Gjennomsnittlig ordrebeløp
+              {t("advancedFinancialReports.averageOrderValue")}
             </CardTitle>
             <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
           </CardHeader>
@@ -371,26 +399,28 @@ function AdvancedFinancialReportsContent() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            Omsetningstrend
+            {t("advancedFinancialReports.revenueTrendTitle")}
           </CardTitle>
           <CardDescription>
             {period === "daily"
-              ? "Daglig"
+              ? t("advancedFinancialReports.trendDaily")
               : period === "weekly"
-                ? "Ukentlig"
-                : "Månedlig"}{" "}
-            omsetning
+                ? t("advancedFinancialReports.trendWeekly")
+                : t("advancedFinancialReports.trendMonthly")}{" "}
+            {t("advancedFinancialReports.revenueWord")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {trendsLoading ? (
             <div className="h-[300px] flex items-center justify-center">
-              <p className="text-muted-foreground">Laster data...</p>
+              <p className="text-muted-foreground">
+                {t("advancedFinancialReports.loadingData")}
+              </p>
             </div>
           ) : trendsChartData.length === 0 ? (
             <div className="h-[300px] flex items-center justify-center">
               <p className="text-muted-foreground">
-                Ingen data tilgjengelig for valgt periode
+                {t("advancedFinancialReports.noDataForPeriod")}
               </p>
             </div>
           ) : (
@@ -411,14 +441,14 @@ function AdvancedFinancialReportsContent() {
                   type="monotone"
                   dataKey="revenue"
                   stroke="#3b82f6"
-                  name="Omsetning (kr)"
+                  name={t("advancedFinancialReports.revenueKr")}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="orders"
                   stroke="#10b981"
-                  name="Antall ordre"
+                  name={t("advancedFinancialReports.orderCount")}
                   strokeWidth={2}
                 />
               </LineChart>
@@ -432,18 +462,24 @@ function AdvancedFinancialReportsContent() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Salg per ansatt
+            {t("advancedFinancialReports.salesByEmployeeTitle")}
           </CardTitle>
-          <CardDescription>Omsetning fordelt på ansatte</CardDescription>
+          <CardDescription>
+            {t("advancedFinancialReports.salesByEmployeeDesc")}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {employeeLoading ? (
             <div className="h-[300px] flex items-center justify-center">
-              <p className="text-muted-foreground">Laster data...</p>
+              <p className="text-muted-foreground">
+                {t("advancedFinancialReports.loadingData")}
+              </p>
             </div>
           ) : employeeChartData.length === 0 ? (
             <div className="h-[300px] flex items-center justify-center">
-              <p className="text-muted-foreground">Ingen data tilgjengelig</p>
+              <p className="text-muted-foreground">
+                {t("advancedFinancialReports.noData")}
+              </p>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
@@ -459,8 +495,16 @@ function AdvancedFinancialReportsContent() {
                     color: "#000000",
                   }}
                 />
-                <Bar dataKey="revenue" fill="#3b82f6" name="Omsetning (kr)" />
-                <Bar dataKey="orders" fill="#10b981" name="Antall ordre" />
+                <Bar
+                  dataKey="revenue"
+                  fill="#3b82f6"
+                  name={t("advancedFinancialReports.revenueKr")}
+                />
+                <Bar
+                  dataKey="orders"
+                  fill="#10b981"
+                  name={t("advancedFinancialReports.orderCount")}
+                />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -470,17 +514,25 @@ function AdvancedFinancialReportsContent() {
       {/* Sales by Service */}
       <Card>
         <CardHeader>
-          <CardTitle>Salg per tjeneste</CardTitle>
-          <CardDescription>Omsetning fordelt på tjenester</CardDescription>
+          <CardTitle>
+            {t("advancedFinancialReports.salesByServiceTitle")}
+          </CardTitle>
+          <CardDescription>
+            {t("advancedFinancialReports.salesByServiceDesc")}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {serviceLoading ? (
             <div className="h-[300px] flex items-center justify-center">
-              <p className="text-muted-foreground">Laster data...</p>
+              <p className="text-muted-foreground">
+                {t("advancedFinancialReports.loadingData")}
+              </p>
             </div>
           ) : serviceChartData.length === 0 ? (
             <div className="h-[300px] flex items-center justify-center">
-              <p className="text-muted-foreground">Ingen data tilgjengelig</p>
+              <p className="text-muted-foreground">
+                {t("advancedFinancialReports.noData")}
+              </p>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
@@ -517,15 +569,21 @@ function AdvancedFinancialReportsContent() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Topp ansatte
+              {t("advancedFinancialReports.topEmployeesTitle")}
             </CardTitle>
-            <CardDescription>Beste presterende ansatte</CardDescription>
+            <CardDescription>
+              {t("advancedFinancialReports.topEmployeesDesc")}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {performersLoading ? (
-              <p className="text-muted-foreground">Laster...</p>
+              <p className="text-muted-foreground">
+                {t("advancedFinancialReports.loading")}
+              </p>
             ) : !topPerformers || topPerformers.length === 0 ? (
-              <p className="text-muted-foreground">Ingen data tilgjengelig</p>
+              <p className="text-muted-foreground">
+                {t("advancedFinancialReports.noData")}
+              </p>
             ) : (
               <div className="space-y-4">
                 {topPerformers.map((performer, index) => (
@@ -539,10 +597,13 @@ function AdvancedFinancialReportsContent() {
                       </div>
                       <div>
                         <p className="font-medium">
-                          {performer.employeeName || "Ukjent"}
+                          {performer.employeeName ||
+                            t("advancedFinancialReports.unknown")}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {performer.orderCount} ordre
+                          {t("advancedFinancialReports.ordersCount", {
+                            count: performer.orderCount,
+                          })}
                         </p>
                       </div>
                     </div>
@@ -551,7 +612,7 @@ function AdvancedFinancialReportsContent() {
                         {safeToFixed(parseFloat(performer.totalRevenue), 2)} kr
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Snitt:{" "}
+                        {t("advancedFinancialReports.averageLabel")}{" "}
                         {safeToFixed(
                           parseFloat(performer.averageOrderValue),
                           2
@@ -568,14 +629,22 @@ function AdvancedFinancialReportsContent() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Topp tjenester</CardTitle>
-            <CardDescription>Mest populære tjenester</CardDescription>
+            <CardTitle>
+              {t("advancedFinancialReports.topServicesTitle")}
+            </CardTitle>
+            <CardDescription>
+              {t("advancedFinancialReports.topServicesDesc")}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {topServicesLoading ? (
-              <p className="text-muted-foreground">Laster...</p>
+              <p className="text-muted-foreground">
+                {t("advancedFinancialReports.loading")}
+              </p>
             ) : !topServices || topServices.length === 0 ? (
-              <p className="text-muted-foreground">Ingen data tilgjengelig</p>
+              <p className="text-muted-foreground">
+                {t("advancedFinancialReports.noData")}
+              </p>
             ) : (
               <div className="space-y-4">
                 {topServices.map((service, index) => (
@@ -589,10 +658,13 @@ function AdvancedFinancialReportsContent() {
                       </div>
                       <div>
                         <p className="font-medium">
-                          {service.serviceName || "Ukjent"}
+                          {service.serviceName ||
+                            t("advancedFinancialReports.unknown")}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {service.bookingCount} bestillinger
+                          {t("advancedFinancialReports.bookingsCount", {
+                            count: service.bookingCount,
+                          })}
                         </p>
                       </div>
                     </div>
@@ -601,7 +673,7 @@ function AdvancedFinancialReportsContent() {
                         {safeToFixed(parseFloat(service.totalRevenue), 2)} kr
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Snitt:{" "}
+                        {t("advancedFinancialReports.averageLabel")}{" "}
                         {safeToFixed(parseFloat(service.averagePrice), 2)} kr
                       </p>
                     </div>

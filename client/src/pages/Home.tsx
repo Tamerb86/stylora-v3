@@ -51,8 +51,10 @@ import {
   Smile,
 } from "lucide-react";
 import { isTenantSubdomain } from "@/utils/tenantDetection";
+import { useTranslation } from "react-i18next";
 
 export default function Home() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const isOwner = user?.openId === import.meta.env.VITE_OWNER_OPEN_ID;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
@@ -71,64 +73,74 @@ export default function Home() {
   const features = [
     {
       icon: Calendar,
-      title: "Smart Timebok",
-      description:
-        "Intelligent kalender som forstår din virksomhet. Automatisk planlegging, ingen dobbeltbookinger, og full kontroll over alle avtaler.",
+      title: t("home.features.calendar.title"),
+      description: t("home.features.calendar.description"),
       color: "from-blue-500 to-cyan-500",
       benefits: [
-        "Drag & drop",
-        "Automatisk planlegging",
-        "Fargekodet oversikt",
+        t("home.features.calendar.benefit1"),
+        t("home.features.calendar.benefit2"),
+        t("home.features.calendar.benefit3"),
       ],
       image: "/images/real-photos/dashboard-calendar.webp",
     },
     {
       icon: Globe,
-      title: "24/7 Online Booking",
-      description:
-        "Kundene dine bestiller når det passer dem – selv når du sover. Automatiske bekreftelser og påminnelser holder kalenderen full.",
+      title: t("home.features.onlineBooking.title"),
+      description: t("home.features.onlineBooking.description"),
       color: "from-purple-500 to-pink-500",
       benefits: [
-        "Mobilvennlig",
-        "Automatiske bekreftelser",
-        "Ingen dobbeltbookinger",
+        t("home.features.onlineBooking.benefit1"),
+        t("home.features.onlineBooking.benefit2"),
+        t("home.features.onlineBooking.benefit3"),
       ],
       image: "/images/real-photos/salon-modern-minimalist.webp",
     },
     {
       icon: MessageSquare,
-      title: "Smarte Påminnelser",
-      description:
-        "Automatiske SMS-varsler 24 og 2 timer før timen. Våre kunder rapporterer opptil 80% reduksjon i no-shows.",
+      title: t("home.features.reminders.title"),
+      description: t("home.features.reminders.description"),
       color: "from-orange-500 to-red-500",
-      benefits: ["80% færre no-shows", "Automatiske SMS", "E-post varsler"],
+      benefits: [
+        t("home.features.reminders.benefit1"),
+        t("home.features.reminders.benefit2"),
+        t("home.features.reminders.benefit3"),
+      ],
       image: "/images/real-photos/salon-white-clean.webp",
     },
     {
       icon: CreditCard,
-      title: "Enkel Betaling",
-      description:
-        "Integrasjon med Vipps og kortterminaler. Få betalt raskt, og hold oversikt over all omsetning på étt sted.",
+      title: t("home.features.payment.title"),
+      description: t("home.features.payment.description"),
       color: "from-green-500 to-emerald-500",
-      benefits: ["Vipps", "Stripe", "Kontant registrering"],
+      benefits: [
+        t("home.features.payment.benefit1"),
+        t("home.features.payment.benefit2"),
+        t("home.features.payment.benefit3"),
+      ],
       image: "/images/real-photos/dashboard-modern.webp",
     },
     {
       icon: Users,
-      title: "Komplett Kunderegister",
-      description:
-        "Alt du trenger å vite om kundene dine. Besøkshistorikk, preferanser, notater og GDPR-kompatibel databehandling.",
+      title: t("home.features.customers.title"),
+      description: t("home.features.customers.description"),
       color: "from-indigo-500 to-blue-500",
-      benefits: ["Besøkshistorikk", "Lojalitetsprogram", "GDPR-sikker"],
+      benefits: [
+        t("home.features.customers.benefit1"),
+        t("home.features.customers.benefit2"),
+        t("home.features.customers.benefit3"),
+      ],
       image: "/images/real-photos/salon-active-customers.webp",
     },
     {
       icon: BarChart3,
-      title: "Kraftige Analyser",
-      description:
-        "Omsetning, trender og ansattes ytelse – alt visualisert og lett å forstå. Ta datadrevne beslutninger som øker lønnsomheten.",
+      title: t("home.features.analytics.title"),
+      description: t("home.features.analytics.description"),
       color: "from-pink-500 to-rose-500",
-      benefits: ["Sanntidsrapporter", "Eksport til Excel", "Visuell analyse"],
+      benefits: [
+        t("home.features.analytics.benefit1"),
+        t("home.features.analytics.benefit2"),
+        t("home.features.analytics.benefit3"),
+      ],
       image: "/images/real-photos/dashboard-analytics.webp",
     },
   ];
@@ -136,25 +148,25 @@ export default function Home() {
   const stats = [
     {
       number: "5000+",
-      label: "Fornøyde salonger",
+      label: t("home.stats.salons"),
       icon: Heart,
       color: "from-red-500 to-pink-500",
     },
     {
       number: "98%",
-      label: "Kundetilfredshet",
+      label: t("home.stats.satisfaction"),
       icon: Star,
       color: "from-yellow-500 to-orange-500",
     },
     {
       number: "24/7",
-      label: "Online booking",
+      label: t("home.stats.onlineBooking"),
       icon: Clock,
       color: "from-blue-500 to-cyan-500",
     },
     {
       number: "80%",
-      label: "Færre uteblitte timer",
+      label: t("home.stats.fewerNoShows"),
       icon: TrendingUp,
       color: "from-green-500 to-emerald-500",
     },
@@ -169,27 +181,24 @@ export default function Home() {
   const testimonials = [
     {
       name: "Maria Johnsen",
-      role: "Eier, Glamour Frisør Oslo",
-      content:
-        "Stylora har transformert hvordan vi driver salongen. Vi sparer 5+ timer hver uke på administrasjon, og kundene elsker hvor enkelt det er å bestille time!",
+      role: t("home.testimonials.maria.role"),
+      content: t("home.testimonials.maria.content"),
       rating: 5,
       avatar: "MJ",
       color: "from-purple-500 to-pink-500",
     },
     {
       name: "Hassan Al-Rashid",
-      role: "Eier, Classic Barbershop Bergen",
-      content:
-        "Endelig et system som forstår norske salonger. SMS-påminnelsene har redusert no-shows med 75%, og rapportene gir oss innsikt vi aldri har hatt før!",
+      role: t("home.testimonials.hassan.role"),
+      content: t("home.testimonials.hassan.content"),
       rating: 5,
       avatar: "HA",
       color: "from-blue-500 to-cyan-500",
     },
     {
       name: "Linda Svendsen",
-      role: "Daglig leder, Beauty Studio Trondheim",
-      content:
-        "Utrolig intuitivt! Hele teamet var i gang på under 10 minutter. Stylora har gjort oss mer profesjonelle og effektive – kundene merker forskjellen.",
+      role: t("home.testimonials.linda.role"),
+      content: t("home.testimonials.linda.content"),
       rating: 5,
       avatar: "LS",
       color: "from-orange-500 to-red-500",
@@ -200,14 +209,14 @@ export default function Home() {
     {
       name: "Start",
       price: "299",
-      description: "Perfekt for enkeltpersoner og små salonger",
+      description: t("home.plans.start.description"),
       features: [
-        "1 behandler",
-        "100 SMS per måned",
-        "Online booking",
-        "Kunderegister",
-        "Grunnleggende rapporter",
-        "E-post support",
+        t("home.plans.start.feature1"),
+        t("home.plans.start.feature2"),
+        t("home.plans.start.feature3"),
+        t("home.plans.start.feature4"),
+        t("home.plans.start.feature5"),
+        t("home.plans.start.feature6"),
       ],
       highlighted: false,
       icon: Rocket,
@@ -216,33 +225,33 @@ export default function Home() {
     {
       name: "Pro",
       price: "799",
-      description: "For voksende salonger med flere ansatte",
+      description: t("home.plans.pro.description"),
       features: [
-        "Opptil 5 behandlere",
-        "500 SMS per måned",
-        "Alt i Start, pluss:",
-        "Varelager",
-        "Provisjonsberegning",
-        "Avanserte rapporter",
-        "Prioritert support",
+        t("home.plans.pro.feature1"),
+        t("home.plans.pro.feature2"),
+        t("home.plans.pro.feature3"),
+        t("home.plans.pro.feature4"),
+        t("home.plans.pro.feature5"),
+        t("home.plans.pro.feature6"),
+        t("home.plans.pro.feature7"),
       ],
       highlighted: true,
       icon: Target,
       color: "from-purple-500 to-pink-500",
-      badge: "Mest populær",
+      badge: t("home.plans.pro.badge"),
     },
     {
       name: "Premium",
       price: "1499",
-      description: "For salonger med flere avdelinger",
+      description: t("home.plans.premium.description"),
       features: [
-        "Ubegrenset behandlere",
-        "2000 SMS per måned",
-        "Alt i Pro, pluss:",
-        "Flerlokalitetsstyring",
-        "API-tilgang",
-        "Tilpassede rapporter",
-        "Dedikert kontaktperson",
+        t("home.plans.premium.feature1"),
+        t("home.plans.premium.feature2"),
+        t("home.plans.premium.feature3"),
+        t("home.plans.premium.feature4"),
+        t("home.plans.premium.feature5"),
+        t("home.plans.premium.feature6"),
+        t("home.plans.premium.feature7"),
       ],
       highlighted: false,
       icon: Award,
@@ -252,42 +261,36 @@ export default function Home() {
 
   const faqs = [
     {
-      question: "Må jeg være teknisk for å bruke Stylora?",
-      answer:
-        "Nei, absolutt ikke. Stylora er designet med enkelhet i fokus. Du trenger ingen teknisk erfaring – systemet er intuitivt og selvforklarende. Vi guider deg gjennom oppsettet, og de fleste salonger er oppe og kjører på under 10 minutter.",
+      question: t("home.faqs.technical.question"),
+      answer: t("home.faqs.technical.answer"),
     },
     {
-      question: "Fungerer dette med regnskapsfører?",
-      answer:
-        "Ja! Stylora eksporterer alle salgsdata i formater som er kompatible med norske regnskapssystemer. Du kan enkelt dele rapporter med regnskapsføreren din, og all MVA er automatisk beregnet etter norske regler. Perfekt for årsoppgjør og revisjon.",
+      question: t("home.faqs.accountant.question"),
+      answer: t("home.faqs.accountant.answer"),
     },
     {
-      question: "Støtter dere Vipps?",
-      answer:
-        "Vipps-integrasjon er planlagt og kommer snart. Akkurat nå støtter vi kortbetaling via Stripe, samt manuell registrering av kontant- og Vipps-betalinger i kassen.",
+      question: t("home.faqs.vipps.question"),
+      answer: t("home.faqs.vipps.answer"),
     },
     {
-      question: "Hva med GDPR og personvern?",
-      answer:
-        "Stylora er fullt GDPR-kompatibel og tar personvern på alvor. Vi lagrer kun nødvendig informasjon, all data er kryptert, og kundene dine har full kontroll. De kan når som helst be om innsyn eller sletting av sine data. Trygt for deg og kundene dine.",
+      question: t("home.faqs.gdpr.question"),
+      answer: t("home.faqs.gdpr.answer"),
     },
     {
-      question: "Kan ansatte ha egne innlogginger?",
-      answer:
-        "Ja! Hver ansatt får sin egen innlogging med tilpassede rettigheter basert på rolle. De kan se sin timeplan, registrere salg, få oversikt over provisjon, og mye mer. Full kontroll og oversikt for alle.",
+      question: t("home.faqs.logins.question"),
+      answer: t("home.faqs.logins.answer"),
     },
     {
-      question: "Kan jeg prøve før jeg kjøper?",
-      answer:
-        "Ja! Vi tilbyr 14 dagers gratis prøveperiode uten kredittkort. Du får full tilgang til alle funksjoner og kan teste Stylora grundig med dine egne data. Ingen forpliktelser, ingen skjulte kostnader.",
+      question: t("home.faqs.trial.question"),
+      answer: t("home.faqs.trial.answer"),
     },
   ];
 
   const trustBadges = [
-    { icon: Shield, text: "GDPR-kompatibel", color: "text-green-600" },
-    { icon: Globe, text: "EU-servere", color: "text-blue-600" },
-    { icon: Zap, text: "Ingen bindingstid", color: "text-purple-600" },
-    { icon: CheckCircle2, text: "SSL-kryptert", color: "text-orange-600" },
+    { icon: Shield, text: t("home.trustBadges.gdpr"), color: "text-green-600" },
+    { icon: Globe, text: t("home.trustBadges.euServers"), color: "text-blue-600" },
+    { icon: Zap, text: t("home.trustBadges.noLockIn"), color: "text-purple-600" },
+    { icon: CheckCircle2, text: t("home.trustBadges.ssl"), color: "text-orange-600" },
   ];
 
   // Structured Data for SEO
@@ -428,33 +431,33 @@ export default function Home() {
                   href="#funksjoner"
                   className="text-gray-700 hover:text-purple-600 transition-colors font-medium"
                 >
-                  Funksjoner
+                  {t("home.nav.features")}
                 </a>
                 <a
                   href="#priser"
                   className="text-gray-700 hover:text-purple-600 transition-colors font-medium"
                 >
-                  Priser
+                  {t("home.nav.pricing")}
                 </a>
                 <a
                   href="#faq"
                   className="text-gray-700 hover:text-purple-600 transition-colors font-medium"
                 >
-                  FAQ
+                  {t("home.nav.faq")}
                 </a>
                 <Link href="/about">
                   <a className="text-gray-700 hover:text-purple-600 transition-colors font-medium">
-                    Om oss
+                    {t("home.nav.about")}
                   </a>
                 </Link>
                 <Link href="/gallery">
                   <a className="text-gray-700 hover:text-purple-600 transition-colors font-medium">
-                    Galleri
+                    {t("home.nav.gallery")}
                   </a>
                 </Link>
                 <Link href="/case-study">
                   <a className="text-gray-700 hover:text-purple-600 transition-colors font-medium">
-                    Kundehistorier
+                    {t("home.nav.caseStudies")}
                   </a>
                 </Link>
                 {isOwner && (
@@ -468,19 +471,19 @@ export default function Home() {
                 {user ? (
                   <Link href="/dashboard">
                     <a className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-orange-500 text-white rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300">
-                      Dashboard
+                      {t("home.nav.dashboard")}
                     </a>
                   </Link>
                 ) : (
                   <>
                     <Link href="/login">
                       <a className="text-gray-700 hover:text-purple-600 transition-colors font-medium">
-                        Logg inn
+                        {t("home.nav.login")}
                       </a>
                     </Link>
                     <Link href="/onboard">
                       <a className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-orange-500 text-white rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2">
-                        Prøv gratis i 14 dager
+                        {t("home.nav.tryFree")}
                         <ArrowRight className="w-4 h-4" />
                       </a>
                     </Link>
@@ -508,33 +511,33 @@ export default function Home() {
                   href="#funksjoner"
                   className="block px-4 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-600 rounded-lg transition-colors font-medium"
                 >
-                  Funksjoner
+                  {t("home.nav.features")}
                 </a>
                 <a
                   href="#priser"
                   className="block px-4 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-600 rounded-lg transition-colors font-medium"
                 >
-                  Priser
+                  {t("home.nav.pricing")}
                 </a>
                 <a
                   href="#faq"
                   className="block px-4 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-600 rounded-lg transition-colors font-medium"
                 >
-                  FAQ
+                  {t("home.nav.faq")}
                 </a>
                 <Link href="/about">
                   <a className="block px-4 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-600 rounded-lg transition-colors font-medium">
-                    Om oss
+                    {t("home.nav.about")}
                   </a>
                 </Link>
                 <Link href="/gallery">
                   <a className="block px-4 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-600 rounded-lg transition-colors font-medium">
-                    Galleri
+                    {t("home.nav.gallery")}
                   </a>
                 </Link>
                 <Link href="/case-study">
                   <a className="block px-4 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-600 rounded-lg transition-colors font-medium">
-                    Kundehistorier
+                    {t("home.nav.caseStudies")}
                   </a>
                 </Link>
                 {isOwner && (
@@ -548,19 +551,19 @@ export default function Home() {
                 {user ? (
                   <Link href="/dashboard">
                     <a className="block px-4 py-2.5 bg-gradient-to-r from-purple-600 to-orange-500 text-white rounded-lg font-semibold text-center">
-                      Dashboard
+                      {t("home.nav.dashboard")}
                     </a>
                   </Link>
                 ) : (
                   <>
                     <Link href="/login">
                       <a className="block px-4 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-600 rounded-lg transition-colors font-medium">
-                        Logg inn
+                        {t("home.nav.login")}
                       </a>
                     </Link>
                     <Link href="/onboard">
                       <a className="block px-4 py-2.5 bg-gradient-to-r from-purple-600 to-orange-500 text-white rounded-lg font-semibold text-center">
-                        Prøv gratis i 14 dager
+                        {t("home.nav.tryFree")}
                       </a>
                     </Link>
                   </>
@@ -585,41 +588,38 @@ export default function Home() {
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-purple-200 shadow-sm animate-in fade-in slide-in-from-top duration-700">
                 <Sparkles className="w-4 h-4 text-purple-600" />
                 <span className="text-sm font-semibold text-gray-700">
-                  Bygget for norske salonger
+                  {t("home.hero.badge")}
                 </span>
               </div>
 
               {/* Main Headline */}
               <h1 className="text-5xl md:text-7xl font-bold leading-tight animate-in fade-in slide-in-from-bottom duration-700 delay-100">
                 <span className="bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent">
-                  Alt du trenger
+                  {t("home.hero.headlineTop")}
                 </span>
                 <br />
                 <span className="text-gray-900">
-                  for å drive en moderne salong
+                  {t("home.hero.headlineBottom")}
                 </span>
               </h1>
 
               {/* Subheadline */}
               <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom duration-700 delay-200">
-                Stylora er det komplette styringssystemet for moderne salonger.
-                Timebok, online booking, betaling og innsikt – alt i én elegant
-                løsning. Designet for norske frisørsalonger, barbershops og
-                skjønnhetssalonger som vil vokse.
+                {t("home.hero.subheadline")}
               </p>
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom duration-700 delay-300">
                 <Link href="/onboard">
                   <a className="group px-8 py-4 bg-gradient-to-r from-purple-600 to-orange-500 text-white rounded-xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-2">
-                    Kom i gang gratis
+                    {t("home.hero.ctaPrimary")}
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </a>
                 </Link>
                 <Link href="/demo">
                   <a className="group px-8 py-4 bg-white text-gray-900 rounded-xl font-bold text-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2 border-2 border-gray-200">
                     <Play className="w-5 h-5" />
-                    Se demo
+                    {t("home.hero.ctaDemo")}
                   </a>
                 </Link>
               </div>
@@ -628,12 +628,12 @@ export default function Home() {
               <div className="flex flex-wrap items-center justify-center gap-6 pt-8 animate-in fade-in slide-in-from-bottom duration-700 delay-400">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <CheckCircle2 className="w-5 h-5 text-green-600" />
-                  <span className="font-medium">Ingen bindingstid</span>
+                  <span className="font-medium">{t("home.hero.noLockIn")}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <CheckCircle2 className="w-5 h-5 text-green-600" />
                   <span className="font-medium">
-                    Ingen kredittkort nødvendig
+                    {t("home.hero.noCreditCard")}
                   </span>
                 </div>
               </div>
@@ -681,10 +681,10 @@ export default function Home() {
                     {/* Video Title */}
                     <div className="absolute bottom-4 left-4 text-white">
                       <p className="text-lg font-bold drop-shadow-lg">
-                        Se Stylora i aksjon
+                        {t("home.video.title")}
                       </p>
                       <p className="text-sm opacity-90">
-                        Komplett systemgjennomgang
+                        {t("home.video.subtitle")}
                       </p>
                     </div>
                   </div>
@@ -763,13 +763,13 @@ export default function Home() {
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
               <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 px-4 py-1.5 text-sm font-semibold">
-                Funksjoner
+                {t("home.featuresSection.badge")}
               </Badge>
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
-                Alt du trenger i én løsning
+                {t("home.featuresSection.title")}
               </h2>
               <p className="text-xl text-gray-600">
-                Kraftige verktøy designet for å gjøre hverdagen din enklere
+                {t("home.featuresSection.subtitle")}
               </p>
             </div>
 
@@ -830,7 +830,7 @@ export default function Home() {
                 href="#priser"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-orange-500 text-white rounded-xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300"
               >
-                Se systemet i aksjon
+                {t("home.featuresSection.cta")}
                 <ChevronRight className="w-5 h-5" />
               </a>
             </div>
@@ -842,13 +842,13 @@ export default function Home() {
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
               <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 px-4 py-1.5 text-sm font-semibold">
-                Kundehistorier
+                {t("home.testimonialsSection.badge")}
               </Badge>
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
-                Hva kundene våre sier
+                {t("home.testimonialsSection.title")}
               </h2>
               <p className="text-xl text-gray-600">
-                Bli med i familien av fornøyde salonger over hele Norge
+                {t("home.testimonialsSection.subtitle")}
               </p>
             </div>
 
@@ -906,7 +906,7 @@ export default function Home() {
             <div className="text-center mt-12">
               <Link href="/case-study">
                 <a className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold text-lg group">
-                  Les kundesuksess-historien
+                  {t("home.testimonialsSection.readMore")}
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </a>
               </Link>
@@ -919,13 +919,13 @@ export default function Home() {
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
               <Badge className="bg-green-100 text-green-700 hover:bg-green-100 px-4 py-1.5 text-sm font-semibold">
-                Priser
+                {t("home.pricingSection.badge")}
               </Badge>
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
-                Enkel og transparent prising
+                {t("home.pricingSection.title")}
               </h2>
               <p className="text-xl text-gray-600">
-                Velg planen som passer din salong. Ingen skjulte kostnader.
+                {t("home.pricingSection.subtitle")}
               </p>
             </div>
 
@@ -961,7 +961,7 @@ export default function Home() {
                           {plan.price}
                         </span>
                         <span className="text-gray-600 font-medium">
-                          NOK/mnd
+                          {t("home.pricingSection.perMonth")}
                         </span>
                       </div>
                       <CardDescription className="text-base text-gray-600">
@@ -988,7 +988,7 @@ export default function Home() {
                               : "bg-gray-100 text-gray-900 hover:bg-gray-200"
                           }`}
                         >
-                          Start gratis prøveperiode
+                          {t("home.pricingSection.startTrial")}
                         </a>
                       </Link>
                     </CardContent>
@@ -999,21 +999,20 @@ export default function Home() {
 
             <div className="text-center mt-12 space-y-4">
               <p className="text-gray-600">
-                Alle planer inkluderer 14 dagers gratis prøveperiode. Ingen
-                kredittkort nødvendig.
+                {t("home.pricingSection.trialNote")}
               </p>
               <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-green-600" />
-                  <span>Ingen bindingstid</span>
+                  <span>{t("home.pricingSection.noLockIn")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-green-600" />
-                  <span>Avslutt når som helst</span>
+                  <span>{t("home.pricingSection.cancelAnytime")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-green-600" />
-                  <span>Norsk support</span>
+                  <span>{t("home.pricingSection.norwegianSupport")}</span>
                 </div>
               </div>
             </div>
@@ -1028,13 +1027,13 @@ export default function Home() {
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
               <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 px-4 py-1.5 text-sm font-semibold">
-                FAQ
+                {t("home.faqSection.badge")}
               </Badge>
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
-                Ofte stilte spørsmål
+                {t("home.faqSection.title")}
               </h2>
               <p className="text-xl text-gray-600">
-                Alt du trenger å vite om Stylora
+                {t("home.faqSection.subtitle")}
               </p>
             </div>
 
@@ -1073,29 +1072,28 @@ export default function Home() {
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
                 <Sparkles className="w-4 h-4 text-white" />
                 <span className="text-sm font-semibold text-white">
-                  Klar for å ta salongen din til neste nivå?
+                  {t("home.finalCta.badge")}
                 </span>
               </div>
 
               <h2 className="text-4xl md:text-6xl font-bold text-white leading-tight">
-                Start din gratis prøveperiode i dag
+                {t("home.finalCta.title")}
               </h2>
 
               <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto">
-                Bli med 5000+ fornøyde salonger som allerede bruker Stylora.
-                Ingen kredittkort nødvendig.
+                {t("home.finalCta.subtitle")}
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
                 <Link href="/onboard">
                   <a className="group px-10 py-5 bg-white text-purple-600 rounded-xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-2">
-                    Kom i gang gratis
+                    {t("home.finalCta.ctaPrimary")}
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </a>
                 </Link>
                 <Link href="/contact">
                   <a className="px-10 py-5 bg-white/10 backdrop-blur-sm text-white rounded-xl font-bold text-lg hover:bg-white/20 transition-all duration-300 border-2 border-white/30">
-                    Kontakt oss
+                    {t("home.finalCta.contact")}
                   </a>
                 </Link>
               </div>
@@ -1104,16 +1102,16 @@ export default function Home() {
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5" />
                   <span className="font-medium">
-                    14 dagers gratis prøveperiode
+                    {t("home.finalCta.trial")}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5" />
-                  <span className="font-medium">Ingen bindingstid</span>
+                  <span className="font-medium">{t("home.finalCta.noLockIn")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5" />
-                  <span className="font-medium">Norsk support</span>
+                  <span className="font-medium">{t("home.finalCta.norwegianSupport")}</span>
                 </div>
               </div>
             </div>

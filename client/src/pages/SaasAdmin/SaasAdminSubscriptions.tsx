@@ -48,8 +48,10 @@ import {
   LogOut,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export default function SaasAdminSubscriptions() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("overview");
   const [editPlanDialog, setEditPlanDialog] = useState<{
     open: boolean;
@@ -84,34 +86,34 @@ export default function SaasAdminSubscriptions() {
   // Mutations for creating and updating plans
   const createPlanMutation = trpc.saasAdmin.createSubscriptionPlan.useMutation({
     onSuccess: () => {
-      toast.success("Plan opprettet!");
+      toast.success(t("saasAdminSubscriptions.planCreated"));
       setNewPlanDialog(false);
       resetPlanForm();
       refetchPlans();
     },
     onError: error => {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("saasAdminSubscriptions.error", { message: error.message }));
     },
   });
 
   const updatePlanMutation = trpc.saasAdmin.updateSubscriptionPlan.useMutation({
     onSuccess: () => {
-      toast.success("Plan oppdatert!");
+      toast.success(t("saasAdminSubscriptions.planUpdated"));
       setEditPlanDialog({ open: false, plan: null });
       refetchPlans();
     },
     onError: error => {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("saasAdminSubscriptions.error", { message: error.message }));
     },
   });
 
   const deletePlanMutation = trpc.saasAdmin.deleteSubscriptionPlan.useMutation({
     onSuccess: () => {
-      toast.success("Plan slettet!");
+      toast.success(t("saasAdminSubscriptions.planDeleted"));
       refetchPlans();
     },
     onError: error => {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("saasAdminSubscriptions.error", { message: error.message }));
     },
   });
 
@@ -217,10 +219,10 @@ export default function SaasAdminSubscriptions() {
           </Link>
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Abonnementer
+              {t("saasAdminSubscriptions.title")}
             </h1>
             <p className="text-muted-foreground mt-1">
-              Administrer planer og abonnementer
+              {t("saasAdminSubscriptions.subtitle")}
             </p>
           </div>
         </div>
@@ -230,7 +232,7 @@ export default function SaasAdminSubscriptions() {
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Ny plan
+            {t("saasAdminSubscriptions.newPlan")}
           </Button>
           <Button
             variant="outline"
@@ -241,7 +243,7 @@ export default function SaasAdminSubscriptions() {
             className="border-red-200 text-red-600 hover:bg-red-50"
           >
             <LogOut className="h-4 w-4 mr-2" />
-            Logg ut
+            {t("saasAdminSubscriptions.logOut")}
           </Button>
         </div>
       </div>
@@ -254,7 +256,7 @@ export default function SaasAdminSubscriptions() {
               <CheckCircle className="h-6 w-6 text-white" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Aktive</p>
+              <p className="text-sm text-muted-foreground">{t("saasAdminSubscriptions.statActive")}</p>
               <p className="text-2xl font-bold">{stats.totalActive}</p>
             </div>
           </div>
@@ -266,7 +268,7 @@ export default function SaasAdminSubscriptions() {
               <Calendar className="h-6 w-6 text-white" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Prøveperiode</p>
+              <p className="text-sm text-muted-foreground">{t("saasAdminSubscriptions.statTrial")}</p>
               <p className="text-2xl font-bold">{stats.totalTrial}</p>
             </div>
           </div>
@@ -278,7 +280,7 @@ export default function SaasAdminSubscriptions() {
               <AlertCircle className="h-6 w-6 text-white" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Suspendert</p>
+              <p className="text-sm text-muted-foreground">{t("saasAdminSubscriptions.statSuspended")}</p>
               <p className="text-2xl font-bold">{stats.totalSuspended}</p>
             </div>
           </div>
@@ -290,7 +292,7 @@ export default function SaasAdminSubscriptions() {
               <XCircle className="h-6 w-6 text-white" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Kansellert</p>
+              <p className="text-sm text-muted-foreground">{t("saasAdminSubscriptions.statCanceled")}</p>
               <p className="text-2xl font-bold">{stats.totalCanceled}</p>
             </div>
           </div>
@@ -314,9 +316,9 @@ export default function SaasAdminSubscriptions() {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3 max-w-md">
-          <TabsTrigger value="overview">Oversikt</TabsTrigger>
-          <TabsTrigger value="plans">Planer</TabsTrigger>
-          <TabsTrigger value="active">Aktive abonnenter</TabsTrigger>
+          <TabsTrigger value="overview">{t("saasAdminSubscriptions.tabOverview")}</TabsTrigger>
+          <TabsTrigger value="plans">{t("saasAdminSubscriptions.tabPlans")}</TabsTrigger>
+          <TabsTrigger value="active">{t("saasAdminSubscriptions.tabActiveSubscribers")}</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -339,7 +341,7 @@ export default function SaasAdminSubscriptions() {
                       <p className="text-2xl font-bold text-primary mt-1">
                         {plan.priceMonthly} kr
                         <span className="text-sm font-normal text-muted-foreground">
-                          /mnd
+                          {t("saasAdminSubscriptions.perMonth")}
                         </span>
                       </p>
                     </div>
@@ -348,27 +350,27 @@ export default function SaasAdminSubscriptions() {
                         plan.isActive !== false ? "default" : "secondary"
                       }
                     >
-                      {plan.isActive !== false ? "Aktiv" : "Inaktiv"}
+                      {plan.isActive !== false ? t("saasAdminSubscriptions.statusActive") : t("saasAdminSubscriptions.statusInactive")}
                     </Badge>
                   </div>
 
                   <div className="space-y-2 text-sm text-muted-foreground mb-4">
                     <div className="flex justify-between">
-                      <span>Maks ansatte:</span>
+                      <span>{t("saasAdminSubscriptions.maxEmployees")}:</span>
                       <span className="font-medium text-foreground">
-                        {plan.maxEmployees || "Ubegrenset"}
+                        {plan.maxEmployees || t("saasAdminSubscriptions.unlimited")}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Maks kunder:</span>
+                      <span>{t("saasAdminSubscriptions.maxCustomers")}:</span>
                       <span className="font-medium text-foreground">
-                        {plan.maxCustomers || "Ubegrenset"}
+                        {plan.maxCustomers || t("saasAdminSubscriptions.unlimited")}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Timer/mnd:</span>
+                      <span>{t("saasAdminSubscriptions.appointmentsPerMonth")}:</span>
                       <span className="font-medium text-foreground">
-                        {plan.maxAppointmentsPerMonth || "Ubegrenset"}
+                        {plan.maxAppointmentsPerMonth || t("saasAdminSubscriptions.unlimited")}
                       </span>
                     </div>
                   </div>
@@ -378,8 +380,10 @@ export default function SaasAdminSubscriptions() {
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm">
-                          <strong>{activeCount}</strong> aktive av{" "}
-                          {subscriberCount} totalt
+                          <strong>{activeCount}</strong>{" "}
+                          {t("saasAdminSubscriptions.activeOfTotal", {
+                            total: subscriberCount,
+                          })}
                         </span>
                       </div>
                       <Button
@@ -409,14 +413,14 @@ export default function SaasAdminSubscriptions() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Plan</TableHead>
-                      <TableHead>Pris/mnd</TableHead>
-                      <TableHead>Pris/år</TableHead>
-                      <TableHead>Maks ansatte</TableHead>
-                      <TableHead>Maks kunder</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Abonnenter</TableHead>
-                      <TableHead className="text-right">Handlinger</TableHead>
+                      <TableHead>{t("saasAdminSubscriptions.colPlan")}</TableHead>
+                      <TableHead>{t("saasAdminSubscriptions.colPriceMonthly")}</TableHead>
+                      <TableHead>{t("saasAdminSubscriptions.colPriceYearly")}</TableHead>
+                      <TableHead>{t("saasAdminSubscriptions.colMaxEmployees")}</TableHead>
+                      <TableHead>{t("saasAdminSubscriptions.colMaxCustomers")}</TableHead>
+                      <TableHead>{t("saasAdminSubscriptions.colStatus")}</TableHead>
+                      <TableHead>{t("saasAdminSubscriptions.colSubscribers")}</TableHead>
+                      <TableHead className="text-right">{t("saasAdminSubscriptions.colActions")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -444,7 +448,7 @@ export default function SaasAdminSubscriptions() {
                               plan.isActive !== false ? "default" : "secondary"
                             }
                           >
-                            {plan.isActive !== false ? "Aktiv" : "Inaktiv"}
+                            {plan.isActive !== false ? t("saasAdminSubscriptions.statusActive") : t("saasAdminSubscriptions.statusInactive")}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -457,7 +461,7 @@ export default function SaasAdminSubscriptions() {
                             onClick={() => openEditPlan(plan)}
                           >
                             <Edit className="h-4 w-4 mr-1" />
-                            Rediger
+                            {t("saasAdminSubscriptions.edit")}
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -476,12 +480,12 @@ export default function SaasAdminSubscriptions() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Salong</TableHead>
-                    <TableHead>Plan</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Startet</TableHead>
-                    <TableHead>Neste faktura</TableHead>
-                    <TableHead className="text-right">Månedlig</TableHead>
+                    <TableHead>{t("saasAdminSubscriptions.colTenant")}</TableHead>
+                    <TableHead>{t("saasAdminSubscriptions.colPlan")}</TableHead>
+                    <TableHead>{t("saasAdminSubscriptions.colStatus")}</TableHead>
+                    <TableHead>{t("saasAdminSubscriptions.colStarted")}</TableHead>
+                    <TableHead>{t("saasAdminSubscriptions.colNextInvoice")}</TableHead>
+                    <TableHead className="text-right">{t("saasAdminSubscriptions.colMonthly")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -500,7 +504,7 @@ export default function SaasAdminSubscriptions() {
                             </div>
                           </Link>
                         </TableCell>
-                        <TableCell>{tenant.planName || "Ingen plan"}</TableCell>
+                        <TableCell>{tenant.planName || t("saasAdminSubscriptions.noPlan")}</TableCell>
                         <TableCell>
                           <Badge
                             variant={
@@ -509,7 +513,7 @@ export default function SaasAdminSubscriptions() {
                                 : "secondary"
                             }
                           >
-                            {tenant.status === "active" ? "Aktiv" : "Prøve"}
+                            {tenant.status === "active" ? t("saasAdminSubscriptions.statusActive") : t("saasAdminSubscriptions.statusTrial")}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-sm">
@@ -545,16 +549,16 @@ export default function SaasAdminSubscriptions() {
       >
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Rediger plan</DialogTitle>
+            <DialogTitle>{t("saasAdminSubscriptions.editPlanTitle")}</DialogTitle>
             <DialogDescription>
-              Oppdater planens detaljer og begrensninger
+              {t("saasAdminSubscriptions.editPlanDescription")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Navn (intern)</Label>
+                <Label>{t("saasAdminSubscriptions.labelInternalName")}</Label>
                 <Input
                   value={planForm.name}
                   onChange={e =>
@@ -564,7 +568,7 @@ export default function SaasAdminSubscriptions() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Visningsnavn (NO)</Label>
+                <Label>{t("saasAdminSubscriptions.labelDisplayNameNo")}</Label>
                 <Input
                   value={planForm.displayNameNo}
                   onChange={e =>
@@ -580,7 +584,7 @@ export default function SaasAdminSubscriptions() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Pris/mnd (kr)</Label>
+                <Label>{t("saasAdminSubscriptions.labelPriceMonthly")}</Label>
                 <Input
                   type="number"
                   value={planForm.priceMonthly}
@@ -593,7 +597,7 @@ export default function SaasAdminSubscriptions() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Pris/år (kr)</Label>
+                <Label>{t("saasAdminSubscriptions.labelPriceYearly")}</Label>
                 <Input
                   type="number"
                   value={planForm.priceYearly}
@@ -609,7 +613,7 @@ export default function SaasAdminSubscriptions() {
 
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>Maks ansatte</Label>
+                <Label>{t("saasAdminSubscriptions.labelMaxEmployees")}</Label>
                 <Input
                   type="number"
                   value={planForm.maxEmployees}
@@ -619,11 +623,11 @@ export default function SaasAdminSubscriptions() {
                       maxEmployees: parseInt(e.target.value) || 0,
                     }))
                   }
-                  placeholder="0 = ubegrenset"
+                  placeholder={t("saasAdminSubscriptions.unlimitedPlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Maks kunder</Label>
+                <Label>{t("saasAdminSubscriptions.labelMaxCustomers")}</Label>
                 <Input
                   type="number"
                   value={planForm.maxCustomers}
@@ -633,11 +637,11 @@ export default function SaasAdminSubscriptions() {
                       maxCustomers: parseInt(e.target.value) || 0,
                     }))
                   }
-                  placeholder="0 = ubegrenset"
+                  placeholder={t("saasAdminSubscriptions.unlimitedPlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Timer/mnd</Label>
+                <Label>{t("saasAdminSubscriptions.labelAppointmentsPerMonth")}</Label>
                 <Input
                   type="number"
                   value={planForm.maxAppointmentsPerMonth}
@@ -647,19 +651,19 @@ export default function SaasAdminSubscriptions() {
                       maxAppointmentsPerMonth: parseInt(e.target.value) || 0,
                     }))
                   }
-                  placeholder="0 = ubegrenset"
+                  placeholder={t("saasAdminSubscriptions.unlimitedPlaceholder")}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Funksjoner (kommaseparert)</Label>
+              <Label>{t("saasAdminSubscriptions.labelFeatures")}</Label>
               <Input
                 value={planForm.features}
                 onChange={e =>
                   setPlanForm(prev => ({ ...prev, features: e.target.value }))
                 }
-                placeholder="Online booking, SMS påminnelser, Rapporter"
+                placeholder={t("saasAdminSubscriptions.featuresPlaceholder")}
               />
             </div>
           </div>
@@ -669,7 +673,7 @@ export default function SaasAdminSubscriptions() {
               variant="outline"
               onClick={() => setEditPlanDialog({ open: false, plan: null })}
             >
-              Avbryt
+              {t("saasAdminSubscriptions.cancel")}
             </Button>
             <Button
               className="bg-gradient-to-r from-blue-600 to-purple-600"
@@ -679,10 +683,10 @@ export default function SaasAdminSubscriptions() {
               {updatePlanMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Lagrer...
+                  {t("saasAdminSubscriptions.saving")}
                 </>
               ) : (
-                "Lagre endringer"
+                t("saasAdminSubscriptions.saveChanges")
               )}
             </Button>
           </DialogFooter>
@@ -693,16 +697,16 @@ export default function SaasAdminSubscriptions() {
       <Dialog open={newPlanDialog} onOpenChange={setNewPlanDialog}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Opprett ny plan</DialogTitle>
+            <DialogTitle>{t("saasAdminSubscriptions.newPlanTitle")}</DialogTitle>
             <DialogDescription>
-              Legg til en ny abonnementsplan
+              {t("saasAdminSubscriptions.newPlanDescription")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Navn (intern)</Label>
+                <Label>{t("saasAdminSubscriptions.labelInternalName")}</Label>
                 <Input
                   value={planForm.name}
                   onChange={e =>
@@ -712,7 +716,7 @@ export default function SaasAdminSubscriptions() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Visningsnavn (NO)</Label>
+                <Label>{t("saasAdminSubscriptions.labelDisplayNameNo")}</Label>
                 <Input
                   value={planForm.displayNameNo}
                   onChange={e =>
@@ -728,7 +732,7 @@ export default function SaasAdminSubscriptions() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Pris/mnd (kr)</Label>
+                <Label>{t("saasAdminSubscriptions.labelPriceMonthly")}</Label>
                 <Input
                   type="number"
                   value={planForm.priceMonthly}
@@ -741,7 +745,7 @@ export default function SaasAdminSubscriptions() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Pris/år (kr)</Label>
+                <Label>{t("saasAdminSubscriptions.labelPriceYearly")}</Label>
                 <Input
                   type="number"
                   value={planForm.priceYearly}
@@ -757,7 +761,7 @@ export default function SaasAdminSubscriptions() {
 
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>Maks ansatte</Label>
+                <Label>{t("saasAdminSubscriptions.labelMaxEmployees")}</Label>
                 <Input
                   type="number"
                   value={planForm.maxEmployees}
@@ -767,11 +771,11 @@ export default function SaasAdminSubscriptions() {
                       maxEmployees: parseInt(e.target.value) || 0,
                     }))
                   }
-                  placeholder="0 = ubegrenset"
+                  placeholder={t("saasAdminSubscriptions.unlimitedPlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Maks kunder</Label>
+                <Label>{t("saasAdminSubscriptions.labelMaxCustomers")}</Label>
                 <Input
                   type="number"
                   value={planForm.maxCustomers}
@@ -781,11 +785,11 @@ export default function SaasAdminSubscriptions() {
                       maxCustomers: parseInt(e.target.value) || 0,
                     }))
                   }
-                  placeholder="0 = ubegrenset"
+                  placeholder={t("saasAdminSubscriptions.unlimitedPlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Timer/mnd</Label>
+                <Label>{t("saasAdminSubscriptions.labelAppointmentsPerMonth")}</Label>
                 <Input
                   type="number"
                   value={planForm.maxAppointmentsPerMonth}
@@ -795,26 +799,26 @@ export default function SaasAdminSubscriptions() {
                       maxAppointmentsPerMonth: parseInt(e.target.value) || 0,
                     }))
                   }
-                  placeholder="0 = ubegrenset"
+                  placeholder={t("saasAdminSubscriptions.unlimitedPlaceholder")}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Funksjoner (kommaseparert)</Label>
+              <Label>{t("saasAdminSubscriptions.labelFeatures")}</Label>
               <Input
                 value={planForm.features}
                 onChange={e =>
                   setPlanForm(prev => ({ ...prev, features: e.target.value }))
                 }
-                placeholder="Online booking, SMS påminnelser, Rapporter"
+                placeholder={t("saasAdminSubscriptions.featuresPlaceholder")}
               />
             </div>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setNewPlanDialog(false)}>
-              Avbryt
+              {t("saasAdminSubscriptions.cancel")}
             </Button>
             <Button
               className="bg-gradient-to-r from-blue-600 to-purple-600"
@@ -828,10 +832,10 @@ export default function SaasAdminSubscriptions() {
               {createPlanMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Oppretter...
+                  {t("saasAdminSubscriptions.creating")}
                 </>
               ) : (
-                "Opprett plan"
+                t("saasAdminSubscriptions.createPlan")
               )}
             </Button>
           </DialogFooter>

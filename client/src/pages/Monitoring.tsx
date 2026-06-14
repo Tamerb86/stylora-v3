@@ -29,8 +29,10 @@ import {
   Zap,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export default function Monitoring() {
+  const { t } = useTranslation();
   const [timeRange, setTimeRange] = useState<number>(24);
   const [autoRefresh, setAutoRefresh] = useState(true);
 
@@ -72,7 +74,7 @@ export default function Monitoring() {
   }, [autoRefresh, refetchHealth, refetchUnimicro, refetchEmail, refetchSMS]);
 
   const handleRefresh = () => {
-    toast.info("Oppdaterer overvåkingsdata...");
+    toast.info(t("monitoring.refreshing"));
     refetchHealth();
     refetchUnimicro();
     refetchEmail();
@@ -112,7 +114,7 @@ export default function Monitoring() {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Laster overvåkingsdata...</p>
+          <p className="text-muted-foreground">{t("monitoring.loading")}</p>
         </div>
       </div>
     );
@@ -124,10 +126,10 @@ export default function Monitoring() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-            Systemovervåking
+            {t("monitoring.title")}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Sanntidsovervåking av systemhelse og integrasjoner
+            {t("monitoring.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -139,11 +141,11 @@ export default function Monitoring() {
             <Zap
               className={`h-4 w-4 mr-2 ${autoRefresh ? "text-green-600" : ""}`}
             />
-            {autoRefresh ? "Auto-oppdatering På" : "Auto-oppdatering Av"}
+            {autoRefresh ? t("monitoring.autoRefreshOn") : t("monitoring.autoRefreshOff")}
           </Button>
           <Button variant="outline" size="sm" onClick={handleRefresh}>
             <RefreshCw className="h-4 w-4 mr-2" />
-            Oppdater
+            {t("monitoring.refresh")}
           </Button>
         </div>
       </div>
@@ -154,8 +156,8 @@ export default function Monitoring() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Systemhelse</CardTitle>
-                <CardDescription>Overordnet systemstatus</CardDescription>
+                <CardTitle>{t("monitoring.systemHealth")}</CardTitle>
+                <CardDescription>{t("monitoring.overallStatus")}</CardDescription>
               </div>
               <div className="flex items-center gap-3">
                 {getStatusIcon(systemHealth.status)}
@@ -164,7 +166,7 @@ export default function Monitoring() {
                     {systemHealth.healthScore}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    Helsepoeng
+                    {t("monitoring.healthScore")}
                   </div>
                 </div>
               </div>
@@ -191,7 +193,7 @@ export default function Monitoring() {
                     ).toFixed(1)}
                     %
                   </div>
-                  <p className="text-xs text-muted-foreground">Suksessrate</p>
+                  <p className="text-xs text-muted-foreground">{t("monitoring.successRate")}</p>
                 </CardContent>
               </Card>
 
@@ -201,7 +203,7 @@ export default function Monitoring() {
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium flex items-center gap-2">
                       <Mail className="h-4 w-4" />
-                      E-post
+                      {t("monitoring.email")}
                     </span>
                     <Badge
                       className={getStatusColor(
@@ -217,7 +219,7 @@ export default function Monitoring() {
                     ).toFixed(1)}
                     %
                   </div>
-                  <p className="text-xs text-muted-foreground">Leveringsrate</p>
+                  <p className="text-xs text-muted-foreground">{t("monitoring.deliveryRate")}</p>
                 </CardContent>
               </Card>
 
@@ -243,7 +245,7 @@ export default function Monitoring() {
                     ).toFixed(1)}
                     %
                   </div>
-                  <p className="text-xs text-muted-foreground">Leveringsrate</p>
+                  <p className="text-xs text-muted-foreground">{t("monitoring.deliveryRate")}</p>
                 </CardContent>
               </Card>
 
@@ -269,7 +271,7 @@ export default function Monitoring() {
                     ).toFixed(1)}
                     %
                   </div>
-                  <p className="text-xs text-muted-foreground">Feilrate</p>
+                  <p className="text-xs text-muted-foreground">{t("monitoring.errorRate")}</p>
                 </CardContent>
               </Card>
             </div>
@@ -279,7 +281,7 @@ export default function Monitoring() {
               <div className="mt-6 space-y-2">
                 <h3 className="text-sm font-semibold flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                  Aktive Varsler
+                  {t("monitoring.activeAlerts")}
                 </h3>
                 {unimicroHealth.alerts.map((alert, index) => (
                   <div
@@ -323,8 +325,8 @@ export default function Monitoring() {
       {/* Detailed Metrics Tabs */}
       <Tabs defaultValue="unimicro" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="unimicro">Unimicro Sync</TabsTrigger>
-          <TabsTrigger value="email">E-post</TabsTrigger>
+          <TabsTrigger value="unimicro">{t("monitoring.unimicroSyncTab")}</TabsTrigger>
+          <TabsTrigger value="email">{t("monitoring.email")}</TabsTrigger>
           <TabsTrigger value="sms">SMS</TabsTrigger>
         </TabsList>
 
@@ -338,7 +340,7 @@ export default function Monitoring() {
                     {unimicroMetrics.totalSyncs}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Totalt synkroniseringer
+                    {t("monitoring.totalSyncs")}
                   </p>
                 </CardContent>
               </Card>
@@ -347,7 +349,7 @@ export default function Monitoring() {
                   <div className="text-2xl font-bold text-green-600">
                     {unimicroMetrics.successfulSyncs}
                   </div>
-                  <p className="text-xs text-muted-foreground">Vellykkede</p>
+                  <p className="text-xs text-muted-foreground">{t("monitoring.successful")}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -355,7 +357,7 @@ export default function Monitoring() {
                   <div className="text-2xl font-bold text-red-600">
                     {unimicroMetrics.failedCount}
                   </div>
-                  <p className="text-xs text-muted-foreground">Feilet</p>
+                  <p className="text-xs text-muted-foreground">{t("monitoring.failed")}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -365,7 +367,7 @@ export default function Monitoring() {
                     {(unimicroMetrics?.averageDuration ?? 0).toFixed(1)}s
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Gjennomsnittlig varighet
+                    {t("monitoring.averageDuration")}
                   </p>
                 </CardContent>
               </Card>
@@ -376,9 +378,9 @@ export default function Monitoring() {
           {unimicroFailures && unimicroFailures.failures.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Siste Feil</CardTitle>
+                <CardTitle>{t("monitoring.recentFailures")}</CardTitle>
                 <CardDescription>
-                  De 10 siste synkroniseringsfeilene
+                  {t("monitoring.last10SyncFailures")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -391,7 +393,7 @@ export default function Monitoring() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <p className="text-sm font-medium text-red-900">
-                            {failure.syncType || "Ukjent type"}
+                            {failure.syncType || t("monitoring.unknownType")}
                           </p>
                           <p className="text-sm text-red-700 mt-1">
                             {failure.errorMessage}
@@ -406,7 +408,7 @@ export default function Monitoring() {
                           variant="outline"
                           className="border-red-600 text-red-600"
                         >
-                          Feilet
+                          {t("monitoring.failed")}
                         </Badge>
                       </div>
                     </div>
@@ -426,7 +428,7 @@ export default function Monitoring() {
                   <div className="text-2xl font-bold">
                     {emailMetrics.totalSent}
                   </div>
-                  <p className="text-xs text-muted-foreground">Totalt sendt</p>
+                  <p className="text-xs text-muted-foreground">{t("monitoring.totalSent")}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -434,7 +436,7 @@ export default function Monitoring() {
                   <div className="text-2xl font-bold text-green-600">
                     {emailMetrics.successful}
                   </div>
-                  <p className="text-xs text-muted-foreground">Vellykkede</p>
+                  <p className="text-xs text-muted-foreground">{t("monitoring.successful")}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -442,7 +444,7 @@ export default function Monitoring() {
                   <div className="text-2xl font-bold text-red-600">
                     {emailMetrics.failed}
                   </div>
-                  <p className="text-xs text-muted-foreground">Feilet</p>
+                  <p className="text-xs text-muted-foreground">{t("monitoring.failed")}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -450,7 +452,7 @@ export default function Monitoring() {
                   <div className="text-2xl font-bold text-yellow-600">
                     {emailMetrics.pending}
                   </div>
-                  <p className="text-xs text-muted-foreground">Venter</p>
+                  <p className="text-xs text-muted-foreground">{t("monitoring.pending")}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -458,7 +460,7 @@ export default function Monitoring() {
                   <div className="text-2xl font-bold">
                     {(emailMetrics?.successRate ?? 0).toFixed(1)}%
                   </div>
-                  <p className="text-xs text-muted-foreground">Suksessrate</p>
+                  <p className="text-xs text-muted-foreground">{t("monitoring.successRate")}</p>
                 </CardContent>
               </Card>
             </div>
@@ -474,7 +476,7 @@ export default function Monitoring() {
                   <div className="text-2xl font-bold">
                     {smsMetrics.totalSent}
                   </div>
-                  <p className="text-xs text-muted-foreground">Totalt sendt</p>
+                  <p className="text-xs text-muted-foreground">{t("monitoring.totalSent")}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -482,7 +484,7 @@ export default function Monitoring() {
                   <div className="text-2xl font-bold text-green-600">
                     {smsMetrics.successful}
                   </div>
-                  <p className="text-xs text-muted-foreground">Vellykkede</p>
+                  <p className="text-xs text-muted-foreground">{t("monitoring.successful")}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -490,7 +492,7 @@ export default function Monitoring() {
                   <div className="text-2xl font-bold text-red-600">
                     {smsMetrics.failed}
                   </div>
-                  <p className="text-xs text-muted-foreground">Feilet</p>
+                  <p className="text-xs text-muted-foreground">{t("monitoring.failed")}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -498,7 +500,7 @@ export default function Monitoring() {
                   <div className="text-2xl font-bold text-yellow-600">
                     {smsMetrics.pending}
                   </div>
-                  <p className="text-xs text-muted-foreground">Venter</p>
+                  <p className="text-xs text-muted-foreground">{t("monitoring.pending")}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -506,7 +508,7 @@ export default function Monitoring() {
                   <div className="text-2xl font-bold">
                     {(smsMetrics?.successRate ?? 0).toFixed(1)}%
                   </div>
-                  <p className="text-xs text-muted-foreground">Suksessrate</p>
+                  <p className="text-xs text-muted-foreground">{t("monitoring.successRate")}</p>
                 </CardContent>
               </Card>
             </div>

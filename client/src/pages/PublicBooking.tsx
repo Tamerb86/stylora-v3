@@ -38,6 +38,7 @@ import {
 import { format, addDays } from "date-fns";
 import { nb } from "date-fns/locale";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { safeToFixed } from "@/lib/utils";
 
 type BookingStep =
@@ -60,6 +61,7 @@ const formatKr = (value: number, decimals: number = 0): string =>
   `${safeToFixed(value, decimals)} kr`;
 
 export default function PublicBooking() {
+  const { t } = useTranslation();
   // Extract subdomain from URL or use tenant ID from URL parameter
   // Priority: 1. URL parameter (?tenantId=xxx), 2. Subdomain extraction, 3. Fallback
   const subdomain = useMemo(() => {
@@ -166,12 +168,12 @@ export default function PublicBooking() {
     onSuccess: data => {
       setBookingId(data.appointmentId);
       setCurrentStep("confirmation");
-      toast.success("Booking bekreftet!", {
-        description: "Din time er nå reservert.",
+      toast.success(t("publicBooking.bookingConfirmed"), {
+        description: t("publicBooking.bookingReserved"),
       });
     },
     onError: error => {
-      toast.error("Feil ved booking", { description: error.message });
+      toast.error(t("publicBooking.bookingError"), { description: error.message });
     },
   });
 
@@ -182,7 +184,7 @@ export default function PublicBooking() {
         if (data.checkoutUrl) window.location.href = data.checkoutUrl;
       },
       onError: error => {
-        toast.error("Feil ved betaling", { description: error.message });
+        toast.error(t("publicBooking.paymentError"), { description: error.message });
       },
     });
 
@@ -193,7 +195,7 @@ export default function PublicBooking() {
         if (data.vippsUrl) window.location.href = data.vippsUrl;
       },
       onError: error => {
-        toast.error("Feil ved Vipps-betaling", { description: error.message });
+        toast.error(t("publicBooking.vippsPaymentError"), { description: error.message });
       },
     });
 
@@ -212,8 +214,8 @@ export default function PublicBooking() {
 
   const handleDateTimeSelect = () => {
     if (!selectedDate || !selectedTime) {
-      toast.error("Manglende informasjon", {
-        description: "Du må velge både dato og tidspunkt.",
+      toast.error(t("publicBooking.missingInfo"), {
+        description: t("publicBooking.mustSelectDateTime"),
       });
       return;
     }
@@ -222,30 +224,29 @@ export default function PublicBooking() {
 
   const handleSubmitBooking = () => {
     if (!TENANT_ID) {
-      toast.error("Feil", {
-        description:
-          "Kunne ikke identifisere salongen. Vennligst last inn siden på nytt.",
+      toast.error(t("publicBooking.error"), {
+        description: t("publicBooking.couldNotIdentifySalon"),
       });
       return;
     }
 
     if (!customerInfo.firstName || !customerInfo.phone) {
-      toast.error("Manglende informasjon", {
-        description: "Fornavn og telefon er påkrevd.",
+      toast.error(t("publicBooking.missingInfo"), {
+        description: t("publicBooking.firstNamePhoneRequired"),
       });
       return;
     }
 
     if (!selectedService || !selectedDate || !selectedTime) {
-      toast.error("Ufullstendig booking", {
-        description: "Vennligst fullfør alle steg.",
+      toast.error(t("publicBooking.incompleteBooking"), {
+        description: t("publicBooking.completeAllSteps"),
       });
       return;
     }
 
     if (!paymentMethod) {
-      toast.error("Velg betalingsmetode", {
-        description: "Vennligst velg hvordan du vil betale.",
+      toast.error(t("publicBooking.selectPaymentMethod"), {
+        description: t("publicBooking.chooseHowToPay"),
       });
       return;
     }
@@ -254,8 +255,8 @@ export default function PublicBooking() {
     // since an appointment must have a concrete staff member.
     const resolvedEmployeeId = selectedEmployee ?? employees[0]?.id;
     if (!resolvedEmployeeId) {
-      toast.error("Feil", {
-        description: "Ingen ansatt tilgjengelig for booking.",
+      toast.error(t("publicBooking.error"), {
+        description: t("publicBooking.noEmployeeAvailable"),
       });
       return;
     }
@@ -309,12 +310,12 @@ export default function PublicBooking() {
   }[currentStep];
 
   const stepTitles = {
-    service: "Velg tjeneste",
-    employee: "Velg frisør",
-    datetime: "Velg dato og tid",
-    info: "Dine opplysninger",
-    payment: "Betaling",
-    confirmation: "Bekreftelse",
+    service: t("publicBooking.stepService"),
+    employee: t("publicBooking.stepEmployee"),
+    datetime: t("publicBooking.stepDateTime"),
+    info: t("publicBooking.stepInfo"),
+    payment: t("publicBooking.stepPayment"),
+    confirmation: t("publicBooking.stepConfirmation"),
   } as const;
 
   // Loading while fetching tenant
@@ -323,7 +324,7 @@ export default function PublicBooking() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-purple-50/30 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-600">Laster bookingside...</p>
+          <p className="text-lg text-gray-600">{t("publicBooking.loadingBookingPage")}</p>
         </div>
       </div>
     );
@@ -340,19 +341,19 @@ export default function PublicBooking() {
         <div className="text-center max-w-md mx-auto p-8">
           <div className="text-6xl mb-4">😕</div>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            Salong ikke funnet
+            {t("publicBooking.salonNotFound")}
           </h1>
 
           {isDevEnvironment && !subdomain ? (
             <>
               <p className="text-gray-600 mb-4">
-                Dette er utviklingsmiljøet. Vennligst legg til{" "}
+                {t("publicBooking.devEnvAddParam")}{" "}
                 <code className="bg-gray-200 px-2 py-1 rounded">
                   ?tenantId=xxx
                 </code>{" "}
-                i URL-en.
+                {t("publicBooking.inTheUrl")}
               </p>
-              <p className="text-sm text-gray-500 mb-2">Eksempel:</p>
+              <p className="text-sm text-gray-500 mb-2">{t("publicBooking.example")}</p>
               <code className="text-xs bg-gray-100 p-2 rounded block mb-4">
                 {window.location.origin}/book?tenantId=demo-tenant-stylora
               </code>
@@ -360,27 +361,27 @@ export default function PublicBooking() {
           ) : (
             <>
               <p className="text-gray-600 mb-4">
-                Vi kunne ikke finne salongen med subdomain:{" "}
+                {t("publicBooking.couldNotFindSalonSubdomain")}{" "}
                 <strong>"{String(subdomain)}"</strong>
               </p>
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 text-left">
                 <p className="text-sm text-gray-700 mb-2">
-                  <strong>Mulige årsaker:</strong>
+                  <strong>{t("publicBooking.possiblecauses")}</strong>
                 </p>
                 <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
-                  <li>Subdomenet er ikke konfigurert riktig</li>
-                  <li>Salongen er ikke aktivert ennå</li>
-                  <li>Det er en skrivefeil i URL-en</li>
+                  <li>{t("publicBooking.causeSubdomainMisconfigured")}</li>
+                  <li>{t("publicBooking.causeSalonNotActivated")}</li>
+                  <li>{t("publicBooking.causeUrlTypo")}</li>
                 </ul>
               </div>
               <p className="text-sm text-gray-500 mb-4">
-                Vennligst kontakt salongen direkte eller sjekk at URL-en er riktig.
+                {t("publicBooking.contactSalonOrCheckUrl")}
               </p>
               <Link
                 href="/"
                 className="text-blue-600 hover:text-blue-700 underline text-sm"
               >
-                Gå til hovedsiden
+                {t("publicBooking.goToHomepage")}
               </Link>
             </>
           )}
@@ -450,12 +451,12 @@ export default function PublicBooking() {
                 <div className="flex items-center gap-2 mb-2">
                   <Sparkles className="h-7 w-7 text-yellow-300 animate-pulse" />
                   <h1 className="text-5xl font-bold drop-shadow-lg">
-                    {branding?.welcomeTitle || salonInfo?.name || "Velkommen!"}
+                    {branding?.welcomeTitle || salonInfo?.name || t("publicBooking.welcome")}
                   </h1>
                 </div>
                 <p className="text-blue-100 text-xl font-light">
                   {branding?.welcomeSubtitle ||
-                    "Book din neste time online - raskt og enkelt"}
+                    t("publicBooking.welcomeSubtitle")}
                 </p>
               </div>
             </div>
@@ -503,13 +504,19 @@ export default function PublicBooking() {
                     {stepTitles[currentStep]}
                   </span>
                   <span className="text-xs text-gray-500">
-                    Steg{" "}
-                    {currentStep === "confirmation"
-                      ? 6
-                      : ["service", "employee", "datetime", "info", "payment"].indexOf(
-                          currentStep
-                        ) + 1}{" "}
-                    av 6
+                    {t("publicBooking.stepCounter", {
+                      current:
+                        currentStep === "confirmation"
+                          ? 6
+                          : [
+                              "service",
+                              "employee",
+                              "datetime",
+                              "info",
+                              "payment",
+                            ].indexOf(currentStep) + 1,
+                      total: 6,
+                    })}
                   </span>
                 </div>
               </div>
@@ -542,10 +549,10 @@ export default function PublicBooking() {
                 <div className="space-y-8 fade-in">
                   <div>
                     <h2 className="text-4xl font-bold text-gray-900 mb-3 gradient-text">
-                      Velg tjeneste
+                      {t("publicBooking.stepService")}
                     </h2>
                     <p className="text-gray-600 text-lg">
-                      Hva ønsker du å bestille?
+                      {t("publicBooking.whatToBook")}
                     </p>
                   </div>
 
@@ -595,13 +602,13 @@ export default function PublicBooking() {
                                   <div className="flex items-center gap-2 text-gray-600 bg-gray-100 px-3 py-2 rounded-full">
                                     <Clock className="h-4 w-4" />
                                     <span className="font-medium">
-                                      {service.durationMinutes} min
+                                      {service.durationMinutes} {t("publicBooking.min")}
                                     </span>
                                   </div>
                                   <div className="font-bold text-2xl gradient-text">
                                     {formatKr(toGross(Number(service.price)))}{" "}
                                     <span className="text-sm font-normal text-gray-600">
-                                      (inkl. MVA)
+                                      {t("publicBooking.inclVat")}
                                     </span>
                                   </div>
                                 </div>
@@ -628,15 +635,15 @@ export default function PublicBooking() {
                 <div className="space-y-8 fade-in">
                   <Button variant="ghost" onClick={goBack} className="mb-4">
                     <ChevronLeft className="h-5 w-5 mr-2" />
-                    Tilbake
+                    {t("publicBooking.back")}
                   </Button>
 
                   <div>
                     <h2 className="text-4xl font-bold text-gray-900 mb-3 gradient-text">
-                      Velg frisør
+                      {t("publicBooking.stepEmployee")}
                     </h2>
                     <p className="text-gray-600 text-lg">
-                      Hvem ønsker du skal utføre tjenesten?
+                      {t("publicBooking.whoShouldPerform")}
                     </p>
                   </div>
 
@@ -667,10 +674,10 @@ export default function PublicBooking() {
                             </div>
                             <div className="flex-1">
                               <h3 className="font-bold text-xl mb-1">
-                                Ingen preferanse
+                                {t("publicBooking.noPreference")}
                               </h3>
                               <p className="text-sm text-gray-600">
-                                Første ledige frisør
+                                {t("publicBooking.firstAvailableHairdresser")}
                               </p>
                             </div>
                             {selectedEmployee === null && (
@@ -702,7 +709,7 @@ export default function PublicBooking() {
                                   {employee.name}
                                 </h3>
                                 <p className="text-sm text-gray-600">
-                                  Profesjonell frisør
+                                  {t("publicBooking.professionalHairdresser")}
                                 </p>
                               </div>
                               {selectedEmployee === employee.id && (
@@ -724,14 +731,14 @@ export default function PublicBooking() {
                 <div className="space-y-6">
                   <Button variant="ghost" onClick={goBack} className="mb-2">
                     <ChevronLeft className="h-4 w-4 mr-2" />
-                    Tilbake
+                    {t("publicBooking.back")}
                   </Button>
 
                   <div>
                     <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                      Velg dato og tid
+                      {t("publicBooking.stepDateTime")}
                     </h2>
-                    <p className="text-gray-600">Når passer det best for deg?</p>
+                    <p className="text-gray-600">{t("publicBooking.whenSuitsYou")}</p>
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -739,7 +746,7 @@ export default function PublicBooking() {
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                           <CalendarIcon className="h-5 w-5 text-[var(--booking-primary)]" />
-                          Velg dato
+                          {t("publicBooking.selectDate")}
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
@@ -760,7 +767,7 @@ export default function PublicBooking() {
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                           <Clock className="h-5 w-5 text-[var(--booking-primary)]" />
-                          Velg tidspunkt
+                          {t("publicBooking.selectTime")}
                         </CardTitle>
                         {selectedDate && (
                           <CardDescription className="text-base font-medium">
@@ -774,7 +781,7 @@ export default function PublicBooking() {
                         {!selectedDate ? (
                           <div className="text-center py-12">
                             <CalendarIcon className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                            <p className="text-gray-500">Velg en dato først</p>
+                            <p className="text-gray-500">{t("publicBooking.selectDateFirst")}</p>
                           </div>
                         ) : timeSlotsLoading ? (
                           <div className="grid grid-cols-3 gap-2">
@@ -789,10 +796,10 @@ export default function PublicBooking() {
                           <div className="text-center py-12">
                             <Clock className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                             <p className="text-gray-500 font-medium">
-                              Ingen ledige tider denne dagen
+                              {t("publicBooking.noAvailableTimes")}
                             </p>
                             <p className="text-sm text-gray-400 mt-1">
-                              Prøv en annen dato
+                              {t("publicBooking.tryAnotherDate")}
                             </p>
                           </div>
                         ) : (
@@ -834,7 +841,7 @@ export default function PublicBooking() {
                       className="bg-gradient-to-r from-[var(--booking-accent)] to-[var(--booking-primary)] hover:opacity-90 text-white shadow-lg px-8 py-6 text-lg"
                       size="lg"
                     >
-                      Neste
+                      {t("publicBooking.next")}
                       <ChevronRight className="h-5 w-5 ml-2" />
                     </Button>
                   </div>
@@ -846,30 +853,30 @@ export default function PublicBooking() {
                 <div className="space-y-6">
                   <Button variant="ghost" onClick={goBack} className="mb-2">
                     <ChevronLeft className="h-4 w-4 mr-2" />
-                    Tilbake
+                    {t("publicBooking.back")}
                   </Button>
 
                   <div>
                     <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                      Dine opplysninger
+                      {t("publicBooking.stepInfo")}
                     </h2>
                     <p className="text-gray-600">
-                      Vi trenger dette for å bekrefte timen din
+                      {t("publicBooking.weNeedThisToConfirm")}
                     </p>
                   </div>
 
                   <Card className="shadow-lg">
                     <CardHeader>
-                      <CardTitle>Kontaktinformasjon</CardTitle>
+                      <CardTitle>{t("publicBooking.contactInfo")}</CardTitle>
                       <CardDescription>
-                        Alle felt merket med * er påkrevd
+                        {t("publicBooking.requiredFieldsNote")}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="firstName" className="text-base">
-                            Fornavn <span className="text-red-500">*</span>
+                            {t("publicBooking.firstName")} <span className="text-red-500">*</span>
                           </Label>
                           <Input
                             id="firstName"
@@ -887,7 +894,7 @@ export default function PublicBooking() {
 
                         <div className="space-y-2">
                           <Label htmlFor="lastName" className="text-base">
-                            Etternavn
+                            {t("publicBooking.lastName")}
                           </Label>
                           <Input
                             id="lastName"
@@ -906,7 +913,7 @@ export default function PublicBooking() {
 
                       <div className="space-y-2">
                         <Label htmlFor="phone" className="text-base">
-                          Telefon <span className="text-red-500">*</span>
+                          {t("publicBooking.phone")} <span className="text-red-500">*</span>
                         </Label>
                         <Input
                           id="phone"
@@ -925,7 +932,7 @@ export default function PublicBooking() {
 
                       <div className="space-y-2">
                         <Label htmlFor="email" className="text-base">
-                          E-post
+                          {t("publicBooking.email")}
                         </Label>
                         <Input
                           id="email"
@@ -948,8 +955,8 @@ export default function PublicBooking() {
                     <Button
                       onClick={() => {
                         if (!customerInfo.firstName || !customerInfo.phone) {
-                          toast.error("Manglende informasjon", {
-                            description: "Fornavn og telefon er påkrevd.",
+                          toast.error(t("publicBooking.missingInfo"), {
+                            description: t("publicBooking.firstNamePhoneRequired"),
                           });
                           return;
                         }
@@ -958,7 +965,7 @@ export default function PublicBooking() {
                       className="bg-gradient-to-r from-[var(--booking-accent)] to-[var(--booking-primary)] hover:opacity-90 text-white shadow-lg px-8 py-6 text-lg"
                       size="lg"
                     >
-                      Neste
+                      {t("publicBooking.next")}
                       <ChevronRight className="h-5 w-5 ml-2" />
                     </Button>
                   </div>
@@ -970,23 +977,23 @@ export default function PublicBooking() {
                 <div className="space-y-6">
                   <Button variant="ghost" onClick={goBack} className="mb-2">
                     <ChevronLeft className="h-4 w-4 mr-2" />
-                    Tilbake
+                    {t("publicBooking.back")}
                   </Button>
 
                   <div>
                     <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                      Velg betalingsmåte
+                      {t("publicBooking.selectPaymentMethodTitle")}
                     </h2>
                     <p className="text-gray-600">
-                      Hvordan vil du betale for timen?
+                      {t("publicBooking.howToPayForAppointment")}
                     </p>
                   </div>
 
                   <Card className="shadow-lg">
                     <CardHeader>
-                      <CardTitle>Betalingsalternativer</CardTitle>
+                      <CardTitle>{t("publicBooking.paymentOptions")}</CardTitle>
                       <CardDescription>
-                        Velg din foretrukne betalingsmetode
+                        {t("publicBooking.choosePreferredPayment")}
                       </CardDescription>
                     </CardHeader>
 
@@ -1007,7 +1014,7 @@ export default function PublicBooking() {
                                   <CreditCard className="h-7 w-7 text-white" />
                                 </div>
                                 <div className="flex-1">
-                                  <h3 className="font-bold text-lg mb-1">Kort</h3>
+                                  <h3 className="font-bold text-lg mb-1">{t("publicBooking.card")}</h3>
                                   <p className="text-sm text-gray-600">
                                     Visa, Mastercard, Amex
                                   </p>
@@ -1037,7 +1044,7 @@ export default function PublicBooking() {
                                 <div className="flex-1">
                                   <h3 className="font-bold text-lg mb-1">Vipps</h3>
                                   <p className="text-sm text-gray-600">
-                                    Norges mest brukte app
+                                    {t("publicBooking.vippsDescription")}
                                   </p>
                                 </div>
                                 {paymentMethod === "vipps" && (
@@ -1063,9 +1070,9 @@ export default function PublicBooking() {
                                   <span className="text-white font-bold text-xl">kr</span>
                                 </div>
                                 <div className="flex-1">
-                                  <h3 className="font-bold text-lg mb-1">Kontant</h3>
+                                  <h3 className="font-bold text-lg mb-1">{t("publicBooking.cash")}</h3>
                                   <p className="text-sm text-gray-600">
-                                    Betal med kontanter
+                                    {t("publicBooking.payWithCash")}
                                   </p>
                                 </div>
                                 {paymentMethod === "cash" && (
@@ -1092,10 +1099,10 @@ export default function PublicBooking() {
                                 </div>
                                 <div className="flex-1">
                                   <h3 className="font-bold text-lg mb-1">
-                                    Betal på salong
+                                    {t("publicBooking.payAtSalon")}
                                   </h3>
                                   <p className="text-sm text-gray-600">
-                                    Betal etter behandling
+                                    {t("publicBooking.payAfterTreatment")}
                                   </p>
                                 </div>
                                 {paymentMethod === "pay_at_salon" && (
@@ -1111,9 +1118,9 @@ export default function PublicBooking() {
                       <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl mt-6 border-2 border-blue-100">
                         <div className="flex justify-between items-center">
                           <span className="text-gray-700 font-medium text-lg">
-                            Totalbeløp{" "}
+                            {t("publicBooking.totalAmount")}{" "}
                             <span className="text-xs font-normal text-gray-500">
-                              (inkl. MVA)
+                              {t("publicBooking.inclVat")}
                             </span>
                             :
                           </span>
@@ -1142,8 +1149,8 @@ export default function PublicBooking() {
                       {createBookingMutation.isPending ||
                       createBookingWithPaymentMutation.isPending ||
                       createVippsPaymentMutation.isPending
-                        ? "Behandler..."
-                        : "Gå til betaling"}
+                        ? t("publicBooking.processing")
+                        : t("publicBooking.goToPayment")}
                       <ChevronRight className="h-5 w-5 ml-2" />
                     </Button>
                   </div>
@@ -1159,24 +1166,24 @@ export default function PublicBooking() {
                         <Check className="h-10 w-10 text-white" />
                       </div>
                       <CardTitle className="text-3xl text-green-700 mb-2">
-                        Booking bekreftet!
+                        {t("publicBooking.bookingConfirmed")}
                       </CardTitle>
                       <CardDescription className="text-lg">
-                        Din time er nå reservert
+                        {t("publicBooking.appointmentReserved")}
                       </CardDescription>
                     </CardHeader>
 
                     <CardContent className="space-y-6">
                       <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-xl space-y-4 border-2 border-green-100">
                         <h3 className="font-bold text-xl text-gray-900 mb-4">
-                          Timedetaljer
+                          {t("publicBooking.appointmentDetails")}
                         </h3>
 
                         <div className="space-y-3">
                           <div className="flex justify-between items-center py-2 border-b border-green-200">
                             <span className="text-gray-600 flex items-center gap-2">
                               <Scissors className="h-4 w-4" />
-                              Tjeneste:
+                              {t("publicBooking.serviceLabel")}
                             </span>
                             <span className="font-semibold text-gray-900">
                               {selectedServiceData?.name}
@@ -1186,19 +1193,19 @@ export default function PublicBooking() {
                           <div className="flex justify-between items-center py-2 border-b border-green-200">
                             <span className="text-gray-600 flex items-center gap-2">
                               <User className="h-4 w-4" />
-                              Frisør:
+                              {t("publicBooking.hairdresserLabel")}
                             </span>
                             <span className="font-semibold text-gray-900">
                               {selectedEmployeeData
                                 ? selectedEmployeeData.name
-                                : "Ingen preferanse"}
+                                : t("publicBooking.noPreference")}
                             </span>
                           </div>
 
                           <div className="flex justify-between items-center py-2 border-b border-green-200">
                             <span className="text-gray-600 flex items-center gap-2">
                               <CalendarIcon className="h-4 w-4" />
-                              Dato:
+                              {t("publicBooking.dateLabel")}
                             </span>
                             <span className="font-semibold text-gray-900">
                               {selectedDate &&
@@ -1211,7 +1218,7 @@ export default function PublicBooking() {
                           <div className="flex justify-between items-center py-2 border-b border-green-200">
                             <span className="text-gray-600 flex items-center gap-2">
                               <Clock className="h-4 w-4" />
-                              Tid:
+                              {t("publicBooking.timeLabel")}
                             </span>
                             <span className="font-semibold text-gray-900">
                               {selectedTime?.substring(0, 5)}
@@ -1220,9 +1227,9 @@ export default function PublicBooking() {
 
                           <div className="flex justify-between items-center py-3 bg-white rounded-lg px-4 mt-4">
                             <span className="text-lg font-bold text-gray-900">
-                              Pris{" "}
+                              {t("publicBooking.price")}{" "}
                               <span className="text-sm font-normal text-gray-600">
-                                (inkl. MVA)
+                                {t("publicBooking.inclVat")}
                               </span>
                               :
                             </span>
@@ -1237,7 +1244,7 @@ export default function PublicBooking() {
 
                       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                         <p className="text-sm text-blue-900">
-                          <strong>Bekreftelse sendt!</strong> Du vil motta en bekreftelse på SMS/e-post med alle detaljene.
+                          <strong>{t("publicBooking.confirmationSent")}</strong> {t("publicBooking.confirmationSentDetails")}
                         </p>
                       </div>
 
@@ -1246,7 +1253,7 @@ export default function PublicBooking() {
                         variant="outline"
                         className="w-full h-12 text-base"
                       >
-                        Book en ny time
+                        {t("publicBooking.bookNewAppointment")}
                       </Button>
                     </CardContent>
                   </Card>
@@ -1259,9 +1266,9 @@ export default function PublicBooking() {
               <div className="lg:col-span-1">
                 <Card className="sticky top-24 shadow-xl border-2">
                   <CardHeader className="bg-gradient-to-r from-[var(--booking-primary)] to-[var(--booking-accent)] text-white rounded-t-lg">
-                    <CardTitle className="text-xl">Din booking</CardTitle>
+                    <CardTitle className="text-xl">{t("publicBooking.yourBooking")}</CardTitle>
                     <CardDescription className="text-blue-100">
-                      Oppsummering av valg
+                      {t("publicBooking.summaryOfChoices")}
                     </CardDescription>
                   </CardHeader>
 
@@ -1270,14 +1277,14 @@ export default function PublicBooking() {
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <Scissors className="h-4 w-4" />
-                          <span className="font-medium">Tjeneste</span>
+                          <span className="font-medium">{t("publicBooking.service")}</span>
                         </div>
                         <div className="bg-gray-50 p-3 rounded-lg">
                           <p className="font-semibold text-gray-900">
                             {selectedServiceData.name}
                           </p>
                           <p className="text-sm text-gray-600 mt-1">
-                            {selectedServiceData.durationMinutes} minutter
+                            {selectedServiceData.durationMinutes} {t("publicBooking.minutes")}
                           </p>
                         </div>
                       </div>
@@ -1287,13 +1294,13 @@ export default function PublicBooking() {
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <User className="h-4 w-4" />
-                          <span className="font-medium">Frisør</span>
+                          <span className="font-medium">{t("publicBooking.hairdresser")}</span>
                         </div>
                         <div className="bg-gray-50 p-3 rounded-lg">
                           <p className="font-semibold text-gray-900">
                             {selectedEmployeeData
                               ? selectedEmployeeData.name
-                              : "Ingen preferanse"}
+                              : t("publicBooking.noPreference")}
                           </p>
                         </div>
                       </div>
@@ -1303,14 +1310,14 @@ export default function PublicBooking() {
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <CalendarIcon className="h-4 w-4" />
-                          <span className="font-medium">Dato & Tid</span>
+                          <span className="font-medium">{t("publicBooking.dateAndTime")}</span>
                         </div>
                         <div className="bg-gray-50 p-3 rounded-lg">
                           <p className="font-semibold text-gray-900">
                             {format(selectedDate, "EEEE d. MMMM", { locale: nb })}
                           </p>
                           <p className="text-sm text-gray-600 mt-1">
-                            Kl. {selectedTime.substring(0, 5)}
+                            {t("publicBooking.at")} {selectedTime.substring(0, 5)}
                           </p>
                         </div>
                       </div>
@@ -1320,9 +1327,9 @@ export default function PublicBooking() {
                       <div className="pt-4 border-t-2">
                         <div className="flex justify-between items-center">
                           <span className="text-lg font-bold text-gray-900">
-                            Total{" "}
+                            {t("publicBooking.total")}{" "}
                             <span className="text-sm font-normal text-gray-600">
-                              (inkl. MVA)
+                              {t("publicBooking.inclVat")}
                             </span>
                             :
                           </span>

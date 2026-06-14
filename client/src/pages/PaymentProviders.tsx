@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import {
@@ -79,6 +80,7 @@ interface ProviderConfig {
 }
 
 export default function PaymentProviders() {
+  const { t } = useTranslation();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingProvider, setEditingProvider] = useState<any>(null);
@@ -101,7 +103,7 @@ export default function PaymentProviders() {
 
   const handleAddProvider = async () => {
     if (!providerName.trim()) {
-      toast.error("Vennligst oppgi et navn");
+      toast.error(t("paymentProviders.errorNameRequired"));
       return;
     }
 
@@ -113,12 +115,12 @@ export default function PaymentProviders() {
         isDefault,
       });
 
-      toast.success("Terminal lagt til!");
+      toast.success(t("paymentProviders.terminalAdded"));
       resetForm();
       setIsAddDialogOpen(false);
       refetch();
     } catch (error: any) {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("paymentProviders.errorWithMessage", { message: error.message }));
     }
   };
 
@@ -133,13 +135,13 @@ export default function PaymentProviders() {
         isDefault,
       });
 
-      toast.success("Terminal oppdatert!");
+      toast.success(t("paymentProviders.terminalUpdated"));
       resetForm();
       setIsEditDialogOpen(false);
       setEditingProvider(null);
       refetch();
     } catch (error: any) {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("paymentProviders.errorWithMessage", { message: error.message }));
     }
   };
 
@@ -147,16 +149,16 @@ export default function PaymentProviders() {
     providerId: number,
     providerName: string
   ) => {
-    if (!confirm(`Er du sikker på at du vil slette "${providerName}"?`)) {
+    if (!confirm(t("paymentProviders.confirmDelete", { name: providerName }))) {
       return;
     }
 
     try {
       await deleteProvider.mutateAsync({ providerId });
-      toast.success("Terminal slettet!");
+      toast.success(t("paymentProviders.terminalDeleted"));
       refetch();
     } catch (error: any) {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("paymentProviders.errorWithMessage", { message: error.message }));
     }
   };
 
@@ -215,9 +217,9 @@ export default function PaymentProviders() {
       stripe_terminal: "Stripe Terminal",
       vipps: "Vipps",
       nets: "Nets/BankAxept",
-      manual_card: "Manuell kortinntasting",
-      cash: "Kontant",
-      generic: "Generisk terminal",
+      manual_card: t("paymentProviders.typeManualCard"),
+      cash: t("paymentProviders.typeCash"),
+      generic: t("paymentProviders.typeGeneric"),
     };
     return labels[type] || type;
   };
@@ -238,7 +240,7 @@ export default function PaymentProviders() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="terminalId">Terminal ID (valgfritt)</Label>
+              <Label htmlFor="terminalId">{t("paymentProviders.terminalIdOptional")}</Label>
               <Input
                 id="terminalId"
                 placeholder="tmr_..."
@@ -319,7 +321,7 @@ export default function PaymentProviders() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="accountNumber">Account Number (valgfritt)</Label>
+              <Label htmlFor="accountNumber">{t("paymentProviders.accountNumberOptional")}</Label>
               <Input
                 id="accountNumber"
                 placeholder="1234.56.78910"
@@ -336,7 +338,7 @@ export default function PaymentProviders() {
       case "manual_card":
         return (
           <p className="text-sm text-muted-foreground">
-            Ingen ekstra konfigurasjon nødvendig for denne typen.
+            {t("paymentProviders.noExtraConfig")}
           </p>
         );
 
@@ -351,13 +353,13 @@ export default function PaymentProviders() {
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Konfigurer terminalen med nødvendige detaljer
+            {t("paymentProviders.dialogDescription")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="providerType">Type</Label>
+            <Label htmlFor="providerType">{t("paymentProviders.typeLabel")}</Label>
             <Select
               value={providerType}
               onValueChange={(value: any) => {
@@ -370,23 +372,23 @@ export default function PaymentProviders() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="cash">Kontant</SelectItem>
+                <SelectItem value="cash">{t("paymentProviders.typeCash")}</SelectItem>
                 <SelectItem value="stripe_terminal">Stripe Terminal</SelectItem>
                 <SelectItem value="vipps">Vipps</SelectItem>
                 <SelectItem value="nets">Nets/BankAxept</SelectItem>
                 <SelectItem value="manual_card">
-                  Manuell kortinntasting
+                  {t("paymentProviders.typeManualCard")}
                 </SelectItem>
-                <SelectItem value="generic">Generisk terminal</SelectItem>
+                <SelectItem value="generic">{t("paymentProviders.typeGeneric")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="providerName">Navn</Label>
+            <Label htmlFor="providerName">{t("paymentProviders.nameLabel")}</Label>
             <Input
               id="providerName"
-              placeholder="F.eks. Hovedkasse, Terminal 1"
+              placeholder={t("paymentProviders.namePlaceholder")}
               value={providerName}
               onChange={e => setProviderName(e.target.value)}
             />
@@ -403,7 +405,7 @@ export default function PaymentProviders() {
               className="rounded border-gray-300"
             />
             <Label htmlFor="isDefault" className="cursor-pointer">
-              Sett som standard for denne typen
+              {t("paymentProviders.setAsDefault")}
             </Label>
           </div>
 
@@ -414,7 +416,7 @@ export default function PaymentProviders() {
               variant="outline"
               className="w-full"
             >
-              {isTestingConnection ? "Tester tilkobling..." : "Test tilkobling"}
+              {isTestingConnection ? t("paymentProviders.testingConnection") : t("paymentProviders.testConnection")}
             </Button>
           )}
 
@@ -424,8 +426,8 @@ export default function PaymentProviders() {
             className="w-full"
           >
             {addProvider.isPending || updateProvider.isPending
-              ? "Lagrer..."
-              : "Lagre"}
+              ? t("paymentProviders.saving")
+              : t("paymentProviders.save")}
           </Button>
         </div>
       </DialogContent>
@@ -438,16 +440,16 @@ export default function PaymentProviders() {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Betalingsterminaler
+              {t("paymentProviders.title")}
             </h1>
             <p className="text-muted-foreground mt-2">
-              Administrer terminaler og betalingsmetoder
+              {t("paymentProviders.subtitle")}
             </p>
           </div>
 
           <Button onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Legg til terminal
+            {t("paymentProviders.addTerminal")}
           </Button>
         </div>
 
@@ -462,7 +464,7 @@ export default function PaymentProviders() {
                 <div>
                   <CardTitle className="text-xl">Stripe Terminal</CardTitle>
                   <CardDescription>
-                    Ta imot kortbetalinger med Stripe Terminal
+                    {t("paymentProviders.stripeCardDescription")}
                   </CardDescription>
                 </div>
               </div>
@@ -472,7 +474,7 @@ export default function PaymentProviders() {
                   className="bg-green-500 text-white px-4 py-2"
                 >
                   <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Stripe tilkoblet
+                  {t("paymentProviders.stripeConnected")}
                 </Badge>
               )}
             </div>
@@ -484,7 +486,7 @@ export default function PaymentProviders() {
                 <AccordionTrigger className="hover:no-underline">
                   <div className="flex items-center gap-2">
                     <HelpCircle className="h-5 w-5 text-purple-600" />
-                    <span className="font-semibold">Hvordan sette opp Stripe Terminal</span>
+                    <span className="font-semibold">{t("paymentProviders.setupGuideTitle")}</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pt-4 pb-6">
@@ -495,9 +497,9 @@ export default function PaymentProviders() {
                         1
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-2">Opprett Stripe-konto</h4>
+                        <h4 className="font-semibold text-gray-900 mb-2">{t("paymentProviders.step1Title")}</h4>
                         <p className="text-sm text-gray-600 mb-3">
-                          Gå til <a href="https://dashboard.stripe.com/register" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline font-medium">stripe.com</a> og opprett en konto. Verifiser bedriften din med organisasjonsnummer og bankkonto.
+                          {t("paymentProviders.step1Before")} <a href="https://dashboard.stripe.com/register" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline font-medium">stripe.com</a> {t("paymentProviders.step1After")}
                         </p>
                       </div>
                     </div>
@@ -508,9 +510,9 @@ export default function PaymentProviders() {
                         2
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-2">Aktiver Terminal i Stripe Dashboard</h4>
+                        <h4 className="font-semibold text-gray-900 mb-2">{t("paymentProviders.step2Title")}</h4>
                         <p className="text-sm text-gray-600 mb-3">
-                          I Stripe Dashboard, gå til <strong>Terminal</strong> i menyen til venstre. Klikk "Get started" for å aktivere Terminal-funksjonen.
+                          {t("paymentProviders.step2Before")} <strong>Terminal</strong> {t("paymentProviders.step2After")}
                         </p>
                       </div>
                     </div>
@@ -521,23 +523,23 @@ export default function PaymentProviders() {
                         3
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-2">Bestill kortleser</h4>
+                        <h4 className="font-semibold text-gray-900 mb-2">{t("paymentProviders.step3Title")}</h4>
                         <p className="text-sm text-gray-600 mb-3">
-                          Bestill en Stripe Reader fra Stripe Dashboard. Anbefalte modeller for Norge:
+                          {t("paymentProviders.step3Text")}
                         </p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
                           <div className="bg-white border rounded-lg p-3 flex items-start gap-3">
                             <Wifi className="h-5 w-5 text-purple-500 mt-0.5" />
                             <div>
                               <p className="font-medium text-sm">BBPOS WisePOS E</p>
-                              <p className="text-xs text-gray-500">WiFi, skjerm, kvittering</p>
+                              <p className="text-xs text-gray-500">{t("paymentProviders.readerWisePosDesc")}</p>
                             </div>
                           </div>
                           <div className="bg-white border rounded-lg p-3 flex items-start gap-3">
                             <Monitor className="h-5 w-5 text-purple-500 mt-0.5" />
                             <div>
                               <p className="font-medium text-sm">Stripe Reader M2</p>
-                              <p className="text-xs text-gray-500">Bluetooth, kompakt</p>
+                              <p className="text-xs text-gray-500">{t("paymentProviders.readerM2Desc")}</p>
                             </div>
                           </div>
                         </div>
@@ -550,9 +552,9 @@ export default function PaymentProviders() {
                         4
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-2">Registrer terminalen</h4>
+                        <h4 className="font-semibold text-gray-900 mb-2">{t("paymentProviders.step4Title")}</h4>
                         <p className="text-sm text-gray-600 mb-3">
-                          Når du mottar leseren, registrer den i Stripe Dashboard under <strong>Terminal → Readers</strong>. Du får en unik Terminal ID (starter med <code className="bg-gray-100 px-1 rounded">tmr_</code>).
+                          {t("paymentProviders.step4Before")} <strong>Terminal → Readers</strong>{t("paymentProviders.step4Middle")} <code className="bg-gray-100 px-1 rounded">tmr_</code>{t("paymentProviders.step4After")}
                         </p>
                       </div>
                     </div>
@@ -563,13 +565,13 @@ export default function PaymentProviders() {
                         5
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-2">Legg til i Stylora</h4>
+                        <h4 className="font-semibold text-gray-900 mb-2">{t("paymentProviders.step5Title")}</h4>
                         <p className="text-sm text-gray-600 mb-3">
-                          Klikk "Legg til terminal" ovenfor, velg "Stripe Terminal", og fyll inn:
+                          {t("paymentProviders.step5Text")}
                         </p>
                         <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
-                          <li><strong>API Key:</strong> Finn i Stripe Dashboard → Developers → API keys</li>
-                          <li><strong>Terminal ID:</strong> Fra Terminal → Readers i Stripe Dashboard</li>
+                          <li><strong>API Key:</strong> {t("paymentProviders.step5ApiKey")}</li>
+                          <li><strong>Terminal ID:</strong> {t("paymentProviders.step5TerminalId")}</li>
                         </ul>
                       </div>
                     </div>
@@ -579,9 +581,9 @@ export default function PaymentProviders() {
                       <div className="flex items-start gap-3">
                         <ExternalLink className="h-5 w-5 text-purple-600 mt-0.5" />
                         <div>
-                          <p className="font-medium text-purple-900">Trenger du mer hjelp?</p>
+                          <p className="font-medium text-purple-900">{t("paymentProviders.needMoreHelp")}</p>
                           <p className="text-sm text-purple-700 mt-1">
-                            Les den offisielle guiden på{" "}
+                            {t("paymentProviders.readOfficialGuide")}{" "}
                             <a 
                               href="https://stripe.com/docs/terminal" 
                               target="_blank" 
@@ -609,7 +611,7 @@ export default function PaymentProviders() {
               className="bg-purple-600 hover:bg-purple-700"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Legg til Stripe Terminal
+              {t("paymentProviders.addStripeTerminal")}
             </Button>
           </CardContent>
         </Card>
@@ -619,7 +621,7 @@ export default function PaymentProviders() {
           {!providers || providers.length === 0 ? (
             <Card>
               <CardContent className="pt-6 text-center text-muted-foreground">
-                Ingen terminaler konfigurert ennå. Legg til din første terminal!
+                {t("paymentProviders.emptyState")}
               </CardContent>
             </Card>
           ) : (
@@ -638,12 +640,12 @@ export default function PaymentProviders() {
                     </div>
                     <div className="flex gap-2 items-center">
                       {provider.isDefault && (
-                        <Badge variant="secondary">Standard</Badge>
+                        <Badge variant="secondary">{t("paymentProviders.badgeDefault")}</Badge>
                       )}
                       {provider.isActive ? (
-                        <Badge variant="default">Aktiv</Badge>
+                        <Badge variant="default">{t("paymentProviders.badgeActive")}</Badge>
                       ) : (
-                        <Badge variant="outline">Inaktiv</Badge>
+                        <Badge variant="outline">{t("paymentProviders.badgeInactive")}</Badge>
                       )}
                       <Button
                         variant="ghost"
@@ -672,15 +674,14 @@ export default function PaymentProviders() {
                 Object.keys(provider.config).length > 0 ? (
                   <CardContent>
                     <div className="text-sm text-muted-foreground">
-                      <strong>Konfigurert:</strong>{" "}
-                      {
-                        Object.keys(
+                      <strong>{t("paymentProviders.configuredLabel")}</strong>{" "}
+                      {t("paymentProviders.configuredFields", {
+                        count: Object.keys(
                           provider.config as Record<string, any>
                         ).filter(
                           k => (provider.config as Record<string, any>)[k]
-                        ).length
-                      }{" "}
-                      felt(er)
+                        ).length,
+                      })}
                     </div>
                   </CardContent>
                 ) : null}
@@ -696,7 +697,7 @@ export default function PaymentProviders() {
             resetForm();
           }}
           onSave={handleAddProvider}
-          title="Legg til ny terminal"
+          title={t("paymentProviders.addDialogTitle")}
         />
 
         <ConfigDialog
@@ -707,7 +708,7 @@ export default function PaymentProviders() {
             resetForm();
           }}
           onSave={handleUpdateProvider}
-          title="Rediger terminal"
+          title={t("paymentProviders.editDialogTitle")}
         />
       </div>
     </DashboardLayout>

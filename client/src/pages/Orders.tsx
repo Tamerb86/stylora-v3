@@ -39,8 +39,10 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export default function Orders() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -109,28 +111,28 @@ export default function Orders() {
       a.download = result.filename;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success("Kvittering lastet ned!");
+      toast.success(t("orders.receiptDownloaded"));
     } catch (error) {
-      toast.error("Kunne ikke laste ned kvittering");
+      toast.error(t("orders.receiptDownloadError"));
     }
   };
 
   const handlePrintReceipt = (orderId: number) => {
     // Open print-optimized page in new window
     window.open(`/print-receipt/${orderId}`, "_blank");
-    toast.success("Kvittering åpnet for utskrift!");
+    toast.success(t("orders.receiptOpenedForPrint"));
   };
 
   const handleSendEmail = async (orderId: number, customerEmail: string) => {
     if (!customerEmail) {
-      toast.error("Kunden har ingen e-postadresse");
+      toast.error(t("orders.customerHasNoEmail"));
       return;
     }
     try {
       await sendReceiptEmail.mutateAsync({ orderId, customerEmail });
-      toast.success("Kvittering sendt på e-post!");
+      toast.success(t("orders.receiptEmailSent"));
     } catch (error) {
-      toast.error("Kunne ikke sende kvittering");
+      toast.error(t("orders.receiptSendError"));
     }
   };
 
@@ -159,13 +161,13 @@ export default function Orders() {
 
     const order = filteredOrders.find(o => o.order.id === selectedOrderId);
     if (!order || !order.payment) {
-      toast.error("Kunne ikke finne betalingsinformasjon");
+      toast.error(t("orders.paymentInfoNotFound"));
       return;
     }
 
     const amount = parseFloat(refundAmount);
     if (isNaN(amount) || amount <= 0) {
-      toast.error("Vennligst oppgi et gyldig beløp");
+      toast.error(t("orders.invalidAmount"));
       return;
     }
 
@@ -178,7 +180,9 @@ export default function Orders() {
 
     if (amount > availableAmount) {
       toast.error(
-        `Beløpet overstiger tilgjengelig beløp (${availableAmount.toFixed(2)} kr)`
+        t("orders.amountExceedsAvailable", {
+          amount: availableAmount.toFixed(2),
+        })
       );
       return;
     }
@@ -192,29 +196,27 @@ export default function Orders() {
         refundMethod,
       });
 
-      toast.success("Refusjon opprettet!");
+      toast.success(t("orders.refundCreated"));
       setShowRefundDialog(false);
       utils.pos.getOrders.invalidate();
       utils.refunds.getByOrder.invalidate();
     } catch (error: any) {
-      toast.error(error.message || "Kunne ikke opprette refusjon");
+      toast.error(error.message || t("orders.refundCreateError"));
     }
   };
 
   return (
     <DashboardLayout
       breadcrumbs={[
-        { label: "Dashboard", href: "/dashboard" },
-        { label: "Ordrehistorikk" },
+        { label: t("orders.breadcrumbDashboard"), href: "/dashboard" },
+        { label: t("orders.title") },
       ]}
     >
       <div className="container mx-auto py-8 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Ordrehistorikk</h1>
-            <p className="text-muted-foreground">
-              Se alle salg og administrer kvitteringer
-            </p>
+            <h1 className="text-3xl font-bold">{t("orders.title")}</h1>
+            <p className="text-muted-foreground">{t("orders.subtitle")}</p>
           </div>
           <div className="flex gap-2">
             <Button
@@ -222,7 +224,7 @@ export default function Orders() {
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 gap-2"
             >
               <ShoppingCart className="h-4 w-4" />
-              Nytt salg
+              {t("orders.newSale")}
             </Button>
             <Button
               variant="outline"
@@ -230,7 +232,7 @@ export default function Orders() {
               className="gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
-              Tilbake
+              {t("orders.back")}
             </Button>
           </div>
         </div>
@@ -240,13 +242,13 @@ export default function Orders() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Filter className="w-5 h-5 text-muted-foreground" />
-              <h2 className="text-lg font-semibold">Filtrer ordrer</h2>
+              <h2 className="text-lg font-semibold">{t("orders.filterTitle")}</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="text-sm font-medium mb-2 block">
-                  Fra dato
+                  {t("orders.fromDate")}
                 </label>
                 <Input
                   type="date"
@@ -257,7 +259,7 @@ export default function Orders() {
 
               <div>
                 <label className="text-sm font-medium mb-2 block">
-                  Til dato
+                  {t("orders.toDate")}
                 </label>
                 <Input
                   type="date"
@@ -268,7 +270,7 @@ export default function Orders() {
 
               <div>
                 <label className="text-sm font-medium mb-2 block">
-                  Betalingsmetode
+                  {t("orders.paymentMethod")}
                 </label>
                 <Select
                   value={paymentMethod}
@@ -278,19 +280,21 @@ export default function Orders() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Alle</SelectItem>
-                    <SelectItem value="cash">Kontant</SelectItem>
-                    <SelectItem value="card">Kort</SelectItem>
+                    <SelectItem value="all">{t("orders.filterAll")}</SelectItem>
+                    <SelectItem value="cash">{t("orders.cash")}</SelectItem>
+                    <SelectItem value="card">{t("orders.card")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Søk</label>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("orders.search")}
+                </label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    placeholder="Ordre-ID, kunde..."
+                    placeholder={t("orders.searchPlaceholder")}
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     className="pl-9"
@@ -313,7 +317,7 @@ export default function Orders() {
                   setSearchQuery("");
                 }}
               >
-                Nullstill filtre
+                {t("orders.resetFilters")}
               </Button>
             )}
           </div>
@@ -324,14 +328,16 @@ export default function Orders() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Ordre-ID</TableHead>
-                <TableHead>Dato</TableHead>
-                <TableHead>Tid</TableHead>
-                <TableHead>Kunde</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Betaling</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Handlinger</TableHead>
+                <TableHead>{t("orders.colOrderId")}</TableHead>
+                <TableHead>{t("orders.colDate")}</TableHead>
+                <TableHead>{t("orders.colTime")}</TableHead>
+                <TableHead>{t("orders.colCustomer")}</TableHead>
+                <TableHead>{t("orders.colTotal")}</TableHead>
+                <TableHead>{t("orders.colPayment")}</TableHead>
+                <TableHead>{t("orders.colStatus")}</TableHead>
+                <TableHead className="text-right">
+                  {t("orders.colActions")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -341,7 +347,7 @@ export default function Orders() {
                     colSpan={8}
                     className="text-center py-8 text-muted-foreground"
                   >
-                    Laster ordrer...
+                    {t("orders.loading")}
                   </TableCell>
                 </TableRow>
               ) : filteredOrders.length === 0 ? (
@@ -350,7 +356,7 @@ export default function Orders() {
                     colSpan={8}
                     className="text-center py-8 text-muted-foreground"
                   >
-                    Ingen ordrer funnet
+                    {t("orders.empty")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -372,7 +378,7 @@ export default function Orders() {
                         </button>
                       ) : (
                         <span className="text-muted-foreground italic">
-                          Walk-in
+                          {t("orders.walkIn")}
                         </span>
                       )}
                     </TableCell>
@@ -388,8 +394,8 @@ export default function Orders() {
                         }`}
                       >
                         {item.payment?.paymentMethod === "cash"
-                          ? "Kontant"
-                          : "Kort"}
+                          ? t("orders.cash")
+                          : t("orders.card")}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -403,12 +409,12 @@ export default function Orders() {
                         }`}
                       >
                         {item.order.status === "completed"
-                          ? "Fullført"
+                          ? t("orders.statusCompleted")
                           : item.order.status === "refunded"
-                            ? "Refundert"
+                            ? t("orders.statusRefunded")
                             : item.order.status === "partially_refunded"
-                              ? "Delvis refundert"
-                              : "Venter"}
+                              ? t("orders.statusPartiallyRefunded")
+                              : t("orders.statusPending")}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
@@ -470,7 +476,7 @@ export default function Orders() {
         <Dialog open={showRefundDialog} onOpenChange={setShowRefundDialog}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Opprett refusjon</DialogTitle>
+              <DialogTitle>{t("orders.createRefund")}</DialogTitle>
             </DialogHeader>
             {selectedOrderId &&
               (() => {
@@ -490,13 +496,13 @@ export default function Orders() {
                     <div className="bg-muted p-4 rounded-lg space-y-2">
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          Ordre-ID
+                          {t("orders.colOrderId")}
                         </p>
                         <p className="font-semibold">#{order.order.id}</p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          Opprinnelig beløp
+                          {t("orders.originalAmount")}
                         </p>
                         <p className="font-semibold">
                           {originalAmount.toFixed(2)} kr
@@ -505,7 +511,7 @@ export default function Orders() {
                       {totalRefunded > 0 && (
                         <div>
                           <p className="text-sm text-muted-foreground">
-                            Allerede refundert
+                            {t("orders.alreadyRefunded")}
                           </p>
                           <p className="font-semibold text-orange-600">
                             -{totalRefunded.toFixed(2)} kr
@@ -514,7 +520,7 @@ export default function Orders() {
                       )}
                       <div className="pt-2 border-t">
                         <p className="text-sm text-muted-foreground">
-                          Tilgjengelig for refusjon
+                          {t("orders.availableForRefund")}
                         </p>
                         <p className="text-lg font-bold text-green-600">
                           {availableAmount.toFixed(2)} kr
@@ -524,7 +530,7 @@ export default function Orders() {
 
                     <div>
                       <label className="text-sm font-medium mb-2 block">
-                        Refusjonsbeløp (kr)
+                        {t("orders.refundAmount")}
                       </label>
                       <div className="flex gap-2">
                         <Input
@@ -545,17 +551,17 @@ export default function Orders() {
                           }
                           disabled={availableAmount <= 0}
                         >
-                          Full
+                          {t("orders.full")}
                         </Button>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Maks: {availableAmount.toFixed(2)} kr
+                        {t("orders.max", { amount: availableAmount.toFixed(2) })}
                       </p>
                     </div>
 
                     <div>
                       <label className="text-sm font-medium mb-2 block">
-                        Årsak
+                        {t("orders.reason")}
                       </label>
                       <Select
                         value={refundReason}
@@ -566,23 +572,27 @@ export default function Orders() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="customer_request">
-                            Kundeforespørsel
+                            {t("orders.reasonCustomerRequest")}
                           </SelectItem>
                           <SelectItem value="damaged_product">
-                            Skadet produkt
+                            {t("orders.reasonDamagedProduct")}
                           </SelectItem>
-                          <SelectItem value="wrong_item">Feil vare</SelectItem>
+                          <SelectItem value="wrong_item">
+                            {t("orders.reasonWrongItem")}
+                          </SelectItem>
                           <SelectItem value="service_issue">
-                            Tjenesteproblemer
+                            {t("orders.reasonServiceIssue")}
                           </SelectItem>
-                          <SelectItem value="other">Annet</SelectItem>
+                          <SelectItem value="other">
+                            {t("orders.reasonOther")}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div>
                       <label className="text-sm font-medium mb-2 block">
-                        Refusjonsmetode
+                        {t("orders.refundMethod")}
                       </label>
                       <Select
                         value={refundMethod}
@@ -593,7 +603,7 @@ export default function Orders() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="manual">
-                            Manuell (Kontant/Terminal)
+                            {t("orders.refundMethodManual")}
                           </SelectItem>
                           <SelectItem value="stripe">Stripe</SelectItem>
                           <SelectItem value="vipps">Vipps</SelectItem>
@@ -607,7 +617,7 @@ export default function Orders() {
                         onClick={() => setShowRefundDialog(false)}
                         className="flex-1"
                       >
-                        Avbryt
+                        {t("orders.cancel")}
                       </Button>
                       <Button
                         onClick={handleRefundSubmit}
@@ -615,8 +625,8 @@ export default function Orders() {
                         className="flex-1 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
                       >
                         {createRefund.isPending
-                          ? "Behandler..."
-                          : "Opprett refusjon"}
+                          ? t("orders.processing")
+                          : t("orders.createRefund")}
                       </Button>
                     </div>
                   </div>
@@ -629,56 +639,70 @@ export default function Orders() {
         <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Ordredetaljer #{selectedOrderId}</DialogTitle>
+              <DialogTitle>
+                {t("orders.orderDetails", { id: selectedOrderId })}
+              </DialogTitle>
             </DialogHeader>
             {orderDetails && (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Dato</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("orders.colDate")}
+                    </p>
                     <p className="font-medium">
                       {formatDate(orderDetails.order.orderDate)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Tid</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("orders.colTime")}
+                    </p>
                     <p className="font-medium">
                       {formatTime(orderDetails.order.orderTime)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Subtotal</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("orders.subtotal")}
+                    </p>
                     <p className="font-medium">
                       {orderDetails.order.subtotal} kr
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">MVA (25%)</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("orders.vat")}
+                    </p>
                     <p className="font-medium">
                       {orderDetails.order.vatAmount} kr
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Total</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("orders.colTotal")}
+                    </p>
                     <p className="text-lg font-bold">
                       {orderDetails.order.total} kr
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Status</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("orders.colStatus")}
+                    </p>
                     <p className="font-medium">{orderDetails.order.status}</p>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="font-semibold mb-2">Varer</h3>
+                  <h3 className="font-semibold mb-2">{t("orders.items")}</h3>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Antall</TableHead>
-                        <TableHead>Enhetspris</TableHead>
-                        <TableHead>Total</TableHead>
+                        <TableHead>{t("orders.colType")}</TableHead>
+                        <TableHead>{t("orders.colQuantity")}</TableHead>
+                        <TableHead>{t("orders.colUnitPrice")}</TableHead>
+                        <TableHead>{t("orders.colTotal")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -686,8 +710,8 @@ export default function Orders() {
                         <TableRow key={idx}>
                           <TableCell>
                             {item.itemType === "service"
-                              ? "Tjeneste"
-                              : "Produkt"}
+                              ? t("orders.typeService")
+                              : t("orders.typeProduct")}
                           </TableCell>
                           <TableCell>{item.quantity}</TableCell>
                           <TableCell>{item.unitPrice} kr</TableCell>
@@ -709,8 +733,8 @@ export default function Orders() {
                   >
                     <Printer className="w-4 h-4 mr-2" />
                     {generateReceipt.isPending
-                      ? "Skriver ut..."
-                      : "Skriv ut kvittering"}
+                      ? t("orders.printing")
+                      : t("orders.printReceipt")}
                   </Button>
                 </div>
               </div>

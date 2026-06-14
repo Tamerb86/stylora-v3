@@ -28,8 +28,10 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { nb } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
 
 export default function CustomerDetails() {
+  const { t } = useTranslation();
   const [, params] = useRoute("/customers/:id");
   const [, setLocation] = useLocation();
   const customerId = parseInt(params?.id || "0");
@@ -66,9 +68,9 @@ export default function CustomerDetails() {
     return (
       <DashboardLayout
         breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Kunder", href: "/customers" },
-          { label: "Laster..." },
+          { label: t("nav.dashboard"), href: "/dashboard" },
+          { label: t("customers.title"), href: "/customers" },
+          { label: t("customerDetails.loading") },
         ]}
       >
         <div className="p-8">
@@ -82,19 +84,19 @@ export default function CustomerDetails() {
     return (
       <DashboardLayout
         breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Kunder", href: "/customers" },
-          { label: "Ikke funnet" },
+          { label: t("nav.dashboard"), href: "/dashboard" },
+          { label: t("customers.title"), href: "/customers" },
+          { label: t("customerDetails.notFoundBreadcrumb") },
         ]}
       >
         <div className="p-8">
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <User className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Kunde ikke funnet</h3>
+              <h3 className="text-lg font-semibold mb-2">{t("customerDetails.notFoundTitle")}</h3>
               <Button onClick={() => setLocation("/customers")}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Tilbake til kunder
+                {t("customerDetails.backToCustomers")}
               </Button>
             </CardContent>
           </Card>
@@ -116,11 +118,11 @@ export default function CustomerDetails() {
         <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={() => setLocation("/customers")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Tilbake
+            {t("customerDetails.back")}
           </Button>
           <Button onClick={() => setLocation("/appointments")}>
             <Calendar className="mr-2 h-4 w-4" />
-            Book ny avtale
+            {t("customerDetails.bookNewAppointment")}
           </Button>
         </div>
 
@@ -156,7 +158,7 @@ export default function CustomerDetails() {
                   {customer.dateOfBirth && (
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
-                      Født:{" "}
+                      {t("customerDetails.bornLabel")}{" "}
                       {format(new Date(customer.dateOfBirth), "d. MMMM yyyy", {
                         locale: nb,
                       })}
@@ -172,11 +174,11 @@ export default function CustomerDetails() {
               </div>
               <div className="text-right space-y-2">
                 <div className="text-sm text-muted-foreground">
-                  Totalt besøk
+                  {t("customerDetails.totalVisits")}
                 </div>
                 <div className="text-3xl font-bold">{customer.totalVisits}</div>
                 <div className="text-sm text-muted-foreground">
-                  Total omsetning
+                  {t("customerDetails.totalRevenue")}
                 </div>
                 <div className="text-2xl font-bold text-green-600">
                   {customer.totalRevenue} NOK
@@ -184,7 +186,7 @@ export default function CustomerDetails() {
                 {loyaltyPoints && loyaltyPoints.currentPoints > 0 && (
                   <>
                     <div className="text-sm text-muted-foreground mt-4">
-                      Lojalitetspoeng
+                      {t("customerDetails.loyaltyPoints")}
                     </div>
                     <div className="flex items-center gap-2 text-primary font-semibold">
                       <Gift className="h-5 w-5" />
@@ -201,7 +203,7 @@ export default function CustomerDetails() {
                 <div className="flex items-start gap-2">
                   <FileText className="h-4 w-4 mt-0.5 text-muted-foreground" />
                   <div>
-                    <div className="font-medium text-sm mb-1">Notater</div>
+                    <div className="font-medium text-sm mb-1">{t("customerDetails.notes")}</div>
                     <p className="text-sm text-muted-foreground">
                       {customer.notes}
                     </p>
@@ -218,7 +220,7 @@ export default function CustomerDetails() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5" />
-                Kommende avtaler
+                {t("customerDetails.upcomingAppointments")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -236,7 +238,7 @@ export default function CustomerDetails() {
                       )}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      Kl. {apt.startTime} - {apt.endTime}
+                      {t("customerDetails.timePrefix")} {apt.startTime} - {apt.endTime}
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {/* Service name from join */}
@@ -247,7 +249,9 @@ export default function CustomerDetails() {
                       apt.status === "confirmed" ? "default" : "secondary"
                     }
                   >
-                    {apt.status === "confirmed" ? "Bekreftet" : "Venter"}
+                    {apt.status === "confirmed"
+                      ? t("customerDetails.statusConfirmed")
+                      : t("customerDetails.statusPending")}
                   </Badge>
                 </div>
               ))}
@@ -260,10 +264,12 @@ export default function CustomerDetails() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Receipt className="h-5 w-5" />
-              Besøkshistorikk
+              {t("customerDetails.visitHistory")}
             </CardTitle>
             <CardDescription>
-              {completedAppointments.length} fullførte besøk
+              {t("customerDetails.completedVisits", {
+                count: completedAppointments.length,
+              })}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -297,7 +303,7 @@ export default function CustomerDetails() {
                           <div className="flex items-center gap-3">
                             <Clock className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm text-muted-foreground">
-                              Kl. {apt.startTime} - {apt.endTime}
+                              {t("customerDetails.timePrefix")} {apt.startTime} - {apt.endTime}
                             </span>
                           </div>
                           <div className="flex items-center gap-3">
@@ -310,7 +316,8 @@ export default function CustomerDetails() {
                             <div className="flex items-center gap-3">
                               <User className="h-4 w-4 text-muted-foreground" />
                               <span className="text-sm text-muted-foreground">
-                                Ansatt ID: {apt.employeeId}
+                                {t("customerDetails.employeeIdLabel")}{" "}
+                                {apt.employeeId}
                               </span>
                             </div>
                           )}
@@ -337,13 +344,13 @@ export default function CustomerDetails() {
             ) : (
               <div className="text-center py-12">
                 <Receipt className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Ingen besøk ennå</h3>
+                <h3 className="text-lg font-semibold mb-2">{t("customerDetails.noVisitsTitle")}</h3>
                 <p className="text-muted-foreground mb-4">
-                  Dette er en ny kunde uten besøkshistorikk
+                  {t("customerDetails.noVisitsDescription")}
                 </p>
                 <Button onClick={() => setLocation("/appointments")}>
                   <Calendar className="mr-2 h-4 w-4" />
-                  Book første avtale
+                  {t("customerDetails.bookFirstAppointment")}
                 </Button>
               </div>
             )}

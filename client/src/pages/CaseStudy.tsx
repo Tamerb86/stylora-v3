@@ -16,12 +16,14 @@ import {
   X,
 } from "lucide-react";
 import { Link } from "wouter";
+import { useTranslation } from "react-i18next";
 
 export default function CaseStudy() {
+  const { t } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const beforeAfterMetrics = [
     {
-      metric: "Månedlig omsetning",
+      metric: t("caseStudy.metricRevenue"),
       before: "kr 180,000",
       after: "kr 245,000",
       increase: "+36%",
@@ -29,7 +31,7 @@ export default function CaseStudy() {
       color: "from-green-500 to-emerald-500",
     },
     {
-      metric: "Uteblitte timer",
+      metric: t("caseStudy.metricNoShows"),
       before: "18%",
       after: "3%",
       increase: "-83%",
@@ -37,7 +39,7 @@ export default function CaseStudy() {
       color: "from-blue-500 to-cyan-500",
     },
     {
-      metric: "Online bookinger",
+      metric: t("caseStudy.metricOnlineBookings"),
       before: "12%",
       after: "58%",
       increase: "+383%",
@@ -45,9 +47,9 @@ export default function CaseStudy() {
       color: "from-purple-500 to-pink-500",
     },
     {
-      metric: "Admin-tid per uke",
-      before: "12 timer",
-      after: "4 timer",
+      metric: t("caseStudy.metricAdminTime"),
+      before: t("caseStudy.metricAdminTimeBefore"),
+      after: t("caseStudy.metricAdminTimeAfter"),
       increase: "-67%",
       icon: Clock,
       color: "from-orange-500 to-red-500",
@@ -55,12 +57,12 @@ export default function CaseStudy() {
   ];
 
   const keyChanges = [
-    "Automatiske SMS-påminnelser 24 timer før time",
-    "Online booking tilgjengelig 24/7 på nettside og sosiale medier",
-    "Lojalitetsprogram med 10% rabatt etter 5 besøk",
-    "Automatisk kundeoppfølging etter behandling",
-    "Detaljert rapportering og innsikt i trender",
-    "Integrert betalingsløsning med Vipps og kort",
+    t("caseStudy.change1"),
+    t("caseStudy.change2"),
+    t("caseStudy.change3"),
+    t("caseStudy.change4"),
+    t("caseStudy.change5"),
+    t("caseStudy.change6"),
   ];
 
   return (
@@ -84,7 +86,7 @@ export default function CaseStudy() {
           </Button>
           <div className="flex items-center gap-4">
             <Button asChild variant="ghost" className="hidden md:inline-flex">
-              <Link to="/">Tilbake til hovedsiden</Link>
+              <Link to="/">{t("caseStudy.backToMain")}</Link>
             </Button>
 
             {/* Mobile Menu Button */}
@@ -122,7 +124,7 @@ export default function CaseStudy() {
                 className="w-full justify-start text-lg"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                <Link to="/">Tilbake til hovedsiden</Link>
+                <Link to="/">{t("caseStudy.backToMain")}</Link>
               </Button>
             </div>
           </div>
@@ -136,18 +138,17 @@ export default function CaseStudy() {
           <div className="max-w-4xl mx-auto text-center space-y-6">
             <Badge variant="secondary" className="px-6 py-2">
               <Star className="w-4 h-4 mr-2 inline fill-current" />
-              Kundesuksess
+              {t("caseStudy.badgeCustomerSuccess")}
             </Badge>
             <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight">
-              Hvordan{" "}
+              {t("caseStudy.heroTitlePrefix")}{" "}
               <span className="bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
                 Studio Bella
               </span>{" "}
-              økte omsetningen med 36%
+              {t("caseStudy.heroTitleSuffix")}
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              En moderne skjønnhetssalong i Oslo transformerte sin virksomhet
-              med Stylora – og doblet antall online bookinger på bare 3 måneder
+              {t("caseStudy.heroSubtitle")}
             </p>
           </div>
         </div>
@@ -162,23 +163,23 @@ export default function CaseStudy() {
                 Studio Bella
               </div>
               <div className="text-sm text-muted-foreground mt-1">
-                Oslo, Norge
+                {t("caseStudy.location")}
               </div>
             </div>
             <div>
               <div className="text-3xl font-bold">7</div>
               <div className="text-sm text-muted-foreground mt-1">
-                Ansatte stylister
+                {t("caseStudy.statStylists")}
               </div>
             </div>
             <div>
-              <div className="text-3xl font-bold">6 år</div>
-              <div className="text-sm text-muted-foreground mt-1">I drift</div>
+              <div className="text-3xl font-bold">{t("caseStudy.statYearsValue")}</div>
+              <div className="text-sm text-muted-foreground mt-1">{t("caseStudy.statInOperation")}</div>
             </div>
             <div>
               <div className="text-3xl font-bold">520+</div>
               <div className="text-sm text-muted-foreground mt-1">
-                Aktive kunder
+                {t("caseStudy.statActiveCustomers")}
               </div>
             </div>
           </div>
@@ -191,12 +192,12 @@ export default function CaseStudy() {
           <div className="space-y-8">
             <div>
               <Badge variant="outline" className="mb-4">
-                Utfordringen
+                {t("caseStudy.challengeBadge")}
               </Badge>
               <h2 className="text-4xl font-bold mb-6">
-                Fra papirkalender til{" "}
+                {t("caseStudy.challengeTitlePrefix")}{" "}
                 <span className="bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
-                  digital transformasjon
+                  {t("caseStudy.challengeTitleHighlight")}
                 </span>
               </h2>
             </div>
@@ -205,10 +206,7 @@ export default function CaseStudy() {
               <CardContent className="pt-6">
                 <Quote className="h-8 w-8 text-orange-500 mb-4" />
                 <p className="text-lg text-muted-foreground italic mb-4">
-                  "Som eier av en moderne skjønnhetssalong følte jeg vi sakket
-                  akterut. Vi hadde fortsatt papirkalender, dobbeltbookinger var
-                  vanlig, og jeg brukte timer daglig på å bekrefte avtaler. Vi
-                  trengte en digital løsning som passet vår virksomhet."
+                  {t("caseStudy.challengeQuote")}
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white font-bold">
@@ -217,7 +215,7 @@ export default function CaseStudy() {
                   <div>
                     <div className="font-semibold">Sofia Andersen</div>
                     <div className="text-sm text-muted-foreground">
-                      Eier, Studio Bella
+                      {t("caseStudy.ownerStudioBella")}
                     </div>
                   </div>
                 </div>
@@ -231,17 +229,17 @@ export default function CaseStudy() {
                     18%
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    av kundene møtte ikke opp til avtalt time
+                    {t("caseStudy.statNoShowDesc")}
                   </div>
                 </CardContent>
               </Card>
               <Card className="bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900">
                 <CardContent className="pt-6">
                   <div className="text-4xl font-bold text-orange-600 mb-2">
-                    12 timer
+                    {t("caseStudy.statAdminHoursValue")}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    brukt på admin per uke
+                    {t("caseStudy.statAdminHoursDesc")}
                   </div>
                 </CardContent>
               </Card>
@@ -251,7 +249,7 @@ export default function CaseStudy() {
                     88%
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    av bookingene kom via telefon
+                    {t("caseStudy.statPhoneBookingsDesc")}
                   </div>
                 </CardContent>
               </Card>
@@ -266,24 +264,22 @@ export default function CaseStudy() {
           <div className="space-y-8">
             <div>
               <Badge variant="outline" className="mb-4">
-                Løsningen
+                {t("caseStudy.solutionBadge")}
               </Badge>
               <h2 className="text-4xl font-bold mb-6">
-                Implementering av{" "}
+                {t("caseStudy.solutionTitlePrefix")}{" "}
                 <span className="bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
                   Stylora
                 </span>
               </h2>
               <p className="text-lg text-muted-foreground">
-                I mars 2024 tok Studio Bella steget og gikk over til Stylora.
-                Implementeringen tok bare én dag, og allerede etter første uke
-                så de resultater.
+                {t("caseStudy.solutionDescription")}
               </p>
             </div>
 
             <div className="space-y-4">
               <h3 className="text-2xl font-semibold">
-                Nøkkelendringer som ble gjort:
+                {t("caseStudy.keyChangesTitle")}
               </h3>
               <div className="grid gap-3">
                 {keyChanges.map((change, index) => (
@@ -306,17 +302,16 @@ export default function CaseStudy() {
         <div className="container max-w-6xl">
           <div className="text-center mb-16">
             <Badge variant="outline" className="mb-4">
-              Resultatene
+              {t("caseStudy.resultsBadge")}
             </Badge>
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Før og etter{" "}
+              {t("caseStudy.resultsTitlePrefix")}{" "}
               <span className="bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
-                3 måneder
+                {t("caseStudy.resultsTitleHighlight")}
               </span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Tallene snakker for seg selv – dramatisk forbedring på alle
-              nøkkeltall
+              {t("caseStudy.resultsSubtitle")}
             </p>
           </div>
 
@@ -335,7 +330,7 @@ export default function CaseStudy() {
                       <div className="flex items-baseline gap-4">
                         <div>
                           <div className="text-xs text-muted-foreground mb-1">
-                            Før
+                            {t("caseStudy.before")}
                           </div>
                           <div className="text-2xl font-bold text-muted-foreground/60 line-through">
                             {item.before}
@@ -344,7 +339,7 @@ export default function CaseStudy() {
                         <ArrowRight className="h-5 w-5 text-muted-foreground" />
                         <div>
                           <div className="text-xs text-muted-foreground mb-1">
-                            Etter
+                            {t("caseStudy.after")}
                           </div>
                           <div className="text-3xl font-bold">{item.after}</div>
                         </div>
@@ -362,7 +357,7 @@ export default function CaseStudy() {
                       {item.increase}
                     </Badge>
                     <span className="text-sm text-muted-foreground">
-                      forbedring
+                      {t("caseStudy.improvement")}
                     </span>
                   </div>
                 </CardContent>
@@ -379,10 +374,7 @@ export default function CaseStudy() {
             <CardContent className="pt-12 pb-12">
               <Quote className="h-12 w-12 text-primary mb-6 mx-auto" />
               <blockquote className="text-2xl md:text-3xl font-medium text-center mb-8 leading-relaxed">
-                "Stylora har fullstendig transformert hvordan vi driver
-                salongen. Vi har mer tid til det vi elsker – å jobbe med kundene
-                – og mindre tid på papirarbeid. Den beste investeringen vi har
-                gjort."
+                {t("caseStudy.testimonialQuote")}
               </blockquote>
               <div className="flex items-center justify-center gap-4">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white font-bold text-xl">
@@ -391,7 +383,7 @@ export default function CaseStudy() {
                 <div className="text-left">
                   <div className="font-semibold text-lg">Sofia Andersen</div>
                   <div className="text-muted-foreground">
-                    Eier, Studio Bella
+                    {t("caseStudy.ownerStudioBella")}
                   </div>
                   <div className="flex gap-1 mt-1">
                     {[1, 2, 3, 4, 5].map(star => (
@@ -414,11 +406,10 @@ export default function CaseStudy() {
         <div className="container relative z-10">
           <div className="max-w-3xl mx-auto text-center space-y-8 text-white">
             <h2 className="text-4xl md:text-5xl font-bold">
-              Klar til å få samme resultater?
+              {t("caseStudy.ctaTitle")}
             </h2>
             <p className="text-xl opacity-90">
-              Bli med hundrevis av norske salonger som allerede har transformert
-              virksomheten sin med Stylora
+              {t("caseStudy.ctaSubtitle")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -428,7 +419,7 @@ export default function CaseStudy() {
                 className="text-lg h-14 px-10"
               >
                 <Link to="/">
-                  Prøv gratis i 14 dager
+                  {t("caseStudy.ctaTryFree")}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
@@ -440,7 +431,7 @@ export default function CaseStudy() {
               >
                 <Link to="/">
                   <BarChart3 className="mr-2 h-5 w-5" />
-                  Se flere case studies
+                  {t("caseStudy.ctaMoreCases")}
                 </Link>
               </Button>
             </div>

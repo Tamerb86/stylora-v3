@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,7 @@ const COLORS = [
 ];
 
 export default function POSFinancialReports() {
+  const { t } = useTranslation();
   const [dateRange, setDateRange] = useState<
     "today" | "7days" | "30days" | "month" | "custom"
   >("today");
@@ -135,7 +137,7 @@ export default function POSFinancialReports() {
     report?.salesByPaymentMethod.map(p => ({
       name:
         p.paymentMethod === "split"
-          ? "Delt"
+          ? t("posFinancialReports.split")
           : p.paymentMethod.charAt(0).toUpperCase() + p.paymentMethod.slice(1),
       value: parseFloat(p.totalAmount),
     })) || [];
@@ -147,11 +149,11 @@ export default function POSFinancialReports() {
     })) || [];
 
   const handleExportPDF = () => {
-    toast.info("PDF-eksport kommer snart");
+    toast.info(t("posFinancialReports.pdfExportComingSoon"));
   };
 
   const handleExportExcel = () => {
-    toast.info("Excel-eksport kommer snart");
+    toast.info(t("posFinancialReports.excelExportComingSoon"));
   };
 
   return (
@@ -159,10 +161,10 @@ export default function POSFinancialReports() {
       <div className="container mx-auto py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            POS Finansrapporter
+            {t("posFinancialReports.title")}
           </h1>
           <p className="text-muted-foreground mt-2">
-            Detaljert analyse av salg og betalinger
+            {t("posFinancialReports.subtitle")}
           </p>
         </div>
 
@@ -171,13 +173,13 @@ export default function POSFinancialReports() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5" />
-              Filtre
+              {t("posFinancialReports.filters")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <Label htmlFor="dateRange">Tidsperiode</Label>
+                <Label htmlFor="dateRange">{t("posFinancialReports.dateRange")}</Label>
                 <Select
                   value={dateRange}
                   onValueChange={(v: any) => setDateRange(v)}
@@ -186,11 +188,11 @@ export default function POSFinancialReports() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="today">I dag</SelectItem>
-                    <SelectItem value="7days">Siste 7 dager</SelectItem>
-                    <SelectItem value="30days">Siste 30 dager</SelectItem>
-                    <SelectItem value="month">Denne måneden</SelectItem>
-                    <SelectItem value="custom">Egendefinert</SelectItem>
+                    <SelectItem value="today">{t("posFinancialReports.today")}</SelectItem>
+                    <SelectItem value="7days">{t("posFinancialReports.last7Days")}</SelectItem>
+                    <SelectItem value="30days">{t("posFinancialReports.last30Days")}</SelectItem>
+                    <SelectItem value="month">{t("posFinancialReports.thisMonth")}</SelectItem>
+                    <SelectItem value="custom">{t("posFinancialReports.custom")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -198,7 +200,7 @@ export default function POSFinancialReports() {
               {dateRange === "custom" && (
                 <>
                   <div>
-                    <Label htmlFor="customStart">Fra dato</Label>
+                    <Label htmlFor="customStart">{t("posFinancialReports.fromDate")}</Label>
                     <input
                       id="customStart"
                       type="date"
@@ -208,7 +210,7 @@ export default function POSFinancialReports() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="customEnd">Til dato</Label>
+                    <Label htmlFor="customEnd">{t("posFinancialReports.toDate")}</Label>
                     <input
                       id="customEnd"
                       type="date"
@@ -221,7 +223,7 @@ export default function POSFinancialReports() {
               )}
 
               <div>
-                <Label htmlFor="employee">Ansatt</Label>
+                <Label htmlFor="employee">{t("posFinancialReports.employee")}</Label>
                 <Select
                   value={employeeFilter}
                   onValueChange={setEmployeeFilter}
@@ -230,7 +232,7 @@ export default function POSFinancialReports() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Alle ansatte</SelectItem>
+                    <SelectItem value="all">{t("posFinancialReports.allEmployees")}</SelectItem>
                     {employees?.map(e => (
                       <SelectItem key={e.id} value={e.id.toString()}>
                         {e.name}
@@ -241,7 +243,7 @@ export default function POSFinancialReports() {
               </div>
 
               <div>
-                <Label htmlFor="paymentMethod">Betalingsmetode</Label>
+                <Label htmlFor="paymentMethod">{t("posFinancialReports.paymentMethod")}</Label>
                 <Select
                   value={paymentMethodFilter}
                   onValueChange={setPaymentMethodFilter}
@@ -250,12 +252,12 @@ export default function POSFinancialReports() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Alle metoder</SelectItem>
-                    <SelectItem value="cash">Kontant</SelectItem>
-                    <SelectItem value="card">Kort</SelectItem>
+                    <SelectItem value="all">{t("posFinancialReports.allMethods")}</SelectItem>
+                    <SelectItem value="cash">{t("posFinancialReports.cash")}</SelectItem>
+                    <SelectItem value="card">{t("posFinancialReports.card")}</SelectItem>
                     <SelectItem value="vipps">Vipps</SelectItem>
                     <SelectItem value="stripe">Stripe</SelectItem>
-                    <SelectItem value="split">Delt betaling</SelectItem>
+                    <SelectItem value="split">{t("posFinancialReports.splitPayment")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -264,11 +266,11 @@ export default function POSFinancialReports() {
             <div className="mt-4 flex gap-2 justify-end">
               <Button variant="outline" onClick={handleExportPDF}>
                 <Download className="h-4 w-4 mr-2" />
-                Eksporter PDF
+                {t("posFinancialReports.exportPdf")}
               </Button>
               <Button variant="outline" onClick={handleExportExcel}>
                 <Download className="h-4 w-4 mr-2" />
-                Eksporter Excel
+                {t("posFinancialReports.exportExcel")}
               </Button>
             </div>
           </CardContent>
@@ -276,11 +278,11 @@ export default function POSFinancialReports() {
 
         {isLoading ? (
           <div className="text-center py-12 text-muted-foreground">
-            Laster rapport...
+            {t("posFinancialReports.loadingReport")}
           </div>
         ) : !report ? (
           <div className="text-center py-12 text-muted-foreground">
-            Ingen data tilgjengelig
+            {t("posFinancialReports.noDataAvailable")}
           </div>
         ) : (
           <>
@@ -290,7 +292,7 @@ export default function POSFinancialReports() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                     <DollarSign className="h-4 w-4" />
-                    Totalt salg
+                    {t("posFinancialReports.totalSales")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -304,7 +306,7 @@ export default function POSFinancialReports() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                     <ShoppingCart className="h-4 w-4" />
-                    Antall ordrer
+                    {t("posFinancialReports.orderCount")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -318,7 +320,7 @@ export default function POSFinancialReports() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                     <TrendingUp className="h-4 w-4" />
-                    Gjennomsnittlig ordre
+                    {t("posFinancialReports.averageOrder")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -332,7 +334,7 @@ export default function POSFinancialReports() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                     <Users className="h-4 w-4" />
-                    Nettoinntekt
+                    {t("posFinancialReports.netRevenue")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -348,9 +350,9 @@ export default function POSFinancialReports() {
               {/* Sales by Employee */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Salg per ansatt</CardTitle>
+                  <CardTitle>{t("posFinancialReports.salesByEmployee")}</CardTitle>
                   <CardDescription>
-                    Totalt salg fordelt på ansatte
+                    {t("posFinancialReports.salesByEmployeeDesc")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -367,7 +369,7 @@ export default function POSFinancialReports() {
                           color: "#000000",
                         }}
                       />
-                      <Bar dataKey="sales" fill="#3b82f6" name="Salg (NOK)" />
+                      <Bar dataKey="sales" fill="#3b82f6" name={t("posFinancialReports.salesNok")} />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -376,9 +378,9 @@ export default function POSFinancialReports() {
               {/* Sales by Payment Method */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Salg per betalingsmetode</CardTitle>
+                  <CardTitle>{t("posFinancialReports.salesByPaymentMethod")}</CardTitle>
                   <CardDescription>
-                    Fordeling av betalingsmetoder
+                    {t("posFinancialReports.salesByPaymentMethodDesc")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -413,8 +415,8 @@ export default function POSFinancialReports() {
             {/* Hourly Sales */}
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle>Salg per time</CardTitle>
-                <CardDescription>Salgsfordeling gjennom dagen</CardDescription>
+                <CardTitle>{t("posFinancialReports.salesByHour")}</CardTitle>
+                <CardDescription>{t("posFinancialReports.salesByHourDesc")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -434,7 +436,7 @@ export default function POSFinancialReports() {
                       type="monotone"
                       dataKey="sales"
                       stroke="#8b5cf6"
-                      name="Salg (NOK)"
+                      name={t("posFinancialReports.salesNok")}
                       strokeWidth={2}
                     />
                   </LineChart>
@@ -447,16 +449,16 @@ export default function POSFinancialReports() {
               {/* Top Services */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Topp 10 tjenester</CardTitle>
-                  <CardDescription>Mest solgte tjenester</CardDescription>
+                  <CardTitle>{t("posFinancialReports.top10Services")}</CardTitle>
+                  <CardDescription>{t("posFinancialReports.mostSoldServices")}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Tjeneste</TableHead>
-                        <TableHead className="text-right">Antall</TableHead>
-                        <TableHead className="text-right">Inntekt</TableHead>
+                        <TableHead>{t("posFinancialReports.service")}</TableHead>
+                        <TableHead className="text-right">{t("posFinancialReports.quantity")}</TableHead>
+                        <TableHead className="text-right">{t("posFinancialReports.revenue")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -481,16 +483,16 @@ export default function POSFinancialReports() {
               {/* Top Products */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Topp 10 produkter</CardTitle>
-                  <CardDescription>Mest solgte produkter</CardDescription>
+                  <CardTitle>{t("posFinancialReports.top10Products")}</CardTitle>
+                  <CardDescription>{t("posFinancialReports.mostSoldProducts")}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Produkt</TableHead>
-                        <TableHead className="text-right">Antall</TableHead>
-                        <TableHead className="text-right">Inntekt</TableHead>
+                        <TableHead>{t("posFinancialReports.product")}</TableHead>
+                        <TableHead className="text-right">{t("posFinancialReports.quantity")}</TableHead>
+                        <TableHead className="text-right">{t("posFinancialReports.revenue")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -517,19 +519,19 @@ export default function POSFinancialReports() {
             {report.splitPaymentDetails.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Delte betalinger</CardTitle>
+                  <CardTitle>{t("posFinancialReports.splitPayments")}</CardTitle>
                   <CardDescription>
-                    Detaljer om delte betalinger i perioden
+                    {t("posFinancialReports.splitPaymentsDesc")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Ordre-ID</TableHead>
-                        <TableHead>Totalt</TableHead>
-                        <TableHead>Metoder</TableHead>
-                        <TableHead>Dato</TableHead>
+                        <TableHead>{t("posFinancialReports.orderId")}</TableHead>
+                        <TableHead>{t("posFinancialReports.total")}</TableHead>
+                        <TableHead>{t("posFinancialReports.methods")}</TableHead>
+                        <TableHead>{t("posFinancialReports.date")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>

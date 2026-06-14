@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { useTranslation } from "react-i18next";
 
 interface ExportSection {
   id: string;
@@ -47,6 +48,7 @@ interface ExportSection {
 }
 
 export default function AccountantExport() {
+  const { t } = useTranslation();
   const [dateFrom, setDateFrom] = useState(() => {
     const date = new Date();
     date.setMonth(date.getMonth() - 1);
@@ -63,50 +65,50 @@ export default function AccountantExport() {
   const [sections, setSections] = useState<ExportSection[]>([
     {
       id: "revenue",
-      name: "Inntekter",
-      description: "Alle inntekter fra tjenester og produktsalg",
+      name: t("accountantExport.sectionRevenueName"),
+      description: t("accountantExport.sectionRevenueDesc"),
       icon: <DollarSign className="h-5 w-5 text-green-500" />,
       included: true,
     },
     {
       id: "expenses",
-      name: "Utgifter",
-      description: "Alle registrerte utgifter med kategori",
+      name: t("accountantExport.sectionExpensesName"),
+      description: t("accountantExport.sectionExpensesDesc"),
       icon: <Receipt className="h-5 w-5 text-red-500" />,
       included: true,
     },
     {
       id: "customers",
-      name: "Kundeliste",
-      description: "Oversikt over alle kunder med kontaktinfo",
+      name: t("accountantExport.sectionCustomersName"),
+      description: t("accountantExport.sectionCustomersDesc"),
       icon: <Users className="h-5 w-5 text-blue-500" />,
       included: false,
     },
     {
       id: "appointments",
-      name: "Timebestillinger",
-      description: "Alle fullførte timebestillinger med detaljer",
+      name: t("accountantExport.sectionAppointmentsName"),
+      description: t("accountantExport.sectionAppointmentsDesc"),
       icon: <Calendar className="h-5 w-5 text-purple-500" />,
       included: true,
     },
     {
       id: "employees",
-      name: "Ansattrapport",
-      description: "Timer, provisjon og ytelse per ansatt",
+      name: t("accountantExport.sectionEmployeesName"),
+      description: t("accountantExport.sectionEmployeesDesc"),
       icon: <Building2 className="h-5 w-5 text-orange-500" />,
       included: true,
     },
     {
       id: "timesheets",
-      name: "Timelister",
-      description: "Arbeidstimer og fremmøte for alle ansatte",
+      name: t("accountantExport.sectionTimesheetsName"),
+      description: t("accountantExport.sectionTimesheetsDesc"),
       icon: <Clock className="h-5 w-5 text-cyan-500" />,
       included: true,
     },
     {
       id: "vat",
-      name: "MVA-oversikt",
-      description: "Beregnet MVA for perioden",
+      name: t("accountantExport.sectionVatName"),
+      description: t("accountantExport.sectionVatDesc"),
       icon: <TrendingUp className="h-5 w-5 text-indigo-500" />,
       included: true,
     },
@@ -128,7 +130,7 @@ export default function AccountantExport() {
     const includedSections = sections.filter(s => s.included).map(s => s.id);
 
     if (includedSections.length === 0) {
-      toast.error("Velg minst én seksjon å eksportere");
+      toast.error(t("accountantExport.toastSelectSection"));
       return;
     }
 
@@ -171,10 +173,10 @@ export default function AccountantExport() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      toast.success("Rapport eksportert!");
+      toast.success(t("accountantExport.toastExported"));
     } catch (error) {
       console.error("Export error:", error);
-      toast.error("Kunne ikke eksportere rapport. Prøv igjen.");
+      toast.error(t("accountantExport.toastExportError"));
     } finally {
       setIsExporting(false);
     }
@@ -214,9 +216,9 @@ export default function AccountantExport() {
   return (
     <DashboardLayout
       breadcrumbs={[
-        { label: "Dashboard", href: "/dashboard" },
-        { label: "Regnskap", href: "/accounting" },
-        { label: "Eksport til regnskapsfører" },
+        { label: t("accountantExport.breadcrumbDashboard"), href: "/dashboard" },
+        { label: t("accountantExport.breadcrumbAccounting"), href: "/accounting" },
+        { label: t("accountantExport.breadcrumbExport") },
       ]}
     >
       <div className="space-y-8">
@@ -224,10 +226,10 @@ export default function AccountantExport() {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-              Eksport til regnskapsfører
+              {t("accountantExport.headerTitle")}
             </h1>
             <p className="text-muted-foreground mt-2">
-              Generer rapporter for din regnskapsfører i Excel eller PDF-format
+              {t("accountantExport.headerSubtitle")}
             </p>
           </div>
         </div>
@@ -239,7 +241,7 @@ export default function AccountantExport() {
             <Card className="p-6 border-0 shadow-lg">
               <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-blue-500" />
-                Velg periode
+                {t("accountantExport.selectPeriod")}
               </h3>
 
               <div className="flex flex-wrap gap-2 mb-4">
@@ -248,34 +250,36 @@ export default function AccountantExport() {
                   size="sm"
                   onClick={() => setPresetPeriod("last_month")}
                 >
-                  Forrige måned
+                  {t("accountantExport.presetLastMonth")}
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setPresetPeriod("last_quarter")}
                 >
-                  Forrige kvartal
+                  {t("accountantExport.presetLastQuarter")}
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setPresetPeriod("last_year")}
                 >
-                  Forrige år
+                  {t("accountantExport.presetLastYear")}
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setPresetPeriod("ytd")}
                 >
-                  Hittil i år
+                  {t("accountantExport.presetYtd")}
                 </Button>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <Label htmlFor="dateFrom">Fra dato</Label>
+                  <Label htmlFor="dateFrom">
+                    {t("accountantExport.dateFrom")}
+                  </Label>
                   <Input
                     id="dateFrom"
                     type="date"
@@ -285,7 +289,7 @@ export default function AccountantExport() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="dateTo">Til dato</Label>
+                  <Label htmlFor="dateTo">{t("accountantExport.dateTo")}</Label>
                   <Input
                     id="dateTo"
                     type="date"
@@ -299,7 +303,9 @@ export default function AccountantExport() {
 
             {/* Sections Selection */}
             <Card className="p-6 border-0 shadow-lg">
-              <h3 className="font-semibold text-lg mb-4">Velg innhold</h3>
+              <h3 className="font-semibold text-lg mb-4">
+                {t("accountantExport.selectContent")}
+              </h3>
 
               <div className="space-y-3">
                 {sections.map(section => (
@@ -333,7 +339,9 @@ export default function AccountantExport() {
 
             {/* Export Format */}
             <Card className="p-6 border-0 shadow-lg">
-              <h3 className="font-semibold text-lg mb-4">Eksportformat</h3>
+              <h3 className="font-semibold text-lg mb-4">
+                {t("accountantExport.exportFormat")}
+              </h3>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div
@@ -348,7 +356,7 @@ export default function AccountantExport() {
                   <div>
                     <div className="font-medium">Excel (.xlsx)</div>
                     <div className="text-sm text-muted-foreground">
-                      Redigerbart regneark
+                      {t("accountantExport.excelDesc")}
                     </div>
                   </div>
                 </div>
@@ -364,7 +372,7 @@ export default function AccountantExport() {
                   <div>
                     <div className="font-medium">PDF</div>
                     <div className="text-sm text-muted-foreground">
-                      Ferdig formatert rapport
+                      {t("accountantExport.pdfDesc")}
                     </div>
                   </div>
                 </div>
@@ -376,12 +384,16 @@ export default function AccountantExport() {
           <div className="space-y-6">
             {/* Summary Preview */}
             <Card className="p-6 border-0 shadow-lg">
-              <h3 className="font-semibold text-lg mb-4">Forhåndsvisning</h3>
+              <h3 className="font-semibold text-lg mb-4">
+                {t("accountantExport.preview")}
+              </h3>
 
               {financialSummary ? (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center py-2 border-b">
-                    <span className="text-muted-foreground">Inntekter</span>
+                    <span className="text-muted-foreground">
+                      {t("accountantExport.previewRevenue")}
+                    </span>
                     <span className="font-semibold text-green-600">
                       {Number(financialSummary.revenue || 0).toLocaleString(
                         "nb-NO"
@@ -390,7 +402,9 @@ export default function AccountantExport() {
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b">
-                    <span className="text-muted-foreground">Utgifter</span>
+                    <span className="text-muted-foreground">
+                      {t("accountantExport.previewExpenses")}
+                    </span>
                     <span className="font-semibold text-red-600">
                       {Number(financialSummary.expenses || 0).toLocaleString(
                         "nb-NO"
@@ -399,7 +413,9 @@ export default function AccountantExport() {
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b">
-                    <span className="text-muted-foreground">Resultat</span>
+                    <span className="text-muted-foreground">
+                      {t("accountantExport.previewProfit")}
+                    </span>
                     <span
                       className={`font-semibold ${Number(financialSummary.profit || 0) >= 0 ? "text-green-600" : "text-red-600"}`}
                     >
@@ -410,7 +426,9 @@ export default function AccountantExport() {
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2">
-                    <span className="text-muted-foreground">MVA (25%)</span>
+                    <span className="text-muted-foreground">
+                      {t("accountantExport.previewVat")}
+                    </span>
                     <span className="font-semibold">
                       {(
                         Number(financialSummary.revenue || 0) * 0.25
@@ -421,7 +439,7 @@ export default function AccountantExport() {
                 </div>
               ) : (
                 <div className="text-center text-muted-foreground py-8">
-                  Velg periode for å se forhåndsvisning
+                  {t("accountantExport.previewEmpty")}
                 </div>
               )}
             </Card>
@@ -430,7 +448,9 @@ export default function AccountantExport() {
             <Card className="p-6 border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
               <div className="text-center space-y-4">
                 <div className="text-sm text-muted-foreground">
-                  {sections.filter(s => s.included).length} seksjoner valgt
+                  {t("accountantExport.sectionsSelected", {
+                    count: sections.filter(s => s.included).length,
+                  })}
                 </div>
                 <Button
                   size="lg"
@@ -441,36 +461,40 @@ export default function AccountantExport() {
                   {isExporting ? (
                     <>
                       <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                      Eksporterer...
+                      {t("accountantExport.exporting")}
                     </>
                   ) : (
                     <>
                       <Download className="h-5 w-5 mr-2" />
-                      Last ned {exportFormat === "excel" ? "Excel" : "PDF"}
+                      {t("accountantExport.download", {
+                        format: exportFormat === "excel" ? "Excel" : "PDF",
+                      })}
                     </>
                   )}
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                  Rapporten inneholder data fra {dateFrom} til {dateTo}
+                  {t("accountantExport.dataRange", { dateFrom, dateTo })}
                 </p>
               </div>
             </Card>
 
             {/* Tips */}
             <Card className="p-6 border-0 shadow-lg">
-              <h3 className="font-semibold text-lg mb-3">Tips</h3>
+              <h3 className="font-semibold text-lg mb-3">
+                {t("accountantExport.tipsTitle")}
+              </h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  Excel-format er best for videre bearbeiding
+                  {t("accountantExport.tip1")}
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  PDF er ideelt for arkivering og deling
+                  {t("accountantExport.tip2")}
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  Eksporter månedlig for enkel bokføring
+                  {t("accountantExport.tip3")}
                 </li>
               </ul>
             </Card>

@@ -39,8 +39,10 @@ import {
   LogOut,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export default function SaasAdminTenants() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<
@@ -76,13 +78,13 @@ export default function SaasAdminTenants() {
       // Clear all tRPC/ReactQuery caches to prevent stale admin data
       await utils.invalidate();
 
-      toast.success(`Innlogget som: ${result.tenantName}`);
+      toast.success(t("saasAdminTenants.loggedInAs", { name: result.tenantName }));
       
       // Hard reload to ensure fresh state and navigate to dashboard
       window.location.href = result.redirectUrl;
     },
     onError: error => {
-      toast.error(`Feil ved innlogging: ${error.message}`);
+      toast.error(t("saasAdminTenants.loginError", { message: error.message }));
     },
   });
 
@@ -90,8 +92,8 @@ export default function SaasAdminTenants() {
     onSuccess: () => {
       toast.success(
         activationDialog.action === "activate"
-          ? "Salong aktivert!"
-          : "Salong suspendert!"
+          ? t("saasAdminTenants.tenantActivated")
+          : t("saasAdminTenants.tenantSuspended")
       );
       setActivationDialog({
         open: false,
@@ -102,7 +104,7 @@ export default function SaasAdminTenants() {
       refetch();
     },
     onError: error => {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("saasAdminTenants.error", { message: error.message }));
     },
   });
 
@@ -151,20 +153,20 @@ export default function SaasAdminTenants() {
           </Link>
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Salonger
+              {t("saasAdminTenants.title")}
             </h1>
             <p className="text-muted-foreground mt-1">
-              Administrer alle salonger i plattformen
+              {t("saasAdminTenants.subtitle")}
             </p>
           </div>
         </div>
         <div className="flex gap-2">
           <Link href="/saas-admin/subscriptions">
-            <Button variant="outline">Abonnementer</Button>
+            <Button variant="outline">{t("saasAdminTenants.subscriptions")}</Button>
           </Link>
           <Link href="/saas-admin/tenants/new">
             <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-              Opprett ny salong
+              {t("saasAdminTenants.createNewTenant")}
             </Button>
           </Link>
           <Button
@@ -176,7 +178,7 @@ export default function SaasAdminTenants() {
             className="border-red-200 text-red-600 hover:bg-red-50"
           >
             <LogOut className="h-4 w-4 mr-2" />
-            Logg ut
+            {t("saasAdminTenants.logOut")}
           </Button>
         </div>
       </div>
@@ -187,7 +189,7 @@ export default function SaasAdminTenants() {
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Søk etter navn, subdomene eller org.nr..."
+              placeholder={t("saasAdminTenants.searchPlaceholder")}
               value={search}
               onChange={e => {
                 setSearch(e.target.value);
@@ -204,14 +206,14 @@ export default function SaasAdminTenants() {
             }}
           >
             <SelectTrigger className="w-full md:w-[200px]">
-              <SelectValue placeholder="Velg status" />
+              <SelectValue placeholder={t("saasAdminTenants.selectStatus")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Alle</SelectItem>
-              <SelectItem value="trial">Prøve</SelectItem>
-              <SelectItem value="active">Aktiv</SelectItem>
-              <SelectItem value="suspended">Suspendert</SelectItem>
-              <SelectItem value="canceled">Kansellert</SelectItem>
+              <SelectItem value="all">{t("saasAdminTenants.statusAll")}</SelectItem>
+              <SelectItem value="trial">{t("saasAdminTenants.statusTrial")}</SelectItem>
+              <SelectItem value="active">{t("saasAdminTenants.statusActive")}</SelectItem>
+              <SelectItem value="suspended">{t("saasAdminTenants.statusSuspended")}</SelectItem>
+              <SelectItem value="canceled">{t("saasAdminTenants.statusCanceled")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -222,13 +224,13 @@ export default function SaasAdminTenants() {
         <div className="p-6">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="text-muted-foreground">Laster...</div>
+              <div className="text-muted-foreground">{t("saasAdminTenants.loading")}</div>
             </div>
           ) : !data || data.items.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <p className="text-muted-foreground">Ingen salonger funnet</p>
+              <p className="text-muted-foreground">{t("saasAdminTenants.noTenantsFound")}</p>
               <p className="text-sm text-muted-foreground mt-2">
-                Prøv å endre søkekriteriene
+                {t("saasAdminTenants.tryChangingSearch")}
               </p>
             </div>
           ) : (
@@ -236,13 +238,13 @@ export default function SaasAdminTenants() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Navn</TableHead>
-                    <TableHead>Subdomene</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Plan</TableHead>
-                    <TableHead>Opprettet</TableHead>
-                    <TableHead className="text-right">Siste 30 dager</TableHead>
-                    <TableHead className="text-right">Handlinger</TableHead>
+                    <TableHead>{t("saasAdminTenants.colName")}</TableHead>
+                    <TableHead>{t("saasAdminTenants.colSubdomain")}</TableHead>
+                    <TableHead>{t("saasAdminTenants.colStatus")}</TableHead>
+                    <TableHead>{t("saasAdminTenants.colPlan")}</TableHead>
+                    <TableHead>{t("saasAdminTenants.colCreated")}</TableHead>
+                    <TableHead className="text-right">{t("saasAdminTenants.colLast30Days")}</TableHead>
+                    <TableHead className="text-right">{t("saasAdminTenants.colActions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -267,17 +269,17 @@ export default function SaasAdminTenants() {
                           }
                         >
                           {tenant.status === "active"
-                            ? "Aktiv"
+                            ? t("saasAdminTenants.statusActive")
                             : tenant.status === "trial"
-                              ? "Prøve"
+                              ? t("saasAdminTenants.statusTrial")
                               : tenant.status === "suspended"
-                                ? "Suspendert"
-                                : "Kansellert"}
+                                ? t("saasAdminTenants.statusSuspended")
+                                : t("saasAdminTenants.statusCanceled")}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <span className="text-sm">
-                          {tenant.planName || "Ingen plan"}
+                          {tenant.planName || t("saasAdminTenants.noPlan")}
                         </span>
                         {tenant.planPriceMonthly && (
                           <span className="text-xs text-muted-foreground ml-2">
@@ -294,13 +296,13 @@ export default function SaasAdminTenants() {
                             <span className="font-medium">
                               {tenant.appointmentCountLast30Days}
                             </span>{" "}
-                            timer
+                            {t("saasAdminTenants.appointmentsSuffix")}
                           </div>
                           <div>
                             <span className="font-medium">
                               {tenant.orderCountLast30Days}
                             </span>{" "}
-                            ordre
+                            {t("saasAdminTenants.ordersSuffix")}
                           </div>
                           <div className="text-muted-foreground">
                             {tenant.totalOrderAmountLast30Days.toLocaleString(
@@ -324,7 +326,7 @@ export default function SaasAdminTenants() {
                               className="text-green-600 hover:text-green-700 hover:bg-green-50"
                             >
                               <CheckCircle className="h-4 w-4 mr-1" />
-                              Aktiver
+                              {t("saasAdminTenants.activate")}
                             </Button>
                           ) : tenant.status === "active" ? (
                             <Button
@@ -336,14 +338,14 @@ export default function SaasAdminTenants() {
                               className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
                             >
                               <XCircle className="h-4 w-4 mr-1" />
-                              Suspender
+                              {t("saasAdminTenants.suspend")}
                             </Button>
                           ) : null}
 
                           <Link href={`/saas-admin/tenants/${tenant.id}`}>
                             <Button variant="outline" size="sm">
                               <Eye className="h-4 w-4 mr-1" />
-                              Detaljer
+                              {t("saasAdminTenants.details")}
                             </Button>
                           </Link>
                           <Button
@@ -354,7 +356,7 @@ export default function SaasAdminTenants() {
                             className="bg-gradient-to-r from-blue-600 to-purple-600"
                           >
                             <LogIn className="h-4 w-4 mr-1" />
-                            Logg inn
+                            {t("saasAdminTenants.logIn")}
                           </Button>
                         </div>
                       </TableCell>
@@ -367,9 +369,11 @@ export default function SaasAdminTenants() {
               {data.totalPages > 1 && (
                 <div className="flex items-center justify-between mt-6 pt-6 border-t">
                   <div className="text-sm text-muted-foreground">
-                    Viser {(page - 1) * pageSize + 1} til{" "}
-                    {Math.min(page * pageSize, data.totalItems)} av{" "}
-                    {data.totalItems} salonger
+                    {t("saasAdminTenants.showingRange", {
+                      from: (page - 1) * pageSize + 1,
+                      to: Math.min(page * pageSize, data.totalItems),
+                      total: data.totalItems,
+                    })}
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
@@ -378,10 +382,10 @@ export default function SaasAdminTenants() {
                       onClick={() => setPage(p => Math.max(1, p - 1))}
                       disabled={page === 1}
                     >
-                      Forrige
+                      {t("saasAdminTenants.previous")}
                     </Button>
                     <div className="text-sm">
-                      Side {page} av {data.totalPages}
+                      {t("saasAdminTenants.pageOf", { page, totalPages: data.totalPages })}
                     </div>
                     <Button
                       variant="outline"
@@ -391,7 +395,7 @@ export default function SaasAdminTenants() {
                       }
                       disabled={page === data.totalPages}
                     >
-                      Neste
+                      {t("saasAdminTenants.next")}
                     </Button>
                   </div>
                 </div>
@@ -410,27 +414,25 @@ export default function SaasAdminTenants() {
           <DialogHeader>
             <DialogTitle>
               {activationDialog.action === "activate"
-                ? "Aktiver salong"
-                : "Suspender salong"}
+                ? t("saasAdminTenants.activateTenant")
+                : t("saasAdminTenants.suspendTenant")}
             </DialogTitle>
             <DialogDescription>
               {activationDialog.action === "activate" ? (
                 <>
-                  Er du sikker på at du vil aktivere{" "}
+                  {t("saasAdminTenants.confirmActivatePrefix")}{" "}
                   <strong>{activationDialog.tenantName}</strong>?
                   <br />
                   <br />
-                  Salongen vil få tilgang til alle funksjoner og vil bli satt
-                  til "Basic" plan.
+                  {t("saasAdminTenants.confirmActivateBody")}
                 </>
               ) : (
                 <>
-                  Er du sikker på at du vil suspendere{" "}
+                  {t("saasAdminTenants.confirmSuspendPrefix")}{" "}
                   <strong>{activationDialog.tenantName}</strong>?
                   <br />
                   <br />
-                  Salongen vil miste tilgang til systemet inntil den aktiveres
-                  igjen.
+                  {t("saasAdminTenants.confirmSuspendBody")}
                 </>
               )}
             </DialogDescription>
@@ -442,7 +444,7 @@ export default function SaasAdminTenants() {
                 setActivationDialog(prev => ({ ...prev, open: false }))
               }
             >
-              Avbryt
+              {t("saasAdminTenants.cancel")}
             </Button>
             <Button
               onClick={confirmActivation}
@@ -456,17 +458,17 @@ export default function SaasAdminTenants() {
               {updateMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Behandler...
+                  {t("saasAdminTenants.processing")}
                 </>
               ) : activationDialog.action === "activate" ? (
                 <>
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  Aktiver
+                  {t("saasAdminTenants.activate")}
                 </>
               ) : (
                 <>
                   <XCircle className="h-4 w-4 mr-2" />
-                  Suspender
+                  {t("saasAdminTenants.suspend")}
                 </>
               )}
             </Button>

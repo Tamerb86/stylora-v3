@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { format, isSameDay } from "date-fns";
 import { nb } from "date-fns/locale";
 import { safeToFixed } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 // =======================
 // Helpers (top-level, once)
@@ -55,6 +56,7 @@ const normalizeSlotTime = (slot: any): string => {
 };
 
 export default function ManageBooking() {
+  const { t } = useTranslation();
   const [, params] = useRoute("/manage-booking/:token");
   const token = params?.token || "";
 
@@ -143,7 +145,7 @@ export default function ManageBooking() {
 
   const handleReschedule = () => {
     if (!token || !selectedDate || !selectedTime) {
-      toast.error("Vennligst velg ny dato og tid");
+      toast.error(t("manageBooking.selectDateTimeError"));
       return;
     }
 
@@ -153,12 +155,12 @@ export default function ManageBooking() {
     const newDateTime = new Date(`${dateStr}T${timeStr}:00`);
 
     if (isNaN(newDateTime.getTime())) {
-      toast.error("Ugyldig dato eller tid");
+      toast.error(t("manageBooking.invalidDateTime"));
       return;
     }
 
     if (newDateTime <= new Date()) {
-      toast.error("Ny tid må være i fremtiden");
+      toast.error(t("manageBooking.timeMustBeFuture"));
       return;
     }
 
@@ -171,9 +173,8 @@ export default function ManageBooking() {
 
   const handleRescheduleDialogOpen = () => {
     if (!booking?.canReschedule) {
-      toast.error("Kan ikke endre booking", {
-        description:
-          "Det er for sent å endre denne bookingen. Vennligst kontakt salongen direkte.",
+      toast.error(t("manageBooking.cannotReschedule"), {
+        description: t("manageBooking.cannotRescheduleDescription"),
       });
       return;
     }
@@ -182,9 +183,8 @@ export default function ManageBooking() {
 
   const handleCancelDialogOpen = () => {
     if (!booking?.canCancel) {
-      toast.error("Kan ikke avbestille booking", {
-        description:
-          "Det er for sent å avbestille denne bookingen. Vennligst kontakt salongen direkte.",
+      toast.error(t("manageBooking.cannotCancel"), {
+        description: t("manageBooking.cannotCancelDescription"),
       });
       return;
     }
@@ -196,7 +196,7 @@ export default function ManageBooking() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-purple-50/30 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-600">Laster booking...</p>
+          <p className="text-lg text-gray-600">{t("manageBooking.loading")}</p>
         </div>
       </div>
     );
@@ -209,11 +209,10 @@ export default function ManageBooking() {
           <CardHeader>
             <div className="flex items-center gap-3 text-red-600 mb-2">
               <XCircle className="h-8 w-8" />
-              <CardTitle>Booking ikke funnet</CardTitle>
+              <CardTitle>{t("manageBooking.notFoundTitle")}</CardTitle>
             </div>
             <CardDescription>
-              Vi kunne ikke finne bookingen din. Vennligst sjekk linken eller
-              kontakt salongen direkte.
+              {t("manageBooking.notFoundDescription")}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -230,9 +229,9 @@ export default function ManageBooking() {
       <div className="container max-w-4xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Din Booking</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">{t("manageBooking.heading")}</h1>
           <p className="text-gray-600">
-            Administrer din time hos {booking.salonName}
+            {t("manageBooking.subtitle", { salon: booking.salonName })}
           </p>
         </div>
 
@@ -241,19 +240,19 @@ export default function ManageBooking() {
           {isCanceled && (
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-full">
               <XCircle className="h-5 w-5" />
-              <span className="font-medium">Kansellert</span>
+              <span className="font-medium">{t("manageBooking.statusCanceled")}</span>
             </div>
           )}
           {isCompleted && (
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full">
               <CheckCircle2 className="h-5 w-5" />
-              <span className="font-medium">Fullført</span>
+              <span className="font-medium">{t("manageBooking.statusCompleted")}</span>
             </div>
           )}
           {!isCanceled && !isCompleted && (
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full">
               <CheckCircle2 className="h-5 w-5" />
-              <span className="font-medium">Bekreftet</span>
+              <span className="font-medium">{t("manageBooking.statusConfirmed")}</span>
             </div>
           )}
         </div>
@@ -261,21 +260,21 @@ export default function ManageBooking() {
         {/* Booking Details */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Bookingdetaljer</CardTitle>
+            <CardTitle>{t("manageBooking.detailsTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
               <div className="flex items-start gap-3">
                 <CalendarIcon className="h-5 w-5 text-blue-600 mt-0.5" />
                 <div>
-                  <p className="text-sm text-gray-500">Dato og tid</p>
+                  <p className="text-sm text-gray-500">{t("manageBooking.dateTimeLabel")}</p>
                   <p className="font-medium">
                     {format(appointmentDate, "EEEE d. MMMM yyyy", {
                       locale: nb,
                     })}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Kl. {format(appointmentDate, "HH:mm")}
+                    {t("manageBooking.timePrefix", { time: format(appointmentDate, "HH:mm") })}
                   </p>
                 </div>
               </div>
@@ -283,7 +282,7 @@ export default function ManageBooking() {
               <div className="flex items-start gap-3">
                 <User className="h-5 w-5 text-blue-600 mt-0.5" />
                 <div>
-                  <p className="text-sm text-gray-500">Frisør</p>
+                  <p className="text-sm text-gray-500">{t("manageBooking.hairdresserLabel")}</p>
                   <p className="font-medium">{booking.employeeName}</p>
                 </div>
               </div>
@@ -291,7 +290,7 @@ export default function ManageBooking() {
               <div className="flex items-start gap-3">
                 <User className="h-5 w-5 text-blue-600 mt-0.5" />
                 <div>
-                  <p className="text-sm text-gray-500">Kunde</p>
+                  <p className="text-sm text-gray-500">{t("manageBooking.customerLabel")}</p>
                   <p className="font-medium">{booking.customerName}</p>
                   <p className="text-sm text-gray-600">{booking.customerPhone}</p>
                   {booking.customerEmail && (
@@ -303,7 +302,7 @@ export default function ManageBooking() {
               <div className="flex items-start gap-3">
                 <MapPin className="h-5 w-5 text-blue-600 mt-0.5" />
                 <div>
-                  <p className="text-sm text-gray-500">Salong</p>
+                  <p className="text-sm text-gray-500">{t("manageBooking.salonLabel")}</p>
                   <p className="font-medium">{booking.salonName}</p>
                   {booking.salonAddress && (
                     <p className="text-sm text-gray-600">{booking.salonAddress}</p>
@@ -316,22 +315,22 @@ export default function ManageBooking() {
             </div>
 
             <div className="border-t pt-4">
-              <p className="text-sm text-gray-500 mb-2">Tjenester</p>
+              <p className="text-sm text-gray-500 mb-2">{t("manageBooking.servicesLabel")}</p>
               {booking.services.map((service: any, idx: number) => (
                 <div key={idx} className="flex justify-between items-center mb-1">
                   <span className="font-medium">{service.name}</span>
                   <span className="text-gray-600">
                     {formatKr(toGross(service.price))}{" "}
-                    <span className="text-xs text-gray-500">(inkl. MVA)</span>
+                    <span className="text-xs text-gray-500">{t("manageBooking.inclVat")}</span>
                   </span>
                 </div>
               ))}
 
               <div className="flex justify-between items-center mt-3 pt-3 border-t font-bold">
                 <span>
-                  Totalt{" "}
+                  {t("manageBooking.total")}{" "}
                   <span className="text-xs font-normal text-gray-500">
-                    (inkl. MVA)
+                    {t("manageBooking.inclVat")}
                   </span>
                 </span>
                 <span>{formatKr(toGross(booking.totalPrice))}</span>
@@ -340,7 +339,7 @@ export default function ManageBooking() {
 
             {booking.notes && (
               <div className="border-t pt-4">
-                <p className="text-sm text-gray-500 mb-1">Notater</p>
+                <p className="text-sm text-gray-500 mb-1">{t("manageBooking.notesLabel")}</p>
                 <p className="text-gray-700">{booking.notes}</p>
               </div>
             )}
@@ -355,12 +354,10 @@ export default function ManageBooking() {
                 <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
                 <div>
                   <CardTitle className="text-blue-900">
-                    Avbestillingsregler
+                    {t("manageBooking.cancellationPolicyTitle")}
                   </CardTitle>
                   <CardDescription className="text-blue-700">
-                    Du kan avbestille eller endre timen din gratis frem til{" "}
-                    {booking.cancellationWindowHours} timer før avtalt tid.
-                    Avbestilling etter dette regnes som sen avbestilling.
+                    {t("manageBooking.cancellationPolicyDescription", { hours: booking.cancellationWindowHours })}
                   </CardDescription>
                 </div>
               </div>
@@ -378,7 +375,7 @@ export default function ManageBooking() {
               variant="outline"
             >
               <Clock className="h-4 w-4 mr-2" />
-              Endre tid
+              {t("manageBooking.rescheduleButton")}
             </Button>
 
             <Button
@@ -388,15 +385,14 @@ export default function ManageBooking() {
               className="flex-1"
             >
               <XCircle className="h-4 w-4 mr-2" />
-              Avbestill
+              {t("manageBooking.cancelButton")}
             </Button>
           </div>
         )}
 
         {!booking.canCancel && !isCanceled && !isCompleted && (
           <p className="text-center text-sm text-gray-500 mt-4">
-            Du kan ikke lenger endre eller avbestille denne bookingen online.
-            Vennligst kontakt salongen direkte på {booking.salonPhone}.
+            {t("manageBooking.noOnlineChangesNotice", { phone: booking.salonPhone })}
           </p>
         )}
 
@@ -404,27 +400,27 @@ export default function ManageBooking() {
         <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Avbestill booking</DialogTitle>
+              <DialogTitle>{t("manageBooking.cancelDialogTitle")}</DialogTitle>
               <DialogDescription>
-                Er du sikker på at du vil avbestille denne bookingen?
+                {t("manageBooking.cancelDialogQuestion")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div>
                 <label className="text-sm font-medium mb-2 block">
-                  Årsak til avbestilling (valgfritt)
+                  {t("manageBooking.cancellationReasonLabel")}
                 </label>
                 <Textarea
                   value={cancellationReason}
                   onChange={e => setCancellationReason(e.target.value)}
-                  placeholder="Fortell oss hvorfor du avbestiller..."
+                  placeholder={t("manageBooking.cancellationReasonPlaceholder")}
                   rows={3}
                 />
               </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowCancelDialog(false)}>
-                Avbryt
+                {t("manageBooking.cancelDialogAbort")}
               </Button>
               <Button
                 variant="destructive"
@@ -432,8 +428,8 @@ export default function ManageBooking() {
                 disabled={cancelMutation.isPending}
               >
                 {cancelMutation.isPending
-                  ? "Avbestiller..."
-                  : "Bekreft avbestilling"}
+                  ? t("manageBooking.canceling")
+                  : t("manageBooking.confirmCancel")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -443,16 +439,16 @@ export default function ManageBooking() {
         <Dialog open={showRescheduleDialog} onOpenChange={setShowRescheduleDialog}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Endre tid</DialogTitle>
+              <DialogTitle>{t("manageBooking.rescheduleDialogTitle")}</DialogTitle>
               <DialogDescription>
-                Velg ny dato og tid for din booking
+                {t("manageBooking.rescheduleDialogDescription")}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-4">
               <div>
                 <label className="text-sm font-medium mb-2 block">
-                  Velg ny dato
+                  {t("manageBooking.selectNewDate")}
                 </label>
                 <Calendar
                   mode="single"
@@ -471,12 +467,12 @@ export default function ManageBooking() {
               {selectedDate && (
                 <div>
                   <label className="text-sm font-medium mb-2 block">
-                    Velg ny tid
+                    {t("manageBooking.selectNewTime")}
                   </label>
 
                   {filteredSlots.length === 0 ? (
                     <p className="text-sm text-gray-500">
-                      Ingen ledige tider denne dagen
+                      {t("manageBooking.noAvailableSlots")}
                     </p>
                   ) : (
                     <div className="grid grid-cols-4 gap-2">
@@ -505,13 +501,13 @@ export default function ManageBooking() {
                   setSelectedTime("");
                 }}
               >
-                Avbryt
+                {t("manageBooking.rescheduleDialogAbort")}
               </Button>
               <Button
                 onClick={handleReschedule}
                 disabled={!selectedDate || !selectedTime || rescheduleMutation.isPending}
               >
-                {rescheduleMutation.isPending ? "Endrer..." : "Bekreft endring"}
+                {rescheduleMutation.isPending ? t("manageBooking.rescheduling") : t("manageBooking.confirmReschedule")}
               </Button>
             </DialogFooter>
           </DialogContent>

@@ -10,8 +10,10 @@ import {
 } from "@/components/ui/card";
 import { Mail, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export default function EmailVerificationRequired() {
+  const { t } = useTranslation();
   const { data: user } = trpc.auth.me.useQuery();
   const { data: tenant } = trpc.tenants.getCurrent.useQuery(undefined, {
     enabled: !!user?.tenantId,
@@ -27,7 +29,7 @@ export default function EmailVerificationRequired() {
       }
     },
     onError: error => {
-      toast.error(error.message || "Kunne ikke sende e-post");
+      toast.error(error.message || t("emailVerificationRequired.couldNotSend"));
     },
   });
 
@@ -50,9 +52,11 @@ export default function EmailVerificationRequired() {
           <div className="mx-auto w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
             <Mail className="h-8 w-8 text-yellow-600" />
           </div>
-          <CardTitle className="text-2xl">Bekreft e-postadressen din</CardTitle>
+          <CardTitle className="text-2xl">
+            {t("emailVerificationRequired.title")}
+          </CardTitle>
           <CardDescription className="text-base">
-            Vi har sendt en bekreftelseslenke til{" "}
+            {t("emailVerificationRequired.sentTo")}{" "}
             <span className="font-semibold text-foreground">
               {tenant?.email}
             </span>
@@ -64,12 +68,9 @@ export default function EmailVerificationRequired() {
               <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-blue-800">
                 <p className="font-medium mb-2">
-                  Hvorfor må jeg bekrefte e-posten min?
+                  {t("emailVerificationRequired.whyVerifyTitle")}
                 </p>
-                <p>
-                  E-postbekreftelse sikrer at du har tilgang til kontoen din og
-                  lar oss sende deg viktige varsler om bookinger og betalinger.
-                </p>
+                <p>{t("emailVerificationRequired.whyVerifyText")}</p>
               </div>
             </div>
           </div>
@@ -77,15 +78,15 @@ export default function EmailVerificationRequired() {
           <div className="space-y-3">
             <div className="flex items-start gap-3 text-sm text-muted-foreground">
               <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-              <p>Sjekk innboksen din og spam-mappen</p>
+              <p>{t("emailVerificationRequired.step1")}</p>
             </div>
             <div className="flex items-start gap-3 text-sm text-muted-foreground">
               <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-              <p>Klikk på bekreftelseslenken i e-posten</p>
+              <p>{t("emailVerificationRequired.step2")}</p>
             </div>
             <div className="flex items-start gap-3 text-sm text-muted-foreground">
               <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-              <p>Du blir automatisk videresendt til dashbordet</p>
+              <p>{t("emailVerificationRequired.step3")}</p>
             </div>
           </div>
 
@@ -98,12 +99,12 @@ export default function EmailVerificationRequired() {
               {resendMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sender...
+                  {t("emailVerificationRequired.sending")}
                 </>
               ) : (
                 <>
                   <Mail className="mr-2 h-4 w-4" />
-                  Send bekreftelse på nytt
+                  {t("emailVerificationRequired.resend")}
                 </>
               )}
             </Button>
@@ -113,15 +114,15 @@ export default function EmailVerificationRequired() {
               className="w-full"
               onClick={() => {
                 refetch();
-                toast.info("Sjekker status...");
+                toast.info(t("emailVerificationRequired.checkingStatus"));
               }}
             >
-              Jeg har bekreftet e-posten min
+              {t("emailVerificationRequired.alreadyVerified")}
             </Button>
           </div>
 
           <p className="text-xs text-center text-muted-foreground">
-            Trenger du hjelp? Kontakt oss på{" "}
+            {t("emailVerificationRequired.needHelp")}{" "}
             <a
               href="mailto:support@stylora.no"
               className="text-blue-600 hover:underline"

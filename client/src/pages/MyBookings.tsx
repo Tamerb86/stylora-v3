@@ -45,6 +45,7 @@ import { Input } from "@/components/ui/input";
 import { format, isSameDay } from "date-fns";
 import { nb } from "date-fns/locale";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { safeToFixed } from "@/lib/utils";
 
 // =======================
@@ -74,6 +75,7 @@ const normalizeSlotTime = (slot: any): string => {
 };
 
 export default function MyBookings() {
+  const { t } = useTranslation();
   const [selectedTab, setSelectedTab] = useState<
     "upcoming" | "past" | "canceled" | "all"
   >("upcoming");
@@ -242,7 +244,7 @@ export default function MyBookings() {
 
   const handleRescheduleConfirm = () => {
     if (!selectedBooking || !newDate || !newTime) {
-      toast.error("Vennligst velg både dato og tid");
+      toast.error(t("myBookings.selectDateAndTime"));
       return;
     }
 
@@ -250,12 +252,12 @@ export default function MyBookings() {
     const newDateTime = new Date(`${newDate}T${timeStr}:00`);
 
     if (isNaN(newDateTime.getTime())) {
-      toast.error("Ugyldig dato eller tid");
+      toast.error(t("myBookings.invalidDateOrTime"));
       return;
     }
 
     if (newDateTime <= new Date()) {
-      toast.error("Ny tid må være i fremtiden");
+      toast.error(t("myBookings.newTimeMustBeFuture"));
       return;
     }
 
@@ -299,11 +301,11 @@ export default function MyBookings() {
     return (
       <Badge variant={config.variant} className="flex items-center w-fit">
         {config.icon}
-        {status === "pending" && "Venter"}
-        {status === "confirmed" && "Bekreftet"}
-        {status === "completed" && "Fullført"}
-        {status === "canceled" && "Kansellert"}
-        {status === "no_show" && "Ikke møtt"}
+        {status === "pending" && t("myBookings.statusPending")}
+        {status === "confirmed" && t("myBookings.statusConfirmed")}
+        {status === "completed" && t("myBookings.statusCompleted")}
+        {status === "canceled" && t("myBookings.statusCanceled")}
+        {status === "no_show" && t("myBookings.statusNoShow")}
       </Badge>
     );
   };
@@ -330,7 +332,7 @@ export default function MyBookings() {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Laster dine bookinger...</p>
+            <p className="text-gray-600">{t("myBookings.loadingBookings")}</p>
           </div>
         </div>
       </div>
@@ -345,11 +347,10 @@ export default function MyBookings() {
           <CardHeader>
             <div className="flex items-center gap-3 text-red-600 mb-2">
               <AlertCircle className="h-8 w-8" />
-              <CardTitle>Kunne ikke finne salongdata</CardTitle>
+              <CardTitle>{t("myBookings.salonNotFoundTitle")}</CardTitle>
             </div>
             <CardDescription className="text-red-700">
-              Vi kunne ikke identifisere salongen. Vennligst sjekk URL-en eller
-              kontakt salongen direkte.
+              {t("myBookings.salonNotFoundDesc")}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -369,7 +370,7 @@ export default function MyBookings() {
           <CardHeader>
             <div className="flex items-center gap-3 text-yellow-600 mb-2">
               <AlertCircle className="h-8 w-8" />
-              <CardTitle>Salong ikke spesifisert</CardTitle>
+              <CardTitle>{t("myBookings.salonNotSpecifiedTitle")}</CardTitle>
             </div>
             <CardDescription className="text-yellow-700">
               {isDevEnvironment ? (
@@ -381,7 +382,7 @@ export default function MyBookings() {
                   i URL-en.
                 </>
               ) : (
-                "Kunne ikke identifisere salongen fra URL-en. Vennligst kontakt salongen for riktig link."
+                t("myBookings.salonNotIdentified")
               )}
             </CardDescription>
           </CardHeader>
@@ -395,9 +396,9 @@ export default function MyBookings() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-          Mine Bookinger
+          {t("myBookings.title")}
         </h1>
-        <p className="text-gray-600">Se og administrer dine avtaler</p>
+        <p className="text-gray-600">{t("myBookings.subtitle")}</p>
       </div>
 
       {/* Cancellation Policy Info */}
@@ -407,7 +408,7 @@ export default function MyBookings() {
             <div className="flex items-start gap-3">
               <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div className="text-sm text-gray-700">
-                <p className="font-medium mb-1">Kanselleringsregler:</p>
+                <p className="font-medium mb-1">{t("myBookings.cancellationPolicyTitle")}</p>
                 <p>
                   Du kan kansellere bookingen din gratis frem til{" "}
                   <strong>{policy.cancellationWindowHours} timer</strong> før
@@ -426,10 +427,10 @@ export default function MyBookings() {
         className="space-y-6"
       >
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="upcoming">Kommende</TabsTrigger>
-          <TabsTrigger value="past">Tidligere</TabsTrigger>
-          <TabsTrigger value="canceled">Kansellert</TabsTrigger>
-          <TabsTrigger value="all">Alle</TabsTrigger>
+          <TabsTrigger value="upcoming">{t("myBookings.tabUpcoming")}</TabsTrigger>
+          <TabsTrigger value="past">{t("myBookings.tabPast")}</TabsTrigger>
+          <TabsTrigger value="canceled">{t("myBookings.tabCanceled")}</TabsTrigger>
+          <TabsTrigger value="all">{t("myBookings.tabAll")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value={selectedTab} className="space-y-4">
@@ -437,12 +438,12 @@ export default function MyBookings() {
             <Card>
               <CardContent className="py-12 text-center">
                 <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 text-lg">Ingen bookinger funnet</p>
+                <p className="text-gray-600 text-lg">{t("myBookings.noBookingsFound")}</p>
                 <p className="text-gray-500 text-sm mt-2">
-                  {selectedTab === "upcoming" && "Du har ingen kommende avtaler"}
-                  {selectedTab === "past" && "Du har ingen tidligere avtaler"}
-                  {selectedTab === "canceled" && "Du har ingen kansellerte avtaler"}
-                  {selectedTab === "all" && "Du har ingen bookinger ennå"}
+                  {selectedTab === "upcoming" && t("myBookings.noUpcoming")}
+                  {selectedTab === "past" && t("myBookings.noPast")}
+                  {selectedTab === "canceled" && t("myBookings.noCanceled")}
+                  {selectedTab === "all" && t("myBookings.noBookingsYet")}
                 </p>
               </CardContent>
             </Card>
@@ -481,7 +482,7 @@ export default function MyBookings() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-gray-700 font-medium">
                       <Scissors className="h-4 w-4 text-gray-500" />
-                      <span>Tjenester:</span>
+                      <span>{t("myBookings.services")}</span>
                     </div>
                     <div className="ml-6 space-y-1">
                       {booking.services.map((service: any, idx: number) => (
@@ -504,9 +505,9 @@ export default function MyBookings() {
                   {/* Total Price */}
                   <div className="flex items-center justify-between pt-2 border-t">
                     <span className="font-semibold">
-                      Totalt{" "}
+                      {t("myBookings.total")}{" "}
                       <span className="text-sm font-normal text-gray-600">
-                        (inkl. MVA)
+                        {t("myBookings.inclVat")}
                       </span>
                       :
                     </span>
@@ -525,7 +526,7 @@ export default function MyBookings() {
                   {/* Notes */}
                   {booking.notes && (
                     <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
-                      <p className="font-medium mb-1">Notater:</p>
+                      <p className="font-medium mb-1">{t("myBookings.notes")}</p>
                       <p>{booking.notes}</p>
                     </div>
                   )}
@@ -533,7 +534,7 @@ export default function MyBookings() {
                   {/* Cancellation Info */}
                   {booking.status === "canceled" && (
                     <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
-                      <p className="font-medium mb-1">Kansellert:</p>
+                      <p className="font-medium mb-1">{t("myBookings.canceledLabel")}</p>
                       <p>{booking.cancellationReason}</p>
                       {booking.canceledAt && (
                         <p className="text-xs text-red-500 mt-1">
@@ -553,11 +554,11 @@ export default function MyBookings() {
                       <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="font-medium">
-                          Endringer brukt: {booking.rescheduleCount} av 2
+                          {t("myBookings.changesUsed", { count: booking.rescheduleCount })}
                         </p>
                         {booking.rescheduleCount >= 2 && (
                           <p className="text-xs mt-1">
-                            Du har nådd maksimalt antall endringer for denne bookingen.
+                            {t("myBookings.maxChangesReached")}
                           </p>
                         )}
                       </div>
@@ -576,7 +577,7 @@ export default function MyBookings() {
                           disabled={booking.rescheduleCount >= 2}
                         >
                           <CalendarClock className="h-4 w-4 mr-2" />
-                          Endre tid
+                          {t("myBookings.changeTime")}
                         </Button>
                         <Button
                           variant="destructive"
@@ -585,7 +586,7 @@ export default function MyBookings() {
                           className="w-full sm:w-auto"
                         >
                           <XCircle className="h-4 w-4 mr-2" />
-                          Kanseller booking
+                          {t("myBookings.cancelBooking")}
                         </Button>
                       </>
                     )}
@@ -596,7 +597,7 @@ export default function MyBookings() {
                       className="w-full sm:w-auto"
                     >
                       <History className="h-4 w-4 mr-2" />
-                      Historikk
+                      {t("myBookings.history")}
                     </Button>
                   </div>
                 </CardContent>
@@ -610,24 +611,24 @@ export default function MyBookings() {
       <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Kanseller booking?</AlertDialogTitle>
+            <AlertDialogTitle>{t("myBookings.cancelDialogTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Er du sikker på at du vil kansellere denne bookingen? Denne handlingen kan ikke angres.
+              {t("myBookings.cancelDialogDesc")}
               {policy && (
                 <p className="mt-2 text-amber-600 font-medium">
-                  Merk: Kansellering med mindre enn {policy.cancellationWindowHours} timers varsel kan medføre gebyr.
+                  {t("myBookings.cancelFeeWarning", { hours: policy.cancellationWindowHours })}
                 </p>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogCancel>{t("myBookings.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleCancelConfirm}
               className="bg-red-600 hover:bg-red-700"
               disabled={cancelMutation.isPending}
             >
-              {cancelMutation.isPending ? "Kansellerer..." : "Ja, kanseller"}
+              {cancelMutation.isPending ? t("myBookings.canceling") : t("myBookings.yesCancel")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -637,16 +638,15 @@ export default function MyBookings() {
       <Dialog open={rescheduleDialogOpen} onOpenChange={setRescheduleDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Endre tidspunkt</DialogTitle>
+            <DialogTitle>{t("myBookings.rescheduleDialogTitle")}</DialogTitle>
             <DialogDescription>
-              Velg ny dato og tid for din booking. Vennligst merk at endringer må gjøres minst{" "}
-              {policy?.cancellationWindowHours || 24} timer før avtalt tid.
+              {t("myBookings.rescheduleDialogDesc", { hours: policy?.cancellationWindowHours || 24 })}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="new-date">Ny dato</Label>
+              <Label htmlFor="new-date">{t("myBookings.newDate")}</Label>
               <Input
                 id="new-date"
                 type="date"
@@ -657,10 +657,10 @@ export default function MyBookings() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="new-time">Ny tid</Label>
+              <Label htmlFor="new-time">{t("myBookings.newTime")}</Label>
 
               {slotsLoading ? (
-                <div className="text-sm text-gray-500 py-2">Laster ledige tider...</div>
+                <div className="text-sm text-gray-500 py-2">{t("myBookings.loadingSlots")}</div>
               ) : availableSlots.length > 0 ? (
                 <select
                   id="new-time"
@@ -668,7 +668,7 @@ export default function MyBookings() {
                   onChange={e => setNewTime(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Velg et tidspunkt</option>
+                  <option value="">{t("myBookings.selectTimeSlot")}</option>
                   {availableSlots.map(slot => (
                     <option key={slot} value={slot}>
                       {slot}
@@ -677,11 +677,11 @@ export default function MyBookings() {
                 </select>
               ) : newDate ? (
                 <div className="text-sm text-red-600 py-2">
-                  Ingen ledige tider tilgjengelig for denne datoen.
+                  {t("myBookings.noSlotsAvailable")}
                 </div>
               ) : (
                 <div className="text-sm text-gray-500 py-2">
-                  Velg en dato først for å se ledige tider.
+                  {t("myBookings.selectDateFirst")}
                 </div>
               )}
             </div>
@@ -689,9 +689,8 @@ export default function MyBookings() {
             {policy && (
               <div className="bg-amber-50 border border-amber-200 rounded-md p-3">
                 <p className="text-sm text-amber-800">
-                  <strong>Viktig:</strong> Du kan kun endre tidspunkt frem til{" "}
-                  {policy.cancellationWindowHours} timer før avtalt tid. Endringer med kortere varsel må gjøres ved å
-                  kontakte salongen direkte.
+                  <strong>{t("myBookings.importantLabel")}</strong>{" "}
+                  {t("myBookings.rescheduleImportantNote", { hours: policy.cancellationWindowHours })}
                 </p>
               </div>
             )}
@@ -699,13 +698,13 @@ export default function MyBookings() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setRescheduleDialogOpen(false)}>
-              Avbryt
+              {t("myBookings.cancel")}
             </Button>
             <Button
               onClick={handleRescheduleConfirm}
               disabled={rescheduleMutation.isPending || !newDate || !newTime}
             >
-              {rescheduleMutation.isPending ? "Endrer..." : "Bekreft endring"}
+              {rescheduleMutation.isPending ? t("myBookings.rescheduling") : t("myBookings.confirmReschedule")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -715,19 +714,19 @@ export default function MyBookings() {
       <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Historikk</DialogTitle>
+            <DialogTitle>{t("myBookings.history")}</DialogTitle>
             <DialogDescription>
-              Alle endringer som er gjort på denne bookingen
+              {t("myBookings.historyDesc")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             {historyLoading ? (
-              <div className="text-center py-8 text-gray-500">Laster historikk...</div>
+              <div className="text-center py-8 text-gray-500">{t("myBookings.loadingHistory")}</div>
             ) : appointmentHistory.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <History className="h-12 w-12 mx-auto mb-3 text-gray-400" />
-                <p>Ingen endringer registrert</p>
+                <p>{t("myBookings.noChangesRecorded")}</p>
               </div>
             ) : (
               <div className="relative">
@@ -737,13 +736,13 @@ export default function MyBookings() {
                     const isFirst = idx === 0;
 
                     const changeTypeLabels: Record<string, string> = {
-                      created: "Opprettet",
-                      rescheduled: "Endret tidspunkt",
-                      status_changed: "Status endret",
-                      service_changed: "Tjeneste endret",
-                      employee_changed: "Ansatt endret",
-                      canceled: "Kansellert",
-                      notes_updated: "Notater oppdatert",
+                      created: t("myBookings.changeCreated"),
+                      rescheduled: t("myBookings.changeRescheduled"),
+                      status_changed: t("myBookings.changeStatusChanged"),
+                      service_changed: t("myBookings.changeServiceChanged"),
+                      employee_changed: t("myBookings.changeEmployeeChanged"),
+                      canceled: t("myBookings.changeCanceled"),
+                      notes_updated: t("myBookings.changeNotesUpdated"),
                     };
 
                     const changeTypeIcons: Record<string, any> = {
@@ -807,13 +806,13 @@ export default function MyBookings() {
                             {record.changeType === "rescheduled" && oldValue && newValue && (
                               <div className="space-y-2 text-sm">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-gray-600">Fra:</span>
+                                  <span className="text-gray-600">{t("myBookings.from")}</span>
                                   <span className="text-gray-900 font-medium">
                                     {oldValue.date} kl. {oldValue.time}
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-gray-600">Til:</span>
+                                  <span className="text-gray-600">{t("myBookings.to")}</span>
                                   <span className="text-blue-600 font-medium">
                                     {newValue.date} kl. {newValue.time}
                                   </span>
@@ -823,12 +822,12 @@ export default function MyBookings() {
 
                             <div className="mt-3 pt-3 border-t text-xs text-gray-500">
                               <span>
-                                Endret av:{" "}
+                                {t("myBookings.changedBy")}{" "}
                                 {record.changedBy === "customer"
-                                  ? "Kunde"
+                                  ? t("myBookings.roleCustomer")
                                   : record.changedBy === "staff"
-                                  ? "Personale"
-                                  : "System"}
+                                  ? t("myBookings.roleStaff")
+                                  : t("myBookings.roleSystem")}
                               </span>
                               {record.changedByEmail && (
                                 <span className="ml-2">({record.changedByEmail})</span>
@@ -850,7 +849,7 @@ export default function MyBookings() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setHistoryDialogOpen(false)}>
-              Lukk
+              {t("myBookings.close")}
             </Button>
           </DialogFooter>
         </DialogContent>

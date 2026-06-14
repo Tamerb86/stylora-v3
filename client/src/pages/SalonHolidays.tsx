@@ -32,8 +32,10 @@ import { CalendarIcon, Plus, Trash2, CalendarDays } from "lucide-react";
 import { format } from "date-fns";
 import { nb } from "date-fns/locale";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export default function SalonHolidays() {
+  const { t } = useTranslation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [name, setName] = useState("");
   const [date, setDate] = useState<Date>();
@@ -43,7 +45,7 @@ export default function SalonHolidays() {
   const { data: holidays, refetch } = trpc.holidays.list.useQuery();
   const createHoliday = trpc.holidays.create.useMutation({
     onSuccess: () => {
-      toast.success("Helligdag lagt til!");
+      toast.success(t("salonHolidays.added"));
       setIsDialogOpen(false);
       refetch();
       // Reset form
@@ -53,27 +55,27 @@ export default function SalonHolidays() {
       setDescription("");
     },
     onError: error => {
-      toast.error(error.message || "Kunne ikke legge til helligdag");
+      toast.error(error.message || t("salonHolidays.addFailed"));
     },
   });
 
   const deleteHoliday = trpc.holidays.delete.useMutation({
     onSuccess: () => {
-      toast.success("Helligdag slettet");
+      toast.success(t("salonHolidays.deleted"));
       refetch();
     },
     onError: error => {
-      toast.error(error.message || "Kunne ikke slette helligdag");
+      toast.error(error.message || t("salonHolidays.deleteFailed"));
     },
   });
 
   const handleSubmit = () => {
     if (!name.trim()) {
-      toast.error("Oppgi navn på helligdagen");
+      toast.error(t("salonHolidays.nameRequired"));
       return;
     }
     if (!date) {
-      toast.error("Velg dato");
+      toast.error(t("salonHolidays.dateRequired"));
       return;
     }
 
@@ -86,7 +88,7 @@ export default function SalonHolidays() {
   };
 
   const handleDelete = (id: number, holidayName: string) => {
-    if (confirm(`Er du sikker på at du vil slette "${holidayName}"?`)) {
+    if (confirm(t("salonHolidays.confirmDelete", { name: holidayName }))) {
       deleteHoliday.mutate({ id });
     }
   };
@@ -109,39 +111,39 @@ export default function SalonHolidays() {
       <div className="container py-8 max-w-6xl">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold">Helligdager</h1>
+            <h1 className="text-4xl font-bold">{t("salonHolidays.title")}</h1>
             <p className="text-muted-foreground mt-2">
-              Administrer salonghelligdager og stengetider
+              {t("salonHolidays.subtitle")}
             </p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button size="lg" className="h-14 gap-2">
                 <Plus className="h-5 w-5" />
-                Ny Helligdag
+                {t("salonHolidays.newHoliday")}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
-                <DialogTitle>Legg til Helligdag</DialogTitle>
+                <DialogTitle>{t("salonHolidays.dialog.title")}</DialogTitle>
                 <DialogDescription>
-                  Definer en helligdag hvor salongen er stengt
+                  {t("salonHolidays.dialog.description")}
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-6 py-4">
                 <div className="space-y-2">
-                  <Label>Navn *</Label>
+                  <Label>{t("salonHolidays.dialog.name")}</Label>
                   <Input
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    placeholder="f.eks. 1. nyttårsdag, Påskedag"
+                    placeholder={t("salonHolidays.dialog.namePlaceholder")}
                     className="h-12"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Dato *</Label>
+                  <Label>{t("salonHolidays.dialog.date")}</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -151,7 +153,7 @@ export default function SalonHolidays() {
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {date
                           ? format(date, "PPP", { locale: nb })
-                          : "Velg dato"}
+                          : t("salonHolidays.dialog.selectDate")}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -174,16 +176,16 @@ export default function SalonHolidays() {
                     }
                   />
                   <Label htmlFor="recurring" className="cursor-pointer">
-                    Gjentas hvert år (samme dato)
+                    {t("salonHolidays.dialog.recurring")}
                   </Label>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Beskrivelse (valgfritt)</Label>
+                  <Label>{t("salonHolidays.dialog.descriptionLabel")}</Label>
                   <Textarea
                     value={description}
                     onChange={e => setDescription(e.target.value)}
-                    placeholder="Tilleggsinformasjon om helligdagen..."
+                    placeholder={t("salonHolidays.dialog.descriptionPlaceholder")}
                     rows={3}
                   />
                 </div>
@@ -194,15 +196,15 @@ export default function SalonHolidays() {
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
                 >
-                  Avbryt
+                  {t("salonHolidays.dialog.cancel")}
                 </Button>
                 <Button
                   onClick={handleSubmit}
                   disabled={createHoliday.isPending}
                 >
                   {createHoliday.isPending
-                    ? "Legger til..."
-                    : "Legg til Helligdag"}
+                    ? t("salonHolidays.dialog.adding")
+                    : t("salonHolidays.dialog.submit")}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -215,9 +217,9 @@ export default function SalonHolidays() {
             <CardContent className="py-12">
               <div className="text-center text-muted-foreground">
                 <CalendarDays className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">Ingen helligdager definert</p>
+                <p className="text-lg">{t("salonHolidays.empty.title")}</p>
                 <p className="text-sm mt-2">
-                  Klikk "Ny Helligdag" for å legge til stengetider
+                  {t("salonHolidays.empty.hint")}
                 </p>
               </div>
             </CardContent>
@@ -229,8 +231,9 @@ export default function SalonHolidays() {
                 <CardHeader>
                   <CardTitle>{year}</CardTitle>
                   <CardDescription>
-                    {groupedHolidays[year].length} helligdag
-                    {groupedHolidays[year].length !== 1 ? "er" : ""}
+                    {t("salonHolidays.holidayCount", {
+                      count: groupedHolidays[year].length,
+                    })}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -253,7 +256,7 @@ export default function SalonHolidays() {
                               </span>
                               {holiday.isRecurring && (
                                 <span className="px-2 py-1 rounded text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-                                  Gjentas årlig
+                                  {t("salonHolidays.recurringBadge")}
                                 </span>
                               )}
                             </div>
@@ -295,21 +298,21 @@ export default function SalonHolidays() {
           <Card className="mt-6 border-blue-200 dark:border-blue-900/50 bg-blue-50 dark:bg-blue-900/10">
             <CardHeader>
               <CardTitle className="text-blue-900 dark:text-blue-100">
-                Forslag til helligdager
+                {t("salonHolidays.suggestions.title")}
               </CardTitle>
               <CardDescription className="text-blue-700 dark:text-blue-300">
-                Vanlige norske helligdager du kan legge til
+                {t("salonHolidays.suggestions.description")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-2 text-sm text-blue-800 dark:text-blue-200">
-                <div>• 1. nyttårsdag (1. januar)</div>
-                <div>• Skjærtorsdag, Langfredag, 1. og 2. påskedag</div>
-                <div>• 1. mai (Arbeidernes dag)</div>
-                <div>• 17. mai (Grunnlovsdag)</div>
-                <div>• Kristi himmelfartsdag</div>
-                <div>• 1. og 2. pinsedag</div>
-                <div>• 1. og 2. juledag (25. og 26. desember)</div>
+                <div>• {t("salonHolidays.suggestions.newYear")}</div>
+                <div>• {t("salonHolidays.suggestions.easter")}</div>
+                <div>• {t("salonHolidays.suggestions.labourDay")}</div>
+                <div>• {t("salonHolidays.suggestions.constitutionDay")}</div>
+                <div>• {t("salonHolidays.suggestions.ascension")}</div>
+                <div>• {t("salonHolidays.suggestions.pentecost")}</div>
+                <div>• {t("salonHolidays.suggestions.christmas")}</div>
               </div>
             </CardContent>
           </Card>

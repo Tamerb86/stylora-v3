@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X, Calendar } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 interface GalleryImage {
   id: number;
@@ -52,6 +53,7 @@ const galleryImages: GalleryImage[] = [
 const categories = ["Alle", "Herreklipp", "Hårfarge", "Skjegg", "Brudestyling"];
 
 export default function Gallery() {
+  const { t } = useTranslation();
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("Alle");
 
@@ -67,12 +69,11 @@ export default function Gallery() {
         <div className="max-w-3xl mx-auto text-center mb-12">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
             <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Vårt Arbeid
+              {t("gallery.heading")}
             </span>
           </h1>
           <p className="text-lg md:text-xl text-slate-600 leading-relaxed">
-            Se eksempler på våre tidligere arbeider. Vi er stolte av kvaliteten
-            og kreativiteten i hver eneste styling vi leverer.
+            {t("gallery.intro")}
           </p>
         </div>
 
@@ -122,7 +123,7 @@ export default function Gallery() {
                   >
                     <Link to={`/book?service=${image.serviceType}`}>
                       <Calendar className="mr-2 h-4 w-4" />
-                      Bestill denne tjenesten
+                      {t("gallery.bookService")}
                     </Link>
                   </Button>
                 </div>
@@ -137,7 +138,7 @@ export default function Gallery() {
         {filteredImages.length === 0 && (
           <div className="text-center py-16">
             <p className="text-xl text-slate-500">
-              Ingen bilder funnet i denne kategorien.
+              {t("gallery.emptyState")}
             </p>
           </div>
         )}
@@ -146,11 +147,10 @@ export default function Gallery() {
         <div className="mt-16 text-center">
           <div className="max-w-2xl mx-auto bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-3xl p-12 shadow-2xl">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Klar for din transformasjon?
+              {t("gallery.ctaTitle")}
             </h2>
             <p className="text-lg text-white/90 mb-8">
-              Book en time i dag og opplev den samme kvaliteten du ser i
-              galleriet vårt.
+              {t("gallery.ctaSubtitle")}
             </p>
             <Button
               asChild
@@ -159,7 +159,7 @@ export default function Gallery() {
             >
               <Link to="/book">
                 <Calendar className="mr-2 h-5 w-5" />
-                Book time nå
+                {t("gallery.bookNow")}
               </Link>
             </Button>
           </div>
@@ -203,7 +203,7 @@ export default function Gallery() {
               >
                 <Link to={`/book?service=${selectedImage.serviceType}`}>
                   <Calendar className="mr-2 h-5 w-5" />
-                  Bestill denne tjenesten
+                  {t("gallery.bookService")}
                 </Link>
               </Button>
             </div>

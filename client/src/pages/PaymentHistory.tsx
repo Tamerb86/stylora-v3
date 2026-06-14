@@ -26,8 +26,10 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function PaymentHistory() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const limit = 20;
 
@@ -70,10 +72,10 @@ export default function PaymentHistory() {
       <div className="container mx-auto py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Betalingshistorikk
+            {t("paymentHistory.title")}
           </h1>
           <p className="text-muted-foreground mt-2">
-            Oversikt over alle betalinger
+            {t("paymentHistory.subtitle")}
           </p>
         </div>
 
@@ -81,20 +83,20 @@ export default function PaymentHistory() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Receipt className="h-5 w-5" />
-              Transaksjoner
+              {t("paymentHistory.transactions")}
             </CardTitle>
             <CardDescription>
-              Alle betalinger registrert i systemet
+              {t("paymentHistory.cardDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="text-center py-8 text-muted-foreground">
-                Laster betalinger...
+                {t("paymentHistory.loading")}
               </div>
             ) : !payments || payments.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                Ingen betalinger funnet
+                {t("paymentHistory.empty")}
               </div>
             ) : (
               <>
@@ -102,12 +104,12 @@ export default function PaymentHistory() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Kvittering</TableHead>
-                        <TableHead>Dato</TableHead>
-                        <TableHead>Kunde</TableHead>
-                        <TableHead>Metode</TableHead>
-                        <TableHead>Beløp</TableHead>
-                        <TableHead>Status</TableHead>
+                        <TableHead>{t("paymentHistory.colReceipt")}</TableHead>
+                        <TableHead>{t("paymentHistory.colDate")}</TableHead>
+                        <TableHead>{t("paymentHistory.colCustomer")}</TableHead>
+                        <TableHead>{t("paymentHistory.colMethod")}</TableHead>
+                        <TableHead>{t("paymentHistory.colAmount")}</TableHead>
+                        <TableHead>{t("paymentHistory.colStatus")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -163,17 +165,17 @@ export default function PaymentHistory() {
                     disabled={page === 0}
                   >
                     <ChevronLeft className="h-4 w-4 mr-2" />
-                    Forrige
+                    {t("paymentHistory.previous")}
                   </Button>
                   <span className="text-sm text-muted-foreground">
-                    Side {page + 1}
+                    {t("paymentHistory.page", { page: page + 1 })}
                   </span>
                   <Button
                     variant="outline"
                     onClick={() => setPage(page + 1)}
                     disabled={!payments || payments.length < limit}
                   >
-                    Neste
+                    {t("paymentHistory.next")}
                     <ChevronRight className="h-4 w-4 ml-2" />
                   </Button>
                 </div>

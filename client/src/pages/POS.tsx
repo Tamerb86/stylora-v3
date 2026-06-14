@@ -207,7 +207,7 @@ export default function POS() {
       }
       return { ...prev, items: [...prev.items, item] };
     });
-    toast.success(`${item.name} lagt til i handlekurv`);
+    toast.success(t("pos.itemAddedToCart", { name: item.name }));
   };
 
   const updateItemQuantity = (
@@ -274,7 +274,7 @@ export default function POS() {
   const selectCustomer = (customerId: number, customerName: string) => {
     setCart(prev => ({ ...prev, customerId, customerName }));
     setShowCustomerDialog(false);
-    toast.success(`Kunde valgt: ${customerName}`);
+    toast.success(t("pos.customerSelected", { name: customerName }));
   };
 
   // Calculate totals
@@ -292,17 +292,17 @@ export default function POS() {
   const handleCheckout = async (paymentMethod: "cash" | "card") => {
     // Validation
     if (cart.items.length === 0) {
-      toast.error("Handlekurven er tom");
+      toast.error(t("pos.cartEmpty"));
       return;
     }
 
     if (!user) {
-      toast.error("Ingen bruker logget inn");
+      toast.error(t("pos.noUserLoggedIn"));
       return;
     }
 
     if (!cart.employeeId) {
-      toast.error("Vennligst velg en ansatt før du fullfører betalingen");
+      toast.error(t("pos.selectEmployeeBeforePayment"));
       return;
     }
 
@@ -351,20 +351,20 @@ export default function POS() {
         // Card payment with Stripe Terminal
         if (!stripeTerminal.connectedReader) {
           toast.error(
-            "Ingen kortleser tilkoblet. Vennligst koble til en kortleser først."
+            t("pos.noReaderConnectedError")
           );
           return;
         }
 
         setIsProcessingPayment(true);
-        setPaymentInstructions("Venter på kort...");
+        setPaymentInstructions(t("pos.waitingForCard"));
 
         try {
           // Process payment with Stripe Terminal
           const paymentResult = await stripeTerminal.processPayment(total);
 
           if (!paymentResult.success) {
-            throw new Error(paymentResult.error || "Betalingen mislyktes");
+            throw new Error(paymentResult.error || t("pos.paymentFailed"));
           }
 
           // Record successful card payment
@@ -379,7 +379,7 @@ export default function POS() {
         } catch (error: any) {
           setIsProcessingPayment(false);
           setPaymentInstructions("");
-          toast.error(error.message || "Kortbetaling mislyktes");
+          toast.error(error.message || t("pos.cardPaymentFailed"));
           return;
         } finally {
           setIsProcessingPayment(false);
@@ -389,7 +389,7 @@ export default function POS() {
       // Show success
       setLastOrderId(orderRes.order.id);
       setLastTotal(total);
-      setLastPaymentMethod(paymentMethod === "cash" ? "Kontant" : "Kort");
+      setLastPaymentMethod(paymentMethod === "cash" ? t("pos.cash") : t("pos.card"));
 
       // Get customer email if available
       if (cart.customerId) {
@@ -423,7 +423,7 @@ export default function POS() {
               subtotal: subtotal,
               vat: vatAmount,
               total: total,
-              paymentMethod: paymentMethod === "cash" ? "Kontant" : "Kort",
+              paymentMethod: paymentMethod === "cash" ? t("pos.cash") : t("pos.card"),
               footerText: printSettings.customFooterText,
             };
 
@@ -438,9 +438,9 @@ export default function POS() {
 
       // Clear cart
       clearCart();
-      toast.success("Salg fullført!");
+      toast.success(t("pos.saleCompleted"));
     } catch (error: any) {
-      toast.error(error.message || "Feil ved registrering av salg");
+      toast.error(error.message || t("pos.saleRegistrationError"));
     }
   };
 
@@ -462,8 +462,8 @@ export default function POS() {
       if (e.key === "F1") {
         e.preventDefault();
         searchInputRef.current?.focus();
-        toast.info("Søk aktivert", {
-          description: "Du kan nå søke etter produkter og tjenester",
+        toast.info(t("pos.searchActivated"), {
+          description: t("pos.searchActivatedDescription"),
         });
       }
 
@@ -473,11 +473,11 @@ export default function POS() {
         if (cart.items.length > 0 && cart.employeeId) {
           handleCheckout("cash");
         } else {
-          toast.error("Kan ikke betale", {
+          toast.error(t("pos.cannotPay"), {
             description:
               cart.items.length === 0
-                ? "Handlekurven er tom"
-                : "Vennligst velg en ansatt",
+                ? t("pos.cartEmpty")
+                : t("pos.selectEmployee"),
           });
         }
       }
@@ -488,11 +488,11 @@ export default function POS() {
         if (cart.items.length > 0 && cart.employeeId) {
           handleCheckout("card");
         } else {
-          toast.error("Kan ikke betale", {
+          toast.error(t("pos.cannotPay"), {
             description:
               cart.items.length === 0
-                ? "Handlekurven er tom"
-                : "Vennligst velg en ansatt",
+                ? t("pos.cartEmpty")
+                : t("pos.selectEmployee"),
           });
         }
       }
@@ -502,7 +502,7 @@ export default function POS() {
         e.preventDefault();
         if (cart.items.length > 0) {
           clearCart();
-          toast.info("Handlekurv tømt");
+          toast.info(t("pos.cartCleared"));
         }
       }
 
@@ -524,10 +524,10 @@ export default function POS() {
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">
-                Salgssted (POS)
+                {t("pos.title")}
               </h1>
               <p className="text-gray-600 mt-1">
-                Registrer salg av tjenester og produkter
+                {t("pos.subtitle")}
               </p>
             </div>
             <div className="flex gap-2">
@@ -535,10 +535,10 @@ export default function POS() {
                 variant="outline"
                 onClick={() => setShowShortcutsHelp(true)}
                 className="gap-2 border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-700"
-                title="Vis tastatursnarveier (trykk ?)"
+                title={t("pos.showShortcutsTitle")}
               >
                 <span className="text-lg">⌨️</span>
-                Snarveier
+                {t("pos.shortcuts")}
               </Button>
               <Button
                 variant="outline"
@@ -546,7 +546,7 @@ export default function POS() {
                 className="gap-2"
               >
                 <Receipt className="h-4 w-4" />
-                Ordrehistorikk
+                {t("pos.orderHistory")}
               </Button>
               <Button
                 variant="outline"
@@ -554,7 +554,7 @@ export default function POS() {
                 className="gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Tilbake
+                {t("pos.back")}
               </Button>
             </div>
           </div>
@@ -566,7 +566,7 @@ export default function POS() {
                 <div className="mb-4">
                   <Input
                     ref={searchInputRef}
-                    placeholder="Søk etter tjenester eller produkter (eller skann strekkode)..."
+                    placeholder={t("pos.searchPlaceholder")}
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     onKeyDown={e => {
@@ -631,10 +631,10 @@ export default function POS() {
                 <Tabs defaultValue="services" className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="services">
-                      Tjenester ({services.length})
+                      {t("pos.servicesTab", { count: services.length })}
                     </TabsTrigger>
                     <TabsTrigger value="products">
-                      Produkter ({products.length})
+                      {t("pos.productsTab", { count: products.length })}
                     </TabsTrigger>
                   </TabsList>
 
@@ -651,7 +651,7 @@ export default function POS() {
                                 {service.name}
                               </h3>
                               <p className="text-sm text-gray-600">
-                                {service.durationMinutes} min
+                                {t("pos.durationMinutes", { count: service.durationMinutes })}
                               </p>
                             </div>
                             <p className="font-bold text-blue-600">
@@ -673,7 +673,7 @@ export default function POS() {
                             className="w-full h-14 text-base bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
                           >
                             <Plus className="w-5 h-5 mr-2" />
-                            Legg til
+                            {t("pos.add")}
                           </Button>
                         </Card>
                       ))}
@@ -693,7 +693,7 @@ export default function POS() {
                                 {product.name}
                               </h3>
                               <p className="text-sm text-gray-600">
-                                Lager: {product.stockQuantity || 0}
+                                {t("pos.stockLabel", { count: product.stockQuantity || 0 })}
                               </p>
                             </div>
                             <p className="font-bold text-orange-600">
@@ -719,7 +719,7 @@ export default function POS() {
                             }
                           >
                             <Plus className="w-5 h-5 mr-2" />
-                            Legg til
+                            {t("pos.add")}
                           </Button>
                         </Card>
                       ))}
@@ -737,13 +737,13 @@ export default function POS() {
               <Card className="p-6 sticky top-6">
                 <div className="flex items-center gap-2 mb-4">
                   <ShoppingCart className="w-5 h-5 text-blue-600" />
-                  <h2 className="text-xl font-bold">Handlekurv</h2>
+                  <h2 className="text-xl font-bold">{t("pos.cart")}</h2>
                 </div>
 
                 {/* Customer selection */}
                 <div className="mb-4">
                   <Label className="text-sm font-medium mb-2 block">
-                    Kunde
+                    {t("pos.customer")}
                   </Label>
                   <Dialog
                     open={showCustomerDialog}
@@ -755,16 +755,16 @@ export default function POS() {
                         className="w-full justify-start"
                       >
                         <User className="w-4 h-4 mr-2" />
-                        {cart.customerName || "Velg kunde (valgfritt)"}
+                        {cart.customerName || t("pos.selectCustomerOptional")}
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-md">
                       <DialogHeader>
-                        <DialogTitle>Velg kunde</DialogTitle>
+                        <DialogTitle>{t("pos.selectCustomer")}</DialogTitle>
                       </DialogHeader>
                       <div className="space-y-4">
                         <Input
-                          placeholder="Søk etter navn eller telefon..."
+                          placeholder={t("pos.searchNameOrPhone")}
                           value={customerSearchQuery}
                           onChange={e => setCustomerSearchQuery(e.target.value)}
                         />
@@ -801,7 +801,7 @@ export default function POS() {
                 {!isSessionActive && (
                   <div className="mb-4">
                     <Label className="text-sm font-medium mb-2 block">
-                      Ansatt *
+                      {t("pos.employeeRequired")}
                     </Label>
                     <Dialog
                       open={showEmployeeDialog}
@@ -815,16 +815,16 @@ export default function POS() {
                           }`}
                         >
                           <User className="w-4 h-4 mr-2" />
-                          {cart.employeeName || "Velg ansatt (påkrevd)"}
+                          {cart.employeeName || t("pos.selectEmployeeRequired")}
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-md">
                         <DialogHeader>
-                          <DialogTitle>Velg ansatt</DialogTitle>
+                          <DialogTitle>{t("pos.selectEmployee")}</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
                           <Input
-                            placeholder="Søk etter navn..."
+                            placeholder={t("pos.searchName")}
                             value={employeeSearchQuery}
                             onChange={e => setEmployeeSearchQuery(e.target.value)}
                           />
@@ -838,7 +838,7 @@ export default function POS() {
                                   setCart(prev => ({
                                     ...prev,
                                     employeeId: employee.id,
-                                    employeeName: employee.name || "Ukjent",
+                                    employeeName: employee.name || t("pos.unknown"),
                                   }));
                                   setShowEmployeeDialog(false);
                                   setEmployeeSearchQuery("");
@@ -867,7 +867,7 @@ export default function POS() {
                 <div className="border-t border-b py-4 mb-4 max-h-[300px] overflow-y-auto">
                   {cart.items.length === 0 ? (
                     <p className="text-gray-500 text-center py-8">
-                      Handlekurven er tom
+                      {t("pos.cartEmpty")}
                     </p>
                   ) : (
                     <div className="space-y-3">
@@ -937,7 +937,7 @@ export default function POS() {
                     <div className="flex items-center gap-2 text-green-700">
                       <Wifi className="w-4 h-4" />
                       <span className="text-sm font-medium">
-                        Kortleser tilkoblet:{" "}
+                        {t("pos.readerConnected")}{" "}
                         {stripeTerminal.connectedReader.label || "Unknown"}
                       </span>
                     </div>
@@ -947,7 +947,7 @@ export default function POS() {
                     <div className="flex items-center gap-2 text-orange-700 mb-2">
                       <WifiOff className="w-4 h-4" />
                       <span className="text-sm font-medium">
-                        Ingen kortleser tilkoblet
+                        {t("pos.noReaderConnected")}
                       </span>
                     </div>
                     <Button
@@ -956,7 +956,7 @@ export default function POS() {
                       className="w-full"
                       onClick={() => setLocation("/reader-management")}
                     >
-                      Koble til kortleser
+                      {t("pos.connectReader")}
                     </Button>
                   </div>
                 )}
@@ -964,19 +964,19 @@ export default function POS() {
                 {/* Totals */}
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Subtotal:</span>
+                    <span className="text-gray-600">{t("pos.subtotal")}</span>
                     <span className="font-medium">
                       {safeToFixed(subtotal, 2)} kr
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">MVA (25%):</span>
+                    <span className="text-gray-600">{t("pos.vat")}</span>
                     <span className="font-medium">
                       {safeToFixed(vatAmount, 2)} kr
                     </span>
                   </div>
                   <div className="flex justify-between text-lg font-bold border-t pt-2">
-                    <span>Total:</span>
+                    <span>{t("pos.total")}</span>
                     <span className="text-blue-600">
                       {safeToFixed(total, 2)} kr
                     </span>
@@ -993,7 +993,7 @@ export default function POS() {
                           {paymentInstructions}
                         </p>
                         <p className="text-sm text-blue-700 mt-1">
-                          Sett inn, tapp eller sveip kortet
+                          {t("pos.insertTapSwipe")}
                         </p>
                       </div>
                     </div>
@@ -1013,7 +1013,7 @@ export default function POS() {
                     }
                   >
                     <Banknote className="w-6 h-6 mr-3" />
-                    Registrer kontantbetaling
+                    {t("pos.registerCashPayment")}
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 px-2 py-1 bg-white/20 rounded text-xs font-mono">
                       F2
                     </span>
@@ -1033,12 +1033,12 @@ export default function POS() {
                     {isProcessingPayment ? (
                       <>
                         <Loader2 className="w-6 h-6 mr-3 animate-spin" />
-                        Behandler betaling...
+                        {t("pos.processingPayment")}
                       </>
                     ) : (
                       <>
                         <CreditCard className="w-6 h-6 mr-3" />
-                        Registrer kortbetaling
+                        {t("pos.registerCardPayment")}
                         <span className="absolute right-4 top-1/2 -translate-y-1/2 px-2 py-1 bg-white/20 rounded text-xs font-mono">
                           F3
                         </span>
@@ -1063,12 +1063,12 @@ export default function POS() {
                       {thermalPrinter.isOpeningDrawer ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Åpner kassaskuff...
+                          {t("pos.openingCashDrawer")}
                         </>
                       ) : (
                         <>
                           <Download className="w-4 h-4 mr-2" />
-                          Åpne kassaskuff
+                          {t("pos.openCashDrawer")}
                         </>
                       )}
                     </Button>
@@ -1085,22 +1085,22 @@ export default function POS() {
             <DialogHeader>
               <div className="flex items-center gap-2 text-green-600">
                 <CheckCircle2 className="w-6 h-6" />
-                <DialogTitle>Salg fullført!</DialogTitle>
+                <DialogTitle>{t("pos.saleCompleted")}</DialogTitle>
               </div>
             </DialogHeader>
             <div className="space-y-4">
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Ordre-ID:</span>
+                    <span className="text-gray-600">{t("pos.orderId")}</span>
                     <span className="font-bold">#{lastOrderId}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Betalingsmetode:</span>
+                    <span className="text-gray-600">{t("pos.paymentMethod")}</span>
                     <span className="font-medium">{lastPaymentMethod}</span>
                   </div>
                   <div className="flex justify-between text-lg border-t pt-2">
-                    <span className="font-bold">Total:</span>
+                    <span className="font-bold">{t("pos.total")}</span>
                     <span className="font-bold text-green-600">
                       {safeToFixed(lastTotal, 2)} kr
                     </span>
@@ -1111,7 +1111,7 @@ export default function POS() {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
                   <div className="flex items-center gap-2 text-sm text-blue-700">
                     <Mail className="w-4 h-4" />
-                    <span>Kunde e-post: {lastCustomerEmail}</span>
+                    <span>{t("pos.customerEmail")} {lastCustomerEmail}</span>
                   </div>
                 </div>
               )}
@@ -1123,13 +1123,13 @@ export default function POS() {
                     onClick={() => {
                       if (!lastOrderId) return;
                       window.open(`/print-receipt/${lastOrderId}`, "_blank");
-                      toast.success("Kvittering åpnet for utskrift!");
+                      toast.success(t("pos.receiptOpenedForPrint"));
                     }}
                   >
                     <Printer className="w-4 h-4 mr-2" />
                     {printSettings?.autoPrintReceipt
-                      ? "Skriv ut på nytt"
-                      : "Skriv ut"}
+                      ? t("pos.reprint")
+                      : t("pos.print")}
                   </Button>
                   <Button
                     variant="outline"
@@ -1155,15 +1155,15 @@ export default function POS() {
                         a.download = result.filename;
                         a.click();
                         window.URL.revokeObjectURL(url);
-                        toast.success("Kvittering lastet ned!");
+                        toast.success(t("pos.receiptDownloaded"));
                       } catch (error) {
-                        toast.error("Kunne ikke generere kvittering");
+                        toast.error(t("pos.receiptGenerateError"));
                       }
                     }}
                     disabled={generateReceipt.isPending}
                   >
                     <Download className="w-4 h-4 mr-2" />
-                    {generateReceipt.isPending ? "Genererer..." : "Last ned"}
+                    {generateReceipt.isPending ? t("pos.generating") : t("pos.download")}
                   </Button>
                 </div>
                 {lastCustomerEmail && (
@@ -1177,17 +1177,17 @@ export default function POS() {
                           orderId: lastOrderId,
                           customerEmail: lastCustomerEmail,
                         });
-                        toast.success("Kvittering sendt på e-post!");
+                        toast.success(t("pos.receiptSentByEmail"));
                       } catch (error) {
-                        toast.error("Kunne ikke sende kvittering");
+                        toast.error(t("pos.receiptSendError"));
                       }
                     }}
                     disabled={sendReceiptEmail.isPending}
                   >
                     <Mail className="w-4 h-4 mr-2" />
                     {sendReceiptEmail.isPending
-                      ? "Sender..."
-                      : "Send på e-post"}
+                      ? t("pos.sending")
+                      : t("pos.sendByEmail")}
                   </Button>
                 )}
                 <div className="border-t pt-2"></div>
@@ -1195,7 +1195,7 @@ export default function POS() {
                   className="w-full"
                   onClick={() => setShowSuccessDialog(false)}
                 >
-                  Lukk
+                  {t("pos.close")}
                 </Button>
               </div>
             </div>
@@ -1208,13 +1208,13 @@ export default function POS() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <span className="text-2xl">⌨️</span>
-                Tastatursnarveier
+                {t("pos.keyboardShortcuts")}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div className="bg-gradient-to-r from-blue-50 to-orange-50 p-4 rounded-lg">
                 <p className="text-sm text-gray-700">
-                  Bruk disse snarveiene for raskere betjening av kassasystemet.
+                  {t("pos.shortcutsIntro")}
                 </p>
               </div>
 
@@ -1224,7 +1224,7 @@ export default function POS() {
                     <kbd className="px-3 py-1.5 bg-white border border-gray-300 rounded shadow-sm font-mono text-sm font-semibold">
                       F1
                     </kbd>
-                    <span className="text-gray-700">Fokuser søkefeltet</span>
+                    <span className="text-gray-700">{t("pos.shortcutFocusSearch")}</span>
                   </div>
                 </div>
 
@@ -1233,7 +1233,7 @@ export default function POS() {
                     <kbd className="px-3 py-1.5 bg-white border border-gray-300 rounded shadow-sm font-mono text-sm font-semibold">
                       F2
                     </kbd>
-                    <span className="text-gray-700">Kontantbetaling</span>
+                    <span className="text-gray-700">{t("pos.shortcutCashPayment")}</span>
                   </div>
                   <Banknote className="w-5 h-5 text-green-600" />
                 </div>
@@ -1243,7 +1243,7 @@ export default function POS() {
                     <kbd className="px-3 py-1.5 bg-white border border-gray-300 rounded shadow-sm font-mono text-sm font-semibold">
                       F3
                     </kbd>
-                    <span className="text-gray-700">Kortbetaling</span>
+                    <span className="text-gray-700">{t("pos.shortcutCardPayment")}</span>
                   </div>
                   <CreditCard className="w-5 h-5 text-blue-600" />
                 </div>
@@ -1254,7 +1254,7 @@ export default function POS() {
                     <kbd className="px-3 py-1.5 bg-white border border-gray-300 rounded shadow-sm font-mono text-sm font-semibold">
                       ESC
                     </kbd>
-                    <span className="text-gray-700">Tøm handlekurv</span>
+                    <span className="text-gray-700">{t("pos.shortcutClearCart")}</span>
                   </div>
                   <X className="w-5 h-5 text-red-600" />
                 </div>
@@ -1265,7 +1265,7 @@ export default function POS() {
                       Enter
                     </kbd>
                     <span className="text-gray-700">
-                      Legg til valgt vare (ved søk)
+                      {t("pos.shortcutAddSelected")}
                     </span>
                   </div>
                   <Plus className="w-5 h-5 text-purple-600" />
@@ -1277,7 +1277,7 @@ export default function POS() {
                       ?
                     </kbd>
                     <span className="text-gray-700">
-                      Vis/skjul denne hjelpen
+                      {t("pos.shortcutToggleHelp")}
                     </span>
                   </div>
                 </div>
@@ -1288,7 +1288,7 @@ export default function POS() {
                   className="w-full bg-gradient-to-r from-blue-600 to-orange-600 hover:from-blue-700 hover:to-orange-700"
                   onClick={() => setShowShortcutsHelp(false)}
                 >
-                  Lukk
+                  {t("pos.close")}
                 </Button>
               </div>
             </div>

@@ -10,8 +10,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CheckCircle2, XCircle, Loader2, Mail } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export function VerifyEmail() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const [location] = useLocation();
   const [verificationStatus, setVerificationStatus] = useState<
@@ -39,7 +41,7 @@ export function VerifyEmail() {
     },
     onError: error => {
       setVerificationStatus("error");
-      setMessage(error.message || "Noe gikk galt. Vennligst prøv igjen.");
+      setMessage(error.message || t("verifyEmail.genericError"));
     },
   });
 
@@ -48,7 +50,7 @@ export function VerifyEmail() {
       verifyMutation.mutate({ token });
     } else {
       setVerificationStatus("error");
-      setMessage("Ingen bekreftelseskode funnet i URL-en");
+      setMessage(t("verifyEmail.noTokenFound"));
     }
   }, [token]);
 
@@ -68,17 +70,17 @@ export function VerifyEmail() {
             )}
           </div>
           <CardTitle className="text-2xl">
-            {verificationStatus === "loading" && "Bekrefter e-post..."}
-            {verificationStatus === "success" && "E-post bekreftet!"}
-            {verificationStatus === "error" && "Bekreftelse mislyktes"}
+            {verificationStatus === "loading" && t("verifyEmail.verifyingTitle")}
+            {verificationStatus === "success" && t("verifyEmail.successTitle")}
+            {verificationStatus === "error" && t("verifyEmail.errorTitle")}
           </CardTitle>
           <CardDescription>
             {verificationStatus === "loading" &&
-              "Vennligst vent mens vi bekrefter e-postadressen din"}
+              t("verifyEmail.verifyingDescription")}
             {verificationStatus === "success" &&
-              "Du blir omdirigert til dashboardet..."}
+              t("verifyEmail.successDescription")}
             {verificationStatus === "error" &&
-              "Det oppstod et problem med bekreftelsen"}
+              t("verifyEmail.errorDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -99,7 +101,7 @@ export function VerifyEmail() {
               onClick={() => setLocation("/dashboard")}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
-              Gå til Dashboard
+              {t("verifyEmail.goToDashboard")}
             </Button>
           )}
 
@@ -110,7 +112,7 @@ export function VerifyEmail() {
                 variant="outline"
                 className="w-full"
               >
-                Tilbake til forsiden
+                {t("verifyEmail.backToHome")}
               </Button>
             </div>
           )}

@@ -2,8 +2,10 @@ import { useRoute } from "wouter";
 import { trpc } from "@/lib/trpc";
 import PrintableReceipt from "@/components/PrintableReceipt";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function PrintReceipt() {
+  const { t } = useTranslation();
   const [, params] = useRoute("/print-receipt/:orderId");
   const orderId = params?.orderId ? parseInt(params.orderId) : null;
 
@@ -26,9 +28,9 @@ export default function PrintReceipt() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">Ordre ikke funnet</h1>
+          <h1 className="text-2xl font-bold mb-2">{t("printReceipt.orderNotFound")}</h1>
           <p className="text-muted-foreground">
-            Kunne ikke finne ordre #{orderId}
+            {t("printReceipt.orderNotFoundDescription", { orderId })}
           </p>
         </div>
       </div>
@@ -48,7 +50,10 @@ export default function PrintReceipt() {
         paymentMethod: order.status || "cash",
       }}
       items={items.map(item => ({
-        name: item.itemType === "product" ? "Produkt" : "Tjeneste",
+        name:
+          item.itemType === "product"
+            ? t("printReceipt.product")
+            : t("printReceipt.service"),
         quantity: item.quantity || 1,
         price: parseFloat(item.unitPrice),
         total: parseFloat(item.total),

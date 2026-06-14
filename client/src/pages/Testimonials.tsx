@@ -3,6 +3,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
+import { useTranslation } from "react-i18next";
 import {
   Star,
   Quote,
@@ -17,6 +18,7 @@ import {
 } from "lucide-react";
 
 export default function Testimonials() {
+  const { t } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const testimonials = [
     {
@@ -134,25 +136,25 @@ export default function Testimonials() {
                 to="/"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
-                Hjem
+                {t("testimonials.navHome")}
               </Link>
               <Link
                 to="/about"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
-                Om oss
+                {t("testimonials.navAbout")}
               </Link>
               <Link
                 to="/case-study"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
-                Case Study
+                {t("testimonials.navCaseStudy")}
               </Link>
               <Link
                 to="/testimonials"
                 className="text-sm font-medium text-primary"
               >
-                Kundehistorier
+                {t("testimonials.navTestimonials")}
               </Link>
             </div>
             <div className="flex items-center gap-3">
@@ -162,14 +164,14 @@ export default function Testimonials() {
                 size="sm"
                 className="hidden md:inline-flex"
               >
-                <Link to="/book">Se demo</Link>
+                <Link to="/book">{t("testimonials.seeDemo")}</Link>
               </Button>
               <Button
                 asChild
                 size="sm"
                 className="hidden md:inline-flex bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white"
               >
-                <Link to="/signup">Kom i gang</Link>
+                <Link to="/signup">{t("testimonials.getStarted")}</Link>
               </Button>
 
               {/* Mobile Menu Button */}
@@ -207,28 +209,28 @@ export default function Testimonials() {
                   className="block py-3 px-4 text-lg font-medium hover:bg-accent rounded-lg transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Hjem
+                  {t("testimonials.navHome")}
                 </Link>
                 <Link
                   to="/about"
                   className="block py-3 px-4 text-lg font-medium hover:bg-accent rounded-lg transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Om oss
+                  {t("testimonials.navAbout")}
                 </Link>
                 <Link
                   to="/case-study"
                   className="block py-3 px-4 text-lg font-medium hover:bg-accent rounded-lg transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Case Study
+                  {t("testimonials.navCaseStudy")}
                 </Link>
                 <Link
                   to="/testimonials"
                   className="block py-3 px-4 text-lg font-medium text-primary bg-accent rounded-lg"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Kundehistorier
+                  {t("testimonials.navTestimonials")}
                 </Link>
 
                 {/* Divider */}
@@ -238,7 +240,7 @@ export default function Testimonials() {
                 <div className="space-y-3">
                   <Button asChild variant="outline" className="w-full">
                     <Link to="/book" onClick={() => setIsMobileMenuOpen(false)}>
-                      Se demo
+                      {t("testimonials.seeDemo")}
                     </Link>
                   </Button>
                   <Button
@@ -249,7 +251,7 @@ export default function Testimonials() {
                       to="/signup"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      Kom i gang
+                      {t("testimonials.getStarted")}
                     </Link>
                   </Button>
                 </div>
@@ -263,18 +265,16 @@ export default function Testimonials() {
           <div className="container">
             <div className="text-center max-w-4xl mx-auto space-y-6">
               <Badge variant="outline" className="px-4 py-1.5">
-                Kundehistorier
+                {t("testimonials.heroBadge")}
               </Badge>
               <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight">
-                Ekte resultater fra{" "}
+                {t("testimonials.heroTitlePart1")}{" "}
                 <span className="bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
-                  ekte salonger
+                  {t("testimonials.heroTitleHighlight")}
                 </span>
               </h1>
               <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
-                Oppdag hvordan norske salonger har transformert sin virksomhet
-                med Stylora. Fra reduserte no-shows til økt omsetning – her er
-                historiene deres.
+                {t("testimonials.heroSubtitle")}
               </p>
             </div>
 
@@ -387,7 +387,7 @@ export default function Testimonials() {
                     <CardContent className="p-8">
                       <h4 className="text-xl font-bold mb-4 flex items-center gap-2">
                         <TrendingUp className="h-6 w-6 text-primary" />
-                        Hele historien
+                        {t("testimonials.fullStoryHeading")}
                       </h4>
                       <p className="text-muted-foreground leading-relaxed">
                         {testimonial.fullStory}
@@ -409,12 +409,10 @@ export default function Testimonials() {
           <div className="container">
             <div className="max-w-3xl mx-auto text-center space-y-6">
               <h2 className="text-4xl md:text-5xl font-bold">
-                Klar til å skrive din egen suksesshistorie?
+                {t("testimonials.ctaTitle")}
               </h2>
               <p className="text-xl opacity-90">
-                Bli med over 5000 fornøyde salonger som allerede bruker Stylora.
-                Start din gratis prøveperiode i dag – ingen kredittkort
-                nødvendig.
+                {t("testimonials.ctaSubtitle")}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                 <Button
@@ -424,7 +422,7 @@ export default function Testimonials() {
                   className="text-lg h-14 px-10 shadow-2xl transform hover:scale-105 transition-all duration-200"
                 >
                   <Link to="/signup">
-                    Kom i gang gratis
+                    {t("testimonials.ctaGetStartedFree")}
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
@@ -434,7 +432,7 @@ export default function Testimonials() {
                   variant="outline"
                   className="text-lg h-14 px-10 bg-white/10 border-white/30 hover:bg-white/20 text-white transform hover:scale-105 transition-all duration-200"
                 >
-                  <Link to="/book">Se demo</Link>
+                  <Link to="/book">{t("testimonials.seeDemo")}</Link>
                 </Button>
               </div>
             </div>
@@ -455,27 +453,27 @@ export default function Testimonials() {
                 <span className="text-xl font-bold">Stylora</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Komplett bookingsystem for moderne salonger
+                {t("testimonials.footerTagline")}
               </p>
               <div className="flex justify-center gap-6 text-sm">
                 <Link
                   to="/about"
                   className="hover:text-primary transition-colors"
                 >
-                  Om oss
+                  {t("testimonials.navAbout")}
                 </Link>
                 <Link
                   to="/case-study"
                   className="hover:text-primary transition-colors"
                 >
-                  Case Study
+                  {t("testimonials.navCaseStudy")}
                 </Link>
                 <Link to="/" className="hover:text-primary transition-colors">
-                  Kontakt
+                  {t("testimonials.footerContact")}
                 </Link>
               </div>
               <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-                <p>&copy; 2025 Stylora. Alle rettigheter reservert.</p>
+                <p>{t("testimonials.footerCopyright")}</p>
               </div>
             </div>
           </div>

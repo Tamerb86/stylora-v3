@@ -14,8 +14,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
 
 export default function BookingSuccess() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const [bookingId, setBookingId] = useState<number | null>(null);
 
@@ -74,7 +76,7 @@ END:VCALENDAR`;
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
         <Card className="p-8 text-center">
           <Loader2 className="w-12 h-12 animate-spin mx-auto text-[#ff6b35] mb-4" />
-          <p className="text-gray-600">Laster bookingdetaljer...</p>
+          <p className="text-gray-600">{t("bookingSuccess.loading")}</p>
         </Card>
       </div>
     );
@@ -88,16 +90,15 @@ END:VCALENDAR`;
             <span className="text-3xl">❌</span>
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Booking ikke funnet
+            {t("bookingSuccess.notFoundTitle")}
           </h2>
           <p className="text-gray-600 mb-6">
-            Vi kunne ikke finne bookingdetaljene dine. Vennligst kontakt oss
-            hvis du har spørsmål.
+            {t("bookingSuccess.notFoundDescription")}
           </p>
           <Link href="/">
             <Button className="bg-gradient-to-r from-[#4a90e2] to-[#7b68ee] hover:opacity-90">
               <Home className="w-4 h-4 mr-2" />
-              Tilbake til forsiden
+              {t("bookingSuccess.backToHome")}
             </Button>
           </Link>
         </Card>
@@ -126,21 +127,21 @@ END:VCALENDAR`;
             <CheckCircle2 className="w-12 h-12 text-white" />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Betaling vellykket!
+            {t("bookingSuccess.paymentSuccess")}
           </h1>
-          <p className="text-xl text-gray-600">Din time er bekreftet</p>
+          <p className="text-xl text-gray-600">{t("bookingSuccess.appointmentConfirmed")}</p>
         </div>
 
         {/* Booking Details Card */}
         <Card className="p-6 mb-6 shadow-lg">
           <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-3 border-b">
-            Bookingdetaljer
+            {t("bookingSuccess.bookingDetails")}
           </h2>
 
           <div className="space-y-4">
             {/* Booking Reference */}
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">Referansenummer</p>
+              <p className="text-sm text-gray-600 mb-1">{t("bookingSuccess.referenceNumber")}</p>
               <p className="text-2xl font-bold text-gray-900">#{booking.id}</p>
             </div>
 
@@ -150,7 +151,7 @@ END:VCALENDAR`;
                 <span className="text-white text-lg">✂️</span>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Tjeneste</p>
+                <p className="text-sm text-gray-600">{t("bookingSuccess.service")}</p>
                 <p className="text-lg font-semibold text-gray-900">
                   {booking.serviceName}
                 </p>
@@ -163,7 +164,7 @@ END:VCALENDAR`;
                 <Calendar className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Dato</p>
+                <p className="text-sm text-gray-600">{t("bookingSuccess.date")}</p>
                 <p className="text-lg font-semibold text-gray-900 capitalize">
                   {formattedDate}
                 </p>
@@ -176,7 +177,7 @@ END:VCALENDAR`;
                 <Clock className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Tid</p>
+                <p className="text-sm text-gray-600">{t("bookingSuccess.time")}</p>
                 <p className="text-lg font-semibold text-gray-900">
                   {formattedTime}
                 </p>
@@ -190,7 +191,7 @@ END:VCALENDAR`;
                   <User className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Frisør</p>
+                  <p className="text-sm text-gray-600">{t("bookingSuccess.stylist")}</p>
                   <p className="text-lg font-semibold text-gray-900">
                     {booking.employeeName}
                   </p>
@@ -203,13 +204,13 @@ END:VCALENDAR`;
         {/* Payment Details Card */}
         <Card className="p-6 mb-6 shadow-lg">
           <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-3 border-b">
-            Betalingsinformasjon
+            {t("bookingSuccess.paymentInfo")}
           </h2>
 
           <div className="space-y-4">
             {/* Amount */}
             <div className="flex items-center justify-between">
-              <span className="text-gray-600">Beløp betalt</span>
+              <span className="text-gray-600">{t("bookingSuccess.amountPaid")}</span>
               <span className="text-2xl font-bold text-[#ff6b35]">
                 {Number(booking.totalPrice).toFixed(2)} kr
               </span>
@@ -221,10 +222,10 @@ END:VCALENDAR`;
                 <CreditCard className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Betalingsmetode</p>
+                <p className="text-sm text-gray-600">{t("bookingSuccess.paymentMethod")}</p>
                 <p className="text-lg font-semibold text-gray-900">
                   {booking.paymentMethod === "stripe"
-                    ? "Kort (Stripe)"
+                    ? t("bookingSuccess.cardStripe")
                     : "Vipps"}
                 </p>
               </div>
@@ -233,7 +234,7 @@ END:VCALENDAR`;
             {/* Status */}
             <div className="bg-green-50 border border-green-200 rounded-lg p-3">
               <p className="text-green-800 font-medium text-center">
-                ✓ Betaling bekreftet
+                {t("bookingSuccess.paymentConfirmed")}
               </p>
             </div>
           </div>
@@ -242,7 +243,7 @@ END:VCALENDAR`;
         {/* Customer Info Card */}
         <Card className="p-6 mb-6 shadow-lg">
           <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-3 border-b">
-            Dine opplysninger
+            {t("bookingSuccess.yourDetails")}
           </h2>
 
           <div className="space-y-3">
@@ -267,15 +268,14 @@ END:VCALENDAR`;
         {booking.managementToken && (
           <Card className="p-6 mb-6 shadow-lg bg-blue-50 border-blue-200">
             <h2 className="text-xl font-bold text-gray-900 mb-2">
-              Administrer din booking
+              {t("bookingSuccess.manageBookingTitle")}
             </h2>
             <p className="text-gray-600 mb-4">
-              Du kan endre eller avbestille timen din ved å bruke lenken
-              nedenfor.
+              {t("bookingSuccess.manageBookingDescription")}
             </p>
             <Link href={`/manage-booking/${booking.managementToken}`}>
               <Button className="w-full bg-gradient-to-r from-[#4a90e2] to-[#7b68ee] hover:opacity-90 text-white">
-                Administrer booking
+                {t("bookingSuccess.manageBookingButton")}
               </Button>
             </Link>
           </Card>
@@ -288,7 +288,7 @@ END:VCALENDAR`;
             className="flex-1 bg-gradient-to-r from-[#4a90e2] to-[#7b68ee] hover:opacity-90 text-white py-6 text-lg"
           >
             <Calendar className="w-5 h-5 mr-2" />
-            Legg til i kalender
+            {t("bookingSuccess.addToCalendar")}
           </Button>
           <Link href="/" className="flex-1">
             <Button
@@ -296,7 +296,7 @@ END:VCALENDAR`;
               className="w-full border-2 border-[#ff6b35] text-[#ff6b35] hover:bg-[#ff6b35] hover:text-white py-6 text-lg"
             >
               <Home className="w-5 h-5 mr-2" />
-              Tilbake til forsiden
+              {t("bookingSuccess.backToHome")}
             </Button>
           </Link>
         </div>
@@ -304,10 +304,10 @@ END:VCALENDAR`;
         {/* Help Text */}
         <div className="mt-8 text-center text-gray-600">
           <p className="mb-2">
-            Du vil motta en bekreftelse på e-post og SMS kort tid før timen din.
+            {t("bookingSuccess.confirmationNotice")}
           </p>
           <p className="text-sm">
-            Har du spørsmål? Kontakt oss på{" "}
+            {t("bookingSuccess.contactQuestion")}{" "}
             <a
               href="tel:+4712345678"
               className="text-[#4a90e2] hover:underline"

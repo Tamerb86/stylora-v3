@@ -25,6 +25,7 @@ import {
   Shield,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface AccountingProvider {
   id: string;
@@ -161,6 +162,7 @@ const accountingProviders: AccountingProvider[] = [
 ];
 
 export default function AccountingIntegrations() {
+  const { t } = useTranslation();
   const [selectedProvider, setSelectedProvider] =
     useState<AccountingProvider | null>(null);
   const [infoDialog, setInfoDialog] = useState(false);
@@ -185,17 +187,18 @@ export default function AccountingIntegrations() {
   };
 
   const handleRequestIntegration = () => {
-    toast.success(
-      "Forespørsel sendt! Vi vil kontakte deg når integrasjonen er klar."
-    );
+    toast.success(t("accountingIntegrations.toastRequestSent"));
     setInfoDialog(false);
   };
 
   return (
     <DashboardLayout
       breadcrumbs={[
-        { label: "Dashboard", href: "/dashboard" },
-        { label: "Regnskapsintegrasjoner" },
+        {
+          label: t("accountingIntegrations.breadcrumbDashboard"),
+          href: "/dashboard",
+        },
+        { label: t("accountingIntegrations.breadcrumbIntegrations") },
       ]}
     >
       <div className="space-y-8">
@@ -203,11 +206,10 @@ export default function AccountingIntegrations() {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Regnskapsintegrasjoner
+              {t("accountingIntegrations.headerTitle")}
             </h1>
             <p className="text-muted-foreground mt-2">
-              Koble Stylora til ditt regnskapsprogram for automatisk
-              synkronisering av data
+              {t("accountingIntegrations.headerSubtitle")}
             </p>
           </div>
         </div>
@@ -220,32 +222,44 @@ export default function AccountingIntegrations() {
             </div>
             <div>
               <h3 className="font-semibold text-lg">
-                Hvorfor koble til regnskap?
+                {t("accountingIntegrations.whyConnect")}
               </h3>
               <div className="grid gap-3 mt-3 md:grid-cols-3">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Automatisk fakturering</span>
+                  <span className="text-sm">
+                    {t("accountingIntegrations.benefitAutoInvoicing")}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Synkroniserte kunder</span>
+                  <span className="text-sm">
+                    {t("accountingIntegrations.benefitSyncedCustomers")}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Spar tid på bokføring</span>
+                  <span className="text-sm">
+                    {t("accountingIntegrations.benefitSaveTime")}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Færre feil</span>
+                  <span className="text-sm">
+                    {t("accountingIntegrations.benefitFewerErrors")}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">MVA-rapportering</span>
+                  <span className="text-sm">
+                    {t("accountingIntegrations.benefitVatReporting")}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Bedre oversikt</span>
+                  <span className="text-sm">
+                    {t("accountingIntegrations.benefitBetterOverview")}
+                  </span>
                 </div>
               </div>
             </div>
@@ -257,7 +271,7 @@ export default function AccountingIntegrations() {
           <div>
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-500" />
-              Tilkoblede systemer
+              {t("accountingIntegrations.connectedTitle")}
             </h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {connectedProviders.map(provider => (
@@ -271,14 +285,14 @@ export default function AccountingIntegrations() {
                       <div>
                         <h3 className="font-semibold">{provider.name}</h3>
                         <Badge variant="default" className="bg-green-500 mt-1">
-                          Tilkoblet
+                          {t("accountingIntegrations.statusConnected")}
                         </Badge>
                       </div>
                     </div>
                     <Link href={provider.settingsPath || "#"}>
                       <Button variant="outline" size="sm">
                         <Settings className="h-4 w-4 mr-1" />
-                        Innstillinger
+                        {t("accountingIntegrations.settings")}
                       </Button>
                     </Link>
                   </div>
@@ -292,7 +306,7 @@ export default function AccountingIntegrations() {
         <div>
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
             <Zap className="h-5 w-5 text-blue-500" />
-            Tilgjengelige integrasjoner
+            {t("accountingIntegrations.availableTitle")}
           </h2>
           <div className="grid gap-4 md:grid-cols-2">
             {availableProviders.map(provider => (
@@ -310,7 +324,7 @@ export default function AccountingIntegrations() {
                           variant="secondary"
                           className="bg-orange-100 text-orange-700"
                         >
-                          Populær
+                          {t("accountingIntegrations.popular")}
                         </Badge>
                       )}
                     </div>
@@ -331,7 +345,7 @@ export default function AccountingIntegrations() {
                         onClick={() => handleConnect(provider)}
                         className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                       >
-                        Koble til
+                        {t("accountingIntegrations.connect")}
                         <ArrowRight className="h-4 w-4 ml-1" />
                       </Button>
                       <a
@@ -355,7 +369,7 @@ export default function AccountingIntegrations() {
         <div>
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
             <RefreshCw className="h-5 w-5 text-gray-500" />
-            Kommer snart
+            {t("accountingIntegrations.comingSoonTitle")}
           </h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {comingSoonProviders.map(provider => (
@@ -368,7 +382,9 @@ export default function AccountingIntegrations() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold">{provider.name}</h3>
-                      <Badge variant="secondary">Kommer snart</Badge>
+                      <Badge variant="secondary">
+                        {t("accountingIntegrations.comingSoonBadge")}
+                      </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                       {provider.description}
@@ -383,7 +399,7 @@ export default function AccountingIntegrations() {
                           setInfoDialog(true);
                         }}
                       >
-                        Gi meg beskjed
+                        {t("accountingIntegrations.notifyMe")}
                       </Button>
                       <a
                         href={provider.website}
@@ -409,11 +425,11 @@ export default function AccountingIntegrations() {
               <Shield className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg">Sikker dataoverføring</h3>
+              <h3 className="font-semibold text-lg">
+                {t("accountingIntegrations.securityTitle")}
+              </h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Alle integrasjoner bruker sikre API-tilkoblinger med kryptert
-                dataoverføring. Dine data lagres aldri hos tredjeparter uten
-                ditt samtykke, og du kan når som helst koble fra en integrasjon.
+                {t("accountingIntegrations.securityText")}
               </p>
             </div>
           </div>
@@ -430,7 +446,7 @@ export default function AccountingIntegrations() {
             </DialogTitle>
             <DialogDescription>
               {selectedProvider?.status === "coming_soon"
-                ? "Denne integrasjonen er under utvikling. Registrer din interesse for å bli varslet når den er klar."
+                ? t("accountingIntegrations.dialogComingSoonDesc")
                 : selectedProvider?.description}
             </DialogDescription>
           </DialogHeader>
@@ -438,7 +454,9 @@ export default function AccountingIntegrations() {
           {selectedProvider && (
             <div className="space-y-4">
               <div>
-                <h4 className="font-medium mb-2">Funksjoner:</h4>
+                <h4 className="font-medium mb-2">
+                  {t("accountingIntegrations.featuresLabel")}
+                </h4>
                 <ul className="space-y-1">
                   {selectedProvider.features.map((feature, idx) => (
                     <li key={idx} className="flex items-center gap-2 text-sm">
@@ -453,11 +471,11 @@ export default function AccountingIntegrations() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setInfoDialog(false)}>
-              Lukk
+              {t("accountingIntegrations.close")}
             </Button>
             {selectedProvider?.status === "coming_soon" ? (
               <Button onClick={handleRequestIntegration}>
-                Varsle meg når klar
+                {t("accountingIntegrations.notifyWhenReady")}
               </Button>
             ) : (
               <a
@@ -466,7 +484,9 @@ export default function AccountingIntegrations() {
                 rel="noopener noreferrer"
               >
                 <Button>
-                  Besøk {selectedProvider?.name}
+                  {t("accountingIntegrations.visit", {
+                    name: selectedProvider?.name,
+                  })}
                   <ExternalLink className="h-4 w-4 ml-1" />
                 </Button>
               </a>

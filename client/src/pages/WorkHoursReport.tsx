@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Calendar, Clock, User } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface EmployeeWorkData {
   employeeId: number;
@@ -39,6 +40,7 @@ interface EmployeeWorkData {
 }
 
 export default function WorkHoursReport() {
+  const { t } = useTranslation();
   const [period, setPeriod] = useState<"week" | "month">("week");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<
     number | undefined
@@ -77,17 +79,19 @@ export default function WorkHoursReport() {
   return (
     <DashboardLayout
       breadcrumbs={[
-        { label: "Dashboard", href: "/dashboard" },
-        { label: "Timeregistrering", href: "/timeclock" },
-        { label: "Timer rapport" },
+        { label: t("nav.dashboard"), href: "/dashboard" },
+        { label: t("workHoursReport.timeRegistration"), href: "/timeclock" },
+        { label: t("workHoursReport.title") },
       ]}
     >
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Timer rapport</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {t("workHoursReport.title")}
+            </h1>
             <p className="text-gray-600 mt-1">
-              Ukentlig og månedlig sammendrag av arbeidstimer
+              {t("workHoursReport.subtitle")}
             </p>
           </div>
         </div>
@@ -95,9 +99,9 @@ export default function WorkHoursReport() {
         {/* Filters */}
         <Card>
           <CardHeader>
-            <CardTitle>Filtrer rapport</CardTitle>
+            <CardTitle>{t("workHoursReport.filterTitle")}</CardTitle>
             <CardDescription>
-              Velg periode og ansatt for å se rapporter
+              {t("workHoursReport.filterDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -105,22 +109,28 @@ export default function WorkHoursReport() {
               {/* Period selector */}
               <div>
                 <label className="text-sm font-medium mb-2 block">
-                  Periode
+                  {t("workHoursReport.periodLabel")}
                 </label>
                 <Select value={period} onValueChange={handlePeriodChange}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="week">Denne uken</SelectItem>
-                    <SelectItem value="month">Denne måneden</SelectItem>
+                    <SelectItem value="week">
+                      {t("workHoursReport.thisWeek")}
+                    </SelectItem>
+                    <SelectItem value="month">
+                      {t("workHoursReport.thisMonth")}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {/* Employee selector */}
               <div>
-                <label className="text-sm font-medium mb-2 block">Ansatt</label>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("workHoursReport.employeeLabel")}
+                </label>
                 <Select
                   value={selectedEmployeeId?.toString() || "all"}
                   onValueChange={handleEmployeeChange}
@@ -129,7 +139,9 @@ export default function WorkHoursReport() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Alle ansatte</SelectItem>
+                    <SelectItem value="all">
+                      {t("workHoursReport.allEmployees")}
+                    </SelectItem>
                     {employees?.map(emp => (
                       <SelectItem key={emp.id} value={emp.id.toString()}>
                         {emp.name}
@@ -143,7 +155,7 @@ export default function WorkHoursReport() {
             <div className="mt-4 flex items-center gap-2 text-sm text-gray-600">
               <Calendar className="w-4 h-4" />
               <span>
-                Periode:{" "}
+                {t("workHoursReport.periodLabel")}:{" "}
                 {format(new Date(startDate), "d. MMM yyyy", { locale: nb })} -{" "}
                 {format(new Date(endDate), "d. MMM yyyy", { locale: nb })}
               </span>
@@ -157,7 +169,7 @@ export default function WorkHoursReport() {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-gray-600">
-                  Totale timer
+                  {t("workHoursReport.totalHours")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -173,7 +185,7 @@ export default function WorkHoursReport() {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-gray-600">
-                  Totale vakter
+                  {t("workHoursReport.totalShifts")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -189,7 +201,7 @@ export default function WorkHoursReport() {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-gray-600">
-                  Gjennomsnitt timer/dag
+                  {t("workHoursReport.avgHoursPerDay")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -208,9 +220,9 @@ export default function WorkHoursReport() {
         {!isLoading && report && report.employees.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Detaljer per ansatt</CardTitle>
+              <CardTitle>{t("workHoursReport.detailsTitle")}</CardTitle>
               <CardDescription>
-                Oversikt over arbeidstimer for hver ansatt
+                {t("workHoursReport.detailsDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -219,19 +231,19 @@ export default function WorkHoursReport() {
                   <thead>
                     <tr className="border-b">
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                        Ansatt
+                        {t("workHoursReport.employeeLabel")}
                       </th>
                       <th className="text-right py-3 px-4 font-semibold text-gray-700">
-                        Totale timer
+                        {t("workHoursReport.totalHours")}
                       </th>
                       <th className="text-right py-3 px-4 font-semibold text-gray-700">
-                        Antall vakter
+                        {t("workHoursReport.shiftCount")}
                       </th>
                       <th className="text-right py-3 px-4 font-semibold text-gray-700">
-                        Dager arbeidet
+                        {t("workHoursReport.daysWorked")}
                       </th>
                       <th className="text-right py-3 px-4 font-semibold text-gray-700">
-                        Gjennomsnitt timer/vakt
+                        {t("workHoursReport.avgHoursPerShift")}
                       </th>
                     </tr>
                   </thead>
@@ -275,7 +287,9 @@ export default function WorkHoursReport() {
             <CardContent className="py-12">
               <div className="flex flex-col items-center justify-center gap-2">
                 <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-                <p className="text-gray-600">Laster rapport...</p>
+                <p className="text-gray-600">
+                  {t("workHoursReport.loading")}
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -286,7 +300,7 @@ export default function WorkHoursReport() {
             <CardContent className="py-12">
               <div className="text-center text-gray-600">
                 <Clock className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <p>Ingen arbeidstimer registrert for valgt periode</p>
+                <p>{t("workHoursReport.noData")}</p>
               </div>
             </CardContent>
           </Card>

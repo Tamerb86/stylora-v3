@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import DashboardLayout from "../components/DashboardLayout";
 import { trpc } from "../lib/trpc";
 import { Button } from "../components/ui/button";
@@ -44,6 +45,7 @@ import {
 } from "../lib/exportUtils";
 
 export default function AttendanceReport() {
+  const { t } = useTranslation();
   const [dateRange, setDateRange] = useState("thisMonth");
   const [selectedEmployee, setSelectedEmployee] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
@@ -171,7 +173,7 @@ export default function AttendanceReport() {
 
   const handleSaveEdit = () => {
     if (!selectedTimesheet || !editForm.editReason.trim()) {
-      alert("Vennligst fyll inn årsak for endring");
+      alert(t("attendanceReport.editReasonRequired"));
       return;
     }
 
@@ -185,7 +187,7 @@ export default function AttendanceReport() {
 
   const handleConfirmDelete = () => {
     if (!selectedTimesheet || !deleteReason.trim()) {
-      alert("Vennligst fyll inn årsak for sletting");
+      alert(t("attendanceReport.deleteReasonRequired"));
       return;
     }
 
@@ -219,49 +221,51 @@ export default function AttendanceReport() {
   const filteredTimesheets = getFilteredData();
 
   const handleExportPDF = () => {
-    const exportData = filteredTimesheets.map((t: any) => ({
-      employeeName: t.employeeName || "Ukjent",
-      workDate: new Date(t.workDate),
-      clockIn: t.clockIn
-        ? new Date(t.clockIn).toLocaleTimeString("no-NO", {
+    const exportData = filteredTimesheets.map((row: any) => ({
+      employeeName: row.employeeName || t("attendanceReport.unknown"),
+      workDate: new Date(row.workDate),
+      clockIn: row.clockIn
+        ? new Date(row.clockIn).toLocaleTimeString("no-NO", {
             hour: "2-digit",
             minute: "2-digit",
           })
         : "-",
-      clockOut: t.clockOut
-        ? new Date(t.clockOut).toLocaleTimeString("no-NO", {
+      clockOut: row.clockOut
+        ? new Date(row.clockOut).toLocaleTimeString("no-NO", {
             hour: "2-digit",
             minute: "2-digit",
           })
-        : "Aktiv",
-      duration: formatDuration(t.totalHours || 0),
-      edited: t.editReason ? "Ja" : "Nei",
+        : t("attendanceReport.active"),
+      duration: formatDuration(row.totalHours || 0),
+      edited: row.editReason
+        ? t("attendanceReport.yes")
+        : t("attendanceReport.no"),
     }));
 
     const columns = [
-      { header: "Ansatt", key: "employeeName" },
-      { header: "Dato", key: "workDate" },
-      { header: "Inn", key: "clockIn" },
-      { header: "Ut", key: "clockOut" },
-      { header: "Varighet", key: "duration" },
-      { header: "Redigert", key: "edited" },
+      { header: t("attendanceReport.columns.employee"), key: "employeeName" },
+      { header: t("attendanceReport.columns.date"), key: "workDate" },
+      { header: t("attendanceReport.columns.in"), key: "clockIn" },
+      { header: t("attendanceReport.columns.out"), key: "clockOut" },
+      { header: t("attendanceReport.columns.duration"), key: "duration" },
+      { header: t("attendanceReport.columns.edited"), key: "edited" },
     ];
 
     // Prepare period label
     const periodLabels: Record<string, string> = {
-      today: "I dag",
-      thisWeek: "Denne uken",
-      thisMonth: "Denne måneden",
-      lastMonth: "Forrige måned",
-      custom: "Egendefinert",
+      today: t("attendanceReport.period.today"),
+      thisWeek: t("attendanceReport.period.thisWeek"),
+      thisMonth: t("attendanceReport.period.thisMonth"),
+      lastMonth: t("attendanceReport.period.lastMonth"),
+      custom: t("attendanceReport.period.custom"),
     };
 
     // Prepare employee name
     const selectedEmployeeName =
       selectedEmployee === "all"
-        ? "Alle ansatte"
+        ? t("attendanceReport.allEmployees")
         : employees.find((e: any) => e.id === parseInt(selectedEmployee))
-            ?.name || "Ukjent";
+            ?.name || t("attendanceReport.unknown");
 
     // Prepare metadata
     const metadata = {
@@ -280,45 +284,47 @@ export default function AttendanceReport() {
     exportToPDF(
       exportData,
       columns,
-      "Timeregistrering",
+      t("attendanceReport.title"),
       `timeregistrering_${startDate}_${endDate}`,
       metadata
     );
   };
 
   const handleExportExcel = () => {
-    const exportData = filteredTimesheets.map((t: any) => ({
-      employeeName: t.employeeName || "Ukjent",
-      workDate: new Date(t.workDate),
-      clockIn: t.clockIn
-        ? new Date(t.clockIn).toLocaleTimeString("no-NO", {
+    const exportData = filteredTimesheets.map((row: any) => ({
+      employeeName: row.employeeName || t("attendanceReport.unknown"),
+      workDate: new Date(row.workDate),
+      clockIn: row.clockIn
+        ? new Date(row.clockIn).toLocaleTimeString("no-NO", {
             hour: "2-digit",
             minute: "2-digit",
           })
         : "-",
-      clockOut: t.clockOut
-        ? new Date(t.clockOut).toLocaleTimeString("no-NO", {
+      clockOut: row.clockOut
+        ? new Date(row.clockOut).toLocaleTimeString("no-NO", {
             hour: "2-digit",
             minute: "2-digit",
           })
-        : "Aktiv",
-      duration: formatDuration(t.totalHours || 0),
-      edited: t.editReason ? "Ja" : "Nei",
+        : t("attendanceReport.active"),
+      duration: formatDuration(row.totalHours || 0),
+      edited: row.editReason
+        ? t("attendanceReport.yes")
+        : t("attendanceReport.no"),
     }));
 
     const columns = [
-      { header: "Ansatt", key: "employeeName" },
-      { header: "Dato", key: "workDate" },
-      { header: "Inn", key: "clockIn" },
-      { header: "Ut", key: "clockOut" },
-      { header: "Varighet", key: "duration" },
-      { header: "Redigert", key: "edited" },
+      { header: t("attendanceReport.columns.employee"), key: "employeeName" },
+      { header: t("attendanceReport.columns.date"), key: "workDate" },
+      { header: t("attendanceReport.columns.in"), key: "clockIn" },
+      { header: t("attendanceReport.columns.out"), key: "clockOut" },
+      { header: t("attendanceReport.columns.duration"), key: "duration" },
+      { header: t("attendanceReport.columns.edited"), key: "edited" },
     ];
 
     exportToExcel(
       exportData,
       columns,
-      "Timeregistrering",
+      t("attendanceReport.title"),
       `timeregistrering_${startDate}_${endDate}`
     );
   };
@@ -330,10 +336,10 @@ export default function AttendanceReport() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
-              Timeregistrering
+              {t("attendanceReport.title")}
             </h1>
             <p className="text-muted-foreground mt-1">
-              Oversikt over ansattes arbeidstid
+              {t("attendanceReport.subtitle")}
             </p>
           </div>
           <div className="flex gap-2">
@@ -361,18 +367,18 @@ export default function AttendanceReport() {
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
-                Periode
+                {t("attendanceReport.periodLabel")}
               </Label>
               <Select value={dateRange} onValueChange={setDateRange}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="today">I dag</SelectItem>
-                  <SelectItem value="thisWeek">Denne uken</SelectItem>
-                  <SelectItem value="thisMonth">Denne måneden</SelectItem>
-                  <SelectItem value="lastMonth">Forrige måned</SelectItem>
-                  <SelectItem value="custom">Egendefinert</SelectItem>
+                  <SelectItem value="today">{t("attendanceReport.period.today")}</SelectItem>
+                  <SelectItem value="thisWeek">{t("attendanceReport.period.thisWeek")}</SelectItem>
+                  <SelectItem value="thisMonth">{t("attendanceReport.period.thisMonth")}</SelectItem>
+                  <SelectItem value="lastMonth">{t("attendanceReport.period.lastMonth")}</SelectItem>
+                  <SelectItem value="custom">{t("attendanceReport.period.custom")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -380,7 +386,7 @@ export default function AttendanceReport() {
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <User className="w-4 h-4" />
-                Ansatt
+                {t("attendanceReport.employeeLabel")}
               </Label>
               <Select
                 value={selectedEmployee}
@@ -390,7 +396,7 @@ export default function AttendanceReport() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Alle ansatte</SelectItem>
+                  <SelectItem value="all">{t("attendanceReport.allEmployees")}</SelectItem>
                   {employees.map((emp: any) => (
                     <SelectItem key={emp.id} value={emp.id.toString()}>
                       {emp.name}
@@ -410,7 +416,7 @@ export default function AttendanceReport() {
             >
               <span className="flex items-center gap-2">
                 <Filter className="w-4 h-4" />
-                Avanserte filtre
+                {t("attendanceReport.advancedFilters")}
               </span>
               {showFilters ? (
                 <ChevronUp className="w-4 h-4" />
@@ -425,7 +431,7 @@ export default function AttendanceReport() {
                 {dateRange === "custom" && (
                   <>
                     <div className="space-y-2">
-                      <Label>Fra dato</Label>
+                      <Label>{t("attendanceReport.fromDate")}</Label>
                       <Input
                         type="date"
                         value={customStartDate}
@@ -433,7 +439,7 @@ export default function AttendanceReport() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Til dato</Label>
+                      <Label>{t("attendanceReport.toDate")}</Label>
                       <Input
                         type="date"
                         value={customEndDate}
@@ -445,17 +451,17 @@ export default function AttendanceReport() {
 
                 {/* Status Filter */}
                 <div className="space-y-2">
-                  <Label>Status</Label>
+                  <Label>{t("attendanceReport.statusLabel")}</Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Alle</SelectItem>
+                      <SelectItem value="all">{t("attendanceReport.statusAll")}</SelectItem>
                       <SelectItem value="active">
-                        Aktive (ikke stemplet ut)
+                        {t("attendanceReport.statusActive")}
                       </SelectItem>
-                      <SelectItem value="completed">Fullførte</SelectItem>
+                      <SelectItem value="completed">{t("attendanceReport.statusCompleted")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -474,7 +480,7 @@ export default function AttendanceReport() {
                     className="w-full"
                   >
                     <X className="w-4 h-4 mr-2" />
-                    Nullstill filtre
+                    {t("attendanceReport.resetFilters")}
                   </Button>
                 </div>
               </div>
@@ -483,9 +489,10 @@ export default function AttendanceReport() {
             {/* Record Count Preview */}
             <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
               <p className="text-sm text-blue-900">
-                <strong>{filteredTimesheets.length}</strong> av{" "}
-                <strong>{timesheets.length}</strong> oppføringer vil bli
-                eksportert
+                <strong>{filteredTimesheets.length}</strong>{" "}
+                {t("attendanceReport.exportCountOf")}{" "}
+                <strong>{timesheets.length}</strong>{" "}
+                {t("attendanceReport.exportCountSuffix")}
               </p>
             </div>
           </div>
@@ -497,7 +504,7 @@ export default function AttendanceReport() {
             <Card className="p-6 bg-gradient-to-br from-blue-500 to-blue-600 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm opacity-90">Totale timer</p>
+                  <p className="text-sm opacity-90">{t("attendanceReport.totalHours")}</p>
                   <p className="text-3xl font-bold mt-1">
                     {employeeTotals
                       .reduce(
@@ -507,7 +514,7 @@ export default function AttendanceReport() {
                       )
                       .toFixed(2)}
                   </p>
-                  <p className="text-xs opacity-75 mt-1">timer</p>
+                  <p className="text-xs opacity-75 mt-1">{t("attendanceReport.hoursUnit")}</p>
                 </div>
                 <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center">
                   <Calendar className="h-6 w-6" />
@@ -518,14 +525,14 @@ export default function AttendanceReport() {
             <Card className="p-6 bg-gradient-to-br from-orange-500 to-orange-600 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm opacity-90">Totale skift</p>
+                  <p className="text-sm opacity-90">{t("attendanceReport.totalShifts")}</p>
                   <p className="text-3xl font-bold mt-1">
                     {employeeTotals.reduce(
                       (sum: number, emp: any) => sum + (emp.shiftCount || 0),
                       0
                     )}
                   </p>
-                  <p className="text-xs opacity-75 mt-1">skift</p>
+                  <p className="text-xs opacity-75 mt-1">{t("attendanceReport.shiftsUnit")}</p>
                 </div>
                 <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center">
                   <User className="h-6 w-6" />
@@ -536,7 +543,7 @@ export default function AttendanceReport() {
             <Card className="p-6 bg-gradient-to-br from-green-500 to-green-600 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm opacity-90">Gjennomsnitt per dag</p>
+                  <p className="text-sm opacity-90">{t("attendanceReport.averagePerDay")}</p>
                   <p className="text-3xl font-bold mt-1">
                     {(
                       employeeTotals.reduce(
@@ -554,7 +561,7 @@ export default function AttendanceReport() {
                       )
                     ).toFixed(2)}
                   </p>
-                  <p className="text-xs opacity-75 mt-1">timer/skift</p>
+                  <p className="text-xs opacity-75 mt-1">{t("attendanceReport.hoursPerShiftUnit")}</p>
                 </div>
                 <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center">
                   <Clock className="h-6 w-6" />
@@ -565,11 +572,11 @@ export default function AttendanceReport() {
             <Card className="p-6 bg-gradient-to-br from-purple-500 to-purple-600 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm opacity-90">Aktive ansatte</p>
+                  <p className="text-sm opacity-90">{t("attendanceReport.activeEmployees")}</p>
                   <p className="text-3xl font-bold mt-1">
                     {employeeTotals.length}
                   </p>
-                  <p className="text-xs opacity-75 mt-1">ansatte</p>
+                  <p className="text-xs opacity-75 mt-1">{t("attendanceReport.employeesUnit")}</p>
                 </div>
                 <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center">
                   <User className="h-6 w-6" />
@@ -582,7 +589,7 @@ export default function AttendanceReport() {
         {/* Employee Totals */}
         {employeeTotals.length > 0 && (
           <Card className="p-4">
-            <h2 className="text-lg font-semibold mb-4">Totalt per ansatt</h2>
+            <h2 className="text-lg font-semibold mb-4">{t("attendanceReport.totalPerEmployee")}</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {employeeTotals.map((emp: any) => (
                 <div
@@ -591,10 +598,10 @@ export default function AttendanceReport() {
                 >
                   <p className="font-medium">{emp.employeeName}</p>
                   <p className="text-2xl font-bold text-blue-600">
-                    {emp.totalHours || "0.00"} timer
+                    {emp.totalHours || "0.00"} {t("attendanceReport.hoursUnit")}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {emp.shiftCount} skift
+                    {emp.shiftCount} {t("attendanceReport.shiftsUnit")}
                   </p>
                 </div>
               ))}
@@ -608,13 +615,13 @@ export default function AttendanceReport() {
             <table className="w-full">
               <thead className="bg-gradient-to-r from-blue-50 to-orange-50">
                 <tr>
-                  <th className="text-left p-4 font-semibold">Ansatt</th>
-                  <th className="text-left p-4 font-semibold">Dato</th>
-                  <th className="text-left p-4 font-semibold">Inn</th>
-                  <th className="text-left p-4 font-semibold">Ut</th>
-                  <th className="text-left p-4 font-semibold">Timer</th>
-                  <th className="text-left p-4 font-semibold">Status</th>
-                  <th className="text-left p-4 font-semibold">Handlinger</th>
+                  <th className="text-left p-4 font-semibold">{t("attendanceReport.columns.employee")}</th>
+                  <th className="text-left p-4 font-semibold">{t("attendanceReport.columns.date")}</th>
+                  <th className="text-left p-4 font-semibold">{t("attendanceReport.columns.in")}</th>
+                  <th className="text-left p-4 font-semibold">{t("attendanceReport.columns.out")}</th>
+                  <th className="text-left p-4 font-semibold">{t("attendanceReport.columns.hours")}</th>
+                  <th className="text-left p-4 font-semibold">{t("attendanceReport.columns.status")}</th>
+                  <th className="text-left p-4 font-semibold">{t("attendanceReport.columns.actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -624,7 +631,7 @@ export default function AttendanceReport() {
                       colSpan={7}
                       className="text-center p-8 text-muted-foreground"
                     >
-                      Laster...
+                      {t("attendanceReport.loading")}
                     </td>
                   </tr>
                 ) : timesheets.length === 0 ? (
@@ -633,48 +640,48 @@ export default function AttendanceReport() {
                       colSpan={7}
                       className="text-center p-8 text-muted-foreground"
                     >
-                      Ingen registreringer funnet
+                      {t("attendanceReport.noRecords")}
                     </td>
                   </tr>
                 ) : (
-                  timesheets.map((t: any) => (
-                    <tr key={t.id} className="border-b hover:bg-muted/50">
-                      <td className="p-4">{t.employeeName || "Ukjent"}</td>
+                  timesheets.map((row: any) => (
+                    <tr key={row.id} className="border-b hover:bg-muted/50">
+                      <td className="p-4">{row.employeeName || t("attendanceReport.unknown")}</td>
                       <td className="p-4">
-                        {new Date(t.workDate).toLocaleDateString("no-NO")}
+                        {new Date(row.workDate).toLocaleDateString("no-NO")}
                       </td>
                       <td className="p-4">
-                        {t.clockIn
-                          ? new Date(t.clockIn).toLocaleTimeString("no-NO", {
+                        {row.clockIn
+                          ? new Date(row.clockIn).toLocaleTimeString("no-NO", {
                               hour: "2-digit",
                               minute: "2-digit",
                             })
                           : "-"}
                       </td>
                       <td className="p-4">
-                        {t.clockOut ? (
-                          new Date(t.clockOut).toLocaleTimeString("no-NO", {
+                        {row.clockOut ? (
+                          new Date(row.clockOut).toLocaleTimeString("no-NO", {
                             hour: "2-digit",
                             minute: "2-digit",
                           })
                         ) : (
                           <span className="text-green-600 font-medium">
-                            Aktiv
+                            {t("attendanceReport.active")}
                           </span>
                         )}
                       </td>
                       <td className="p-4 font-medium">
-                        {t.totalHours || "0.00"}
+                        {row.totalHours || "0.00"}
                       </td>
                       <td className="p-4">
-                        {t.editReason ? (
+                        {row.editReason ? (
                           <div className="flex items-center gap-1 text-amber-600 text-sm">
                             <AlertCircle className="w-4 h-4" />
-                            Redigert
+                            {t("attendanceReport.edited")}
                           </div>
                         ) : (
                           <span className="text-muted-foreground text-sm">
-                            Original
+                            {t("attendanceReport.original")}
                           </span>
                         )}
                       </td>
@@ -683,7 +690,7 @@ export default function AttendanceReport() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleEdit(t)}
+                            onClick={() => handleEdit(row)}
                           >
                             <Pencil className="w-4 h-4" />
                           </Button>
@@ -691,7 +698,7 @@ export default function AttendanceReport() {
                             size="sm"
                             variant="outline"
                             className="text-red-600 hover:text-red-700"
-                            onClick={() => handleDelete(t)}
+                            onClick={() => handleDelete(row)}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -709,14 +716,14 @@ export default function AttendanceReport() {
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Rediger timeregistrering</DialogTitle>
+              <DialogTitle>{t("attendanceReport.editDialog.title")}</DialogTitle>
               <DialogDescription>
-                Endre inn- og uttid for {selectedTimesheet?.employeeName}
+                {t("attendanceReport.editDialog.description", { name: selectedTimesheet?.employeeName })}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Inn-tid</Label>
+                <Label>{t("attendanceReport.editDialog.clockInLabel")}</Label>
                 <Input
                   type="datetime-local"
                   value={editForm.clockIn}
@@ -726,7 +733,7 @@ export default function AttendanceReport() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Ut-tid</Label>
+                <Label>{t("attendanceReport.editDialog.clockOutLabel")}</Label>
                 <Input
                   type="datetime-local"
                   value={editForm.clockOut}
@@ -736,9 +743,9 @@ export default function AttendanceReport() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Årsak til endring *</Label>
+                <Label>{t("attendanceReport.editDialog.reasonLabel")}</Label>
                 <Textarea
-                  placeholder="Beskriv hvorfor du endrer denne registreringen..."
+                  placeholder={t("attendanceReport.editDialog.reasonPlaceholder")}
                   value={editForm.editReason}
                   onChange={e =>
                     setEditForm({ ...editForm, editReason: e.target.value })
@@ -752,14 +759,16 @@ export default function AttendanceReport() {
                 variant="outline"
                 onClick={() => setEditDialogOpen(false)}
               >
-                Avbryt
+                {t("attendanceReport.cancel")}
               </Button>
               <Button
                 onClick={handleSaveEdit}
                 disabled={updateMutation.isPending}
                 className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600"
               >
-                {updateMutation.isPending ? "Lagrer..." : "Lagre endringer"}
+                {updateMutation.isPending
+                  ? t("attendanceReport.saving")
+                  : t("attendanceReport.saveChanges")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -769,22 +778,22 @@ export default function AttendanceReport() {
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Slett timeregistrering</DialogTitle>
+              <DialogTitle>{t("attendanceReport.deleteDialog.title")}</DialogTitle>
               <DialogDescription>
-                Er du sikker på at du vil slette denne registreringen for{" "}
-                {selectedTimesheet?.employeeName}?
+                {t("attendanceReport.deleteDialog.description", { name: selectedTimesheet?.employeeName })}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-sm text-red-800">
-                  <strong>Advarsel:</strong> Denne handlingen kan ikke angres.
+                  <strong>{t("attendanceReport.deleteDialog.warningLabel")}</strong>{" "}
+                  {t("attendanceReport.deleteDialog.warningText")}
                 </p>
               </div>
               <div className="space-y-2">
-                <Label>Årsak til sletting *</Label>
+                <Label>{t("attendanceReport.deleteDialog.reasonLabel")}</Label>
                 <Textarea
-                  placeholder="Beskriv hvorfor du sletter denne registreringen..."
+                  placeholder={t("attendanceReport.deleteDialog.reasonPlaceholder")}
                   value={deleteReason}
                   onChange={e => setDeleteReason(e.target.value)}
                   rows={3}
@@ -796,14 +805,16 @@ export default function AttendanceReport() {
                 variant="outline"
                 onClick={() => setDeleteDialogOpen(false)}
               >
-                Avbryt
+                {t("attendanceReport.cancel")}
               </Button>
               <Button
                 variant="destructive"
                 onClick={handleConfirmDelete}
                 disabled={deleteMutation.isPending}
               >
-                {deleteMutation.isPending ? "Sletter..." : "Slett registrering"}
+                {deleteMutation.isPending
+                  ? t("attendanceReport.deleting")
+                  : t("attendanceReport.deleteRecord")}
               </Button>
             </DialogFooter>
           </DialogContent>
