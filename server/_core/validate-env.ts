@@ -17,17 +17,25 @@ interface EnvValidationResult {
 const REQUIRED_ENV_VARS = [
   "DATABASE_URL",
   "JWT_SECRET",
-  "VITE_APP_ID",
   "OWNER_OPEN_ID",
-  "SUPABASE_URL",
-  "SUPABASE_ANON_KEY",
-  "SUPABASE_SERVICE_KEY",
 ] as const;
 
 /**
- * List of recommended but not strictly required environment variables
+ * List of recommended but not strictly required environment variables.
+ *
+ * VITE_APP_ID and the SUPABASE_* keys are RECOMMENDED, not required: the app's
+ * primary auth is email/password + JWT, and Supabase is an optional integration
+ * (deployments without it run fine). Hard-requiring them previously crash-looped
+ * production whenever they were unset. They warn loudly but don't block startup.
  */
-const RECOMMENDED_ENV_VARS = ["VITE_APP_TITLE", "VITE_APP_LOGO"] as const;
+const RECOMMENDED_ENV_VARS = [
+  "VITE_APP_ID",
+  "SUPABASE_URL",
+  "SUPABASE_ANON_KEY",
+  "SUPABASE_SERVICE_KEY",
+  "VITE_APP_TITLE",
+  "VITE_APP_LOGO",
+] as const;
 
 /**
  * Optional environment variables for external integrations
