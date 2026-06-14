@@ -89,7 +89,6 @@ import { useTranslation } from "react-i18next";
 
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { OnboardingTour } from "./OnboardingTour";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ThemeSwitcher from "./ThemeSwitcher";
 import { trpc } from "@/lib/trpc";
@@ -1321,7 +1320,6 @@ function DashboardLayoutContent({
       </SidebarInset>
 
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
-      <OnboardingTour />
     </>
   );
 }
