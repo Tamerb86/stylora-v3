@@ -11,6 +11,19 @@ import {
 import { eq, and, gte, lte, sql, desc } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
+// Financial exports expose full revenue/expense/profit data, so they must be
+// restricted to owners/admins — not any authenticated user. Built on
+// protectedProcedure so the tenant filter (ctx.user.tenantId) still applies.
+const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.user.role !== "owner" && ctx.user.role !== "admin") {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Admin access required",
+    });
+  }
+  return next({ ctx });
+});
+
 // PDF generation using simple HTML template
 async function generateFinancialPDF(data: {
   tenantId: string;
@@ -156,7 +169,7 @@ async function generateFinancialExcel(data: {
 }
 
 export const exportRouter = router({
-  financialPDF: protectedProcedure
+  financialPDF: adminProcedure
     .input(
       z.object({
         startDate: z.string(),
@@ -252,7 +265,7 @@ export const exportRouter = router({
       return { html };
     }),
 
-  financialExcel: protectedProcedure
+  financialExcel: adminProcedure
     .input(
       z.object({
         startDate: z.string(),

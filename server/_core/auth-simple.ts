@@ -183,6 +183,43 @@ export const authService = new AuthService();
 export const authenticateRequest = (req: Request) =>
   authService.authenticateRequest(req);
 
+// ---------------------------------------------------------------------------
+// Per-account login lockout (in-memory). The IP rate-limiter doesn't stop a
+// distributed/proxy-rotated brute force against ONE account, so after a number
+// of failed attempts for a known account we temporarily lock it. Only existing
+// accounts are counted (avoids letting an attacker lock arbitrary emails), and
+// the lock auto-expires to bound the DoS surface.
+const ACCOUNT_MAX_FAILED = 6;
+const ACCOUNT_LOCK_MS = 15 * 60 * 1000;
+const failedLogins = new Map<
+  string,
+  { count: number; lockedUntil: number }
+>();
+
+function accountLockRemainingMs(key: string): number {
+  const rec = failedLogins.get(key);
+  if (rec && rec.lockedUntil > Date.now()) return rec.lockedUntil - Date.now();
+  return 0;
+}
+function recordFailedLogin(key: string): void {
+  const rec = failedLogins.get(key) || { count: 0, lockedUntil: 0 };
+  rec.count += 1;
+  if (rec.count >= ACCOUNT_MAX_FAILED) {
+    rec.lockedUntil = Date.now() + ACCOUNT_LOCK_MS;
+    rec.count = 0;
+  }
+  failedLogins.set(key, rec);
+  if (failedLogins.size > 50000) {
+    const now = Date.now();
+    for (const [k, v] of failedLogins) {
+      if (v.lockedUntil < now && v.count === 0) failedLogins.delete(k);
+    }
+  }
+}
+function clearFailedLogins(key: string): void {
+  failedLogins.delete(key);
+}
+
 export function registerAuthRoutes(app: Express) {
   // Login endpoint
   app.post("/api/auth/login", async (req: Request, res: Response) => {
@@ -211,9 +248,24 @@ export function registerAuthRoutes(app: Express) {
       const trimmedEmail = validateEmail(String(email));
       if (!trimmedEmail) {
         logAuth.loginFailed(String(email), "Invalid email format", clientIp);
-        res.status(400).json({ 
+        res.status(400).json({
           error: "Ugyldig e-postadresse",
           messageKey: "errors.invalidEmailFormat"
+        });
+        return;
+      }
+
+      // Reject early if this account is temporarily locked from too many
+      // failed attempts.
+      const lockKey = trimmedEmail.toLowerCase();
+      const lockRemaining = accountLockRemainingMs(lockKey);
+      if (lockRemaining > 0) {
+        logAuth.loginFailed(trimmedEmail, "Account temporarily locked", clientIp);
+        res.status(429).json({
+          error: `For mange mislykkede forsøk. Prøv igjen om ${Math.ceil(
+            lockRemaining / 60000
+          )} minutter.`,
+          messageKey: "errors.accountLocked",
         });
         return;
       }
@@ -289,6 +341,8 @@ export function registerAuthRoutes(app: Express) {
       }
 
       if (!ok) {
+        // Count the failure against this (existing) account for lockout.
+        recordFailedLogin(lockKey);
         logAuth.loginFailed(trimmedEmail, "Invalid password", clientIp);
         res.status(401).json({
           error: "Ugyldig e-post eller passord",
@@ -298,6 +352,9 @@ export function registerAuthRoutes(app: Express) {
         });
         return;
       }
+
+      // Successful credential check — reset the failed-attempt counter.
+      clearFailedLogins(lockKey);
 
       // Account active check (if field exists)
       if (user.isActive === false) {
@@ -491,8 +548,16 @@ export function registerAuthRoutes(app: Express) {
         return;
       }
 
-      if (String(password).length < 6) {
-        res.status(400).json({ error: "Passordet må være minst 6 tegn" });
+      // Enforce a real password policy (min 8 + complexity) instead of the old
+      // 6-char-only rule.
+      const { isStrongPassword } = await import("../security");
+      const strength = isStrongPassword(String(password));
+      if (!strength.valid) {
+        res.status(400).json({
+          error: strength.errors[0] || "Passordet er for svakt",
+          messageKey: "errors.weakPassword",
+          details: strength.errors,
+        });
         return;
       }
 
