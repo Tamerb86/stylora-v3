@@ -32,7 +32,8 @@
     "statusDistribution": "Statusfordeling",
     "monthlyCalendar": "Månedlig kalender",
     "cancelled": "Kansellert",
-    "appointments": "Avtaler"
+    "appointments": "Avtaler",
+    "quickBooking": "Hurtigbooking"
   },
   "nav": {
     "dashboard": "Dashbord",
@@ -132,7 +133,11 @@
     "phoneNumber": "Telefonnummer",
     "service": "Tjeneste",
     "preferredBarber": "Foretrukket frisør (valgfritt)",
-    "priority": "Prioritet",
+    "priority": {
+      "normal": "Normal",
+      "urgent": "Haster",
+      "vip": "VIP"
+    },
     "priorityReason": "Grunn for prioritering",
     "priorityReasonRequired": "Grunn for prioritering *",
     "priorityReasonPlaceholder": "F.eks: Stamkunde, spesiell anledning, etc.",
@@ -194,7 +199,8 @@
     "busy": "Opptatt",
     "clickAddDescription": "Klikk \"Legg til Kunde\" for å registrere walk-in kunder",
     "addedAt": "Lagt til",
-    "startedAt": "Startet"
+    "startedAt": "Startet",
+    "noData": "Ingen i køen"
   },
   "pos": {
     "title": "Kasse (POS)",
@@ -289,7 +295,10 @@
     "close": "Lukk",
     "simpleMode": "Enkel modus",
     "advancedMode": "Avansert modus",
-    "menu": "Meny"
+    "menu": "Meny",
+    "back": "Tilbake",
+    "next": "Neste",
+    "creating": "Oppretter…"
   },
   "onboarding": {
     "welcome": "Velkommen til Stylora",
@@ -339,7 +348,9 @@
       "email": "E-post",
       "emailPlaceholder": "info@salon.no",
       "emailRequired": "E-post er påkrevd",
-      "emailInvalid": "Ugyldig e-postadresse"
+      "emailInvalid": "Ugyldig e-postadresse",
+      "subdomainMaxLength": "Underdomenet kan ikke være lengre enn 63 tegn",
+      "subdomainMustHaveLetter": "Underdomenet må inneholde minst én bokstav"
     },
     "ownerAccount": {
       "fullName": "Fullt navn",
@@ -654,7 +665,14 @@
       "messagePlaceholder": "Skriv din melding her...",
       "sendButton": "Send SMS",
       "cancelButton": "Avbryt"
-    }
+    },
+    "createError": "Kunne ikke opprette kunde",
+    "created": "Kunde opprettet!",
+    "emailPlaceholder": "E-post (valgfritt)",
+    "fillRequired": "Fyll inn påkrevde felt",
+    "namePlaceholder": "Navn",
+    "phonePlaceholder": "Telefonnummer",
+    "selectCustomer": "Velg kunde"
   },
   "services": {
     "title": "Tjenester",
@@ -811,7 +829,11 @@
     "pastDateError": "Kan ikke opprette avtale i fortiden. Vennligst velg en fremtidig dato.",
     "endDateRequired": "Vennligst velg sluttdato for gjentakende avtale",
     "minOccurrencesError": "Antall gjentagelser må være minst 2",
-    "viewDescription": "Informasjon om avtalen"
+    "viewDescription": "Informasjon om avtalen",
+    "createError": "Kunne ikke opprette avtale",
+    "created": "Avtale opprettet!",
+    "price": "Pris",
+    "selectServiceEmployee": "Velg tjeneste og ansatt"
   },
   "forms": {
     "required": "Påkrevd",
@@ -994,5 +1016,18 @@
       "title": "Åpningstider",
       "description": "Administrer når salongen din er åpen for booking"
     }
+  },
+  "quickBooking": {
+    "title": "Hurtigbooking",
+    "confirm": "Bekreft",
+    "confirmBooking": "Bekreft booking",
+    "customer": "Kunde",
+    "dateTime": "Dato og tid",
+    "existingCustomer": "Eksisterende kunde",
+    "newCustomer": "Ny kunde",
+    "searchCustomer": "Søk kunde",
+    "searchPlaceholder": "Søk etter navn eller telefon…",
+    "service": "Tjeneste",
+    "summary": "Oppsummering"
   }
 }

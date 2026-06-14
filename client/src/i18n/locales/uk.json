@@ -32,7 +32,8 @@
     "statusDistribution": "Розподіл статусів",
     "monthlyCalendar": "Місячний календар",
     "cancelled": "Скасовано",
-    "appointments": "Зустрічі"
+    "appointments": "Зустрічі",
+    "quickBooking": "Швидке бронювання"
   },
   "nav": {
     "dashboard": "Панель управління",
@@ -132,7 +133,11 @@
     "phoneNumber": "Номер телефону",
     "service": "Послуга",
     "preferredBarber": "Бажаний перукар (необов'язково)",
-    "priority": "Пріоритет",
+    "priority": {
+      "normal": "Звичайний",
+      "urgent": "Терміново",
+      "vip": "VIP"
+    },
     "priorityReason": "Причина пріоритету",
     "priorityReasonRequired": "Причина пріоритету *",
     "priorityReasonPlaceholder": "Наприклад: Постійний клієнт, особлива подія, тощо",
@@ -194,7 +199,8 @@
     "busy": "Зайнято",
     "clickAddDescription": "Натисніть \"Додати клієнта\" для реєстрації walk-in клієнтів",
     "addedAt": "Додано о",
-    "startedAt": "Розпочато о"
+    "startedAt": "Розпочато о",
+    "noData": "Нікого в черзі"
   },
   "pos": {
     "title": "Точка продажу (POS)",
@@ -289,7 +295,10 @@
     "close": "Закрити",
     "simpleMode": "Простий режим",
     "advancedMode": "Розширений режим",
-    "menu": "Меню"
+    "menu": "Меню",
+    "back": "Назад",
+    "next": "Далі",
+    "creating": "Створення…"
   },
   "onboarding": {
     "welcome": "Ласкаво просимо до Stylora",
@@ -339,7 +348,9 @@
       "email": "Електронна пошта",
       "emailPlaceholder": "info@salon.no",
       "emailRequired": "Електронна пошта обов'язкова",
-      "emailInvalid": "Недійсна адреса електронної пошти"
+      "emailInvalid": "Недійсна адреса електронної пошти",
+      "subdomainMaxLength": "Піддомен не може бути довшим за 63 символи",
+      "subdomainMustHaveLetter": "Піддомен повинен містити хоча б одну літеру"
     },
     "ownerAccount": {
       "fullName": "Повне ім'я",
@@ -654,7 +665,14 @@
       "messagePlaceholder": "Напишіть своє повідомлення тут...",
       "sendButton": "Надіслати SMS",
       "cancelButton": "Скасувати"
-    }
+    },
+    "createError": "Не вдалося створити клієнта",
+    "created": "Клієнта створено!",
+    "emailPlaceholder": "Емейл (необов'язково)",
+    "fillRequired": "Заповніть обов'язкові поля",
+    "namePlaceholder": "Ім'я",
+    "phonePlaceholder": "Номер телефону",
+    "selectCustomer": "Виберіть клієнта"
   },
   "services": {
     "title": "Послуги",
@@ -811,7 +829,11 @@
     "pastDateError": "Неможливо створити зустріч у минулому. Будь ласка, виберіть майбутню дату.",
     "endDateRequired": "Будь ласка, виберіть дату завершення для повторюваної зустрічі",
     "minOccurrencesError": "Кількість повторень має бути не менше 2",
-    "viewDescription": "Інформація про зустріч"
+    "viewDescription": "Інформація про зустріч",
+    "createError": "Не вдалося створити запис",
+    "created": "Запис створено!",
+    "price": "Ціна",
+    "selectServiceEmployee": "Виберіть послугу та працівника"
   },
   "forms": {
     "required": "Обов'язково",
@@ -994,5 +1016,18 @@
       "title": "Години роботи",
       "description": "Керуйте, коли ваш салон відкритий для бронювання"
     }
+  },
+  "quickBooking": {
+    "title": "Швидке бронювання",
+    "confirm": "Підтвердити",
+    "confirmBooking": "Підтвердити бронювання",
+    "customer": "Клієнт",
+    "dateTime": "Дата і час",
+    "existingCustomer": "Існуючий клієнт",
+    "newCustomer": "Новий клієнт",
+    "searchCustomer": "Пошук клієнта",
+    "searchPlaceholder": "Пошук за іменем або телефоном…",
+    "service": "Послуга",
+    "summary": "Підсумок"
   }
 }

@@ -32,7 +32,8 @@
     "statusDistribution": "توزيع الحالات",
     "monthlyCalendar": "التقويم الشهري",
     "cancelled": "ملغى",
-    "appointments": "المواعيد"
+    "appointments": "المواعيد",
+    "quickBooking": "حجز سريع"
   },
   "nav": {
     "dashboard": "لوحة التحكم",
@@ -132,7 +133,11 @@
     "phoneNumber": "رقم الهاتف",
     "service": "الخدمة",
     "preferredBarber": "الحلاق المفضل (اختياري)",
-    "priority": "الأولوية",
+    "priority": {
+      "normal": "عادي",
+      "urgent": "عاجل",
+      "vip": "VIP"
+    },
     "priorityReason": "سبب الأولوية",
     "priorityReasonRequired": "سبب الأولوية *",
     "priorityReasonPlaceholder": "مثلاً: عميل دائم، مناسبة خاصة، إلخ",
@@ -194,7 +199,8 @@
     "busy": "مشغول",
     "clickAddDescription": "انقر \"إضافة عميل\" لتسجيل عملاء walk-in",
     "addedAt": "أُضيف في",
-    "startedAt": "بدأ في"
+    "startedAt": "بدأ في",
+    "noData": "لا أحد في القائمة"
   },
   "pos": {
     "title": "نقطة البيع (POS)",
@@ -289,7 +295,10 @@
     "close": "إغلاق",
     "simpleMode": "الوضع البسيط",
     "advancedMode": "الوضع المتقدم",
-    "menu": "القائمة"
+    "menu": "القائمة",
+    "back": "رجوع",
+    "next": "التالي",
+    "creating": "جارٍ الإنشاء…"
   },
   "onboarding": {
     "welcome": "مرحباً في Stylora",
@@ -339,7 +348,9 @@
       "email": "البريد الإلكتروني",
       "emailPlaceholder": "info@salon.no",
       "emailRequired": "البريد الإلكتروني مطلوب",
-      "emailInvalid": "بريد إلكتروني غير صالح"
+      "emailInvalid": "بريد إلكتروني غير صالح",
+      "subdomainMaxLength": "لا يمكن أن يتجاوز النطاق الفرعي 63 حرفًا",
+      "subdomainMustHaveLetter": "يجب أن يحتوي النطاق الفرعي على حرف واحد على الأقل"
     },
     "ownerAccount": {
       "fullName": "الاسم الكامل",
@@ -654,7 +665,14 @@
       "messagePlaceholder": "اكتب رسالتك هنا...",
       "sendButton": "إرسال رسالة قصيرة",
       "cancelButton": "إلغاء"
-    }
+    },
+    "createError": "تعذّر إنشاء العميل",
+    "created": "تم إنشاء العميل!",
+    "emailPlaceholder": "البريد الإلكتروني (اختياري)",
+    "fillRequired": "املأ الحقول المطلوبة",
+    "namePlaceholder": "الاسم",
+    "phonePlaceholder": "رقم الهاتف",
+    "selectCustomer": "اختر العميل"
   },
   "services": {
     "title": "الخدمات",
@@ -811,7 +829,11 @@
     "pastDateError": "لا يمكن إنشاء موعد في الماضي. يرجى اختيار تاريخ مستقبلي.",
     "endDateRequired": "يرجى تحديد تاريخ الانتهاء للموعد المتكرر",
     "minOccurrencesError": "يجب أن يكون عدد التكرارات 2 على الأقل",
-    "viewDescription": "معلومات عن الموعد"
+    "viewDescription": "معلومات عن الموعد",
+    "createError": "تعذّر إنشاء الموعد",
+    "created": "تم إنشاء الموعد!",
+    "price": "السعر",
+    "selectServiceEmployee": "اختر الخدمة والموظف"
   },
   "forms": {
     "required": "مطلوب",
@@ -994,5 +1016,18 @@
       "title": "ساعات العمل",
       "description": "إدارة مواعيد فتح صالونك للحجز"
     }
+  },
+  "quickBooking": {
+    "title": "حجز سريع",
+    "confirm": "تأكيد",
+    "confirmBooking": "تأكيد الحجز",
+    "customer": "العميل",
+    "dateTime": "التاريخ والوقت",
+    "existingCustomer": "عميل حالي",
+    "newCustomer": "عميل جديد",
+    "searchCustomer": "بحث عن عميل",
+    "searchPlaceholder": "ابحث بالاسم أو الهاتف…",
+    "service": "الخدمة",
+    "summary": "الملخص"
   }
 }

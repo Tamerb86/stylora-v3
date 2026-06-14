@@ -32,7 +32,8 @@
     "statusDistribution": "Status Distribution",
     "monthlyCalendar": "Monthly Calendar",
     "cancelled": "Cancelled",
-    "appointments": "Appointments"
+    "appointments": "Appointments",
+    "quickBooking": "Quick Booking"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -132,7 +133,11 @@
     "phoneNumber": "Phone Number",
     "service": "Service",
     "preferredBarber": "Preferred Barber (optional)",
-    "priority": "Priority",
+    "priority": {
+      "normal": "Normal",
+      "urgent": "Urgent",
+      "vip": "VIP"
+    },
     "priorityReason": "Priority Reason",
     "priorityReasonRequired": "Priority Reason *",
     "priorityReasonPlaceholder": "E.g: Regular customer, special occasion, etc.",
@@ -194,7 +199,8 @@
     "busy": "Busy",
     "clickAddDescription": "Click \"Add Customer\" to register walk-in customers",
     "addedAt": "Added at",
-    "startedAt": "Started at"
+    "startedAt": "Started at",
+    "noData": "No one in the queue"
   },
   "pos": {
     "title": "Point of Sale (POS)",
@@ -289,7 +295,10 @@
     "close": "Close",
     "simpleMode": "Simple Mode",
     "advancedMode": "Advanced Mode",
-    "menu": "Menu"
+    "menu": "Menu",
+    "back": "Back",
+    "next": "Next",
+    "creating": "Creating…"
   },
   "onboarding": {
     "welcome": "Welcome to Stylora",
@@ -339,7 +348,9 @@
       "email": "Email",
       "emailPlaceholder": "info@salon.no",
       "emailRequired": "Email is required",
-      "emailInvalid": "Invalid email address"
+      "emailInvalid": "Invalid email address",
+      "subdomainMaxLength": "Subdomain cannot be longer than 63 characters",
+      "subdomainMustHaveLetter": "Subdomain must contain at least one letter"
     },
     "ownerAccount": {
       "fullName": "Full Name",
@@ -654,7 +665,14 @@
       "messagePlaceholder": "Write your message here...",
       "sendButton": "Send SMS",
       "cancelButton": "Cancel"
-    }
+    },
+    "createError": "Could not create customer",
+    "created": "Customer created!",
+    "emailPlaceholder": "Email (optional)",
+    "fillRequired": "Fill in required fields",
+    "namePlaceholder": "Name",
+    "phonePlaceholder": "Phone number",
+    "selectCustomer": "Select customer"
   },
   "services": {
     "title": "Services",
@@ -811,7 +829,11 @@
       "existingTime": "Existing Time",
       "confirmButton": "OK, I understand",
       "selectDifferentTime": "Please select a different time or employee to avoid double booking."
-    }
+    },
+    "createError": "Could not create appointment",
+    "created": "Appointment created!",
+    "price": "Price",
+    "selectServiceEmployee": "Select service and employee"
   },
   "forms": {
     "required": "Required",
@@ -994,5 +1016,18 @@
       "title": "Business Hours",
       "description": "Manage when your salon is open for booking"
     }
+  },
+  "quickBooking": {
+    "title": "Quick Booking",
+    "confirm": "Confirm",
+    "confirmBooking": "Confirm booking",
+    "customer": "Customer",
+    "dateTime": "Date and time",
+    "existingCustomer": "Existing customer",
+    "newCustomer": "New customer",
+    "searchCustomer": "Search customer",
+    "searchPlaceholder": "Search by name or phone…",
+    "service": "Service",
+    "summary": "Summary"
   }
 }
