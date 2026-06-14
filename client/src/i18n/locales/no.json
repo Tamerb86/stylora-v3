@@ -123,7 +123,10 @@
       "myLeaves": "Administrer dine permisjoner",
       "leaveApprovals": "Godkjenn ansattes permisjoner",
       "salonHolidays": "Administrer helligdager og stengedager"
-    }
+    },
+    "sectionPayments": "Betalinger",
+    "sectionReports": "Rapporter",
+    "sectionSettings": "Innstillinger"
   },
   "walkInQueue": {
     "title": "Walk-in Kø",
@@ -4163,5 +4166,12 @@
     "previous": "Forrige",
     "page": "Side {{page}}",
     "next": "Neste"
+  },
+  "footer": {
+    "allRightsReserved": "Alle rettigheter reservert.",
+    "privacy": "Personvernerklæring",
+    "terms": "Vilkår for bruk",
+    "about": "Om oss",
+    "contact": "Kontakt"
   }
 }

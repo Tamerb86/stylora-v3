@@ -123,7 +123,10 @@
       "myLeaves": "Manage your leaves",
       "leaveApprovals": "Approve employee leaves",
       "salonHolidays": "Manage holidays and closure days"
-    }
+    },
+    "sectionPayments": "Payments",
+    "sectionReports": "Reports",
+    "sectionSettings": "Settings"
   },
   "walkInQueue": {
     "title": "Walk-in Queue",
@@ -4163,5 +4166,12 @@
     "previous": "Previous",
     "page": "Page {{page}}",
     "next": "Next"
+  },
+  "footer": {
+    "allRightsReserved": "All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use",
+    "about": "About Us",
+    "contact": "Contact"
   }
 }

@@ -123,7 +123,10 @@
       "myLeaves": "إدارة إجازاتك",
       "leaveApprovals": "الموافقة على إجازات الموظفين",
       "salonHolidays": "إدارة العطلات وأيام الإغلاق"
-    }
+    },
+    "sectionPayments": "المدفوعات",
+    "sectionReports": "التقارير",
+    "sectionSettings": "الإعدادات"
   },
   "walkInQueue": {
     "title": "قائمة الانتظار",
@@ -4163,5 +4166,12 @@
     "previous": "السابق",
     "page": "صفحة {{page}}",
     "next": "التالي"
+  },
+  "footer": {
+    "allRightsReserved": "جميع الحقوق محفوظة.",
+    "privacy": "سياسة الخصوصية",
+    "terms": "شروط الاستخدام",
+    "about": "من نحن",
+    "contact": "اتصل بنا"
   }
 }

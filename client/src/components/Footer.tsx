@@ -1,6 +1,8 @@
 import { Link } from "wouter";
+import { useTranslation } from "react-i18next";
 
 export default function Footer() {
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -17,7 +19,7 @@ export default function Footer() {
               © {currentYear} Nexify CRM Systems AS (Org.nr. 936 300 278)
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              Alle rettigheter reservert.
+              {t("footer.allRightsReserved")}
             </p>
           </div>
           <div className="flex flex-wrap justify-center gap-6 text-sm">
@@ -25,19 +27,19 @@ export default function Footer() {
               href="/privacy"
               className="hover:text-white transition-colors"
             >
-              Personvernerklæring
+              {t("footer.privacy")}
             </Link>
             <Link href="/terms" className="hover:text-white transition-colors">
-              Vilkår for bruk
+              {t("footer.terms")}
             </Link>
             <Link href="/about" className="hover:text-white transition-colors">
-              Om oss
+              {t("footer.about")}
             </Link>
             <Link
               href="/contact"
               className="hover:text-white transition-colors"
             >
-              Kontakt
+              {t("footer.contact")}
             </Link>
           </div>
         </div>

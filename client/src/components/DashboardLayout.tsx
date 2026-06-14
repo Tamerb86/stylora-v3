@@ -895,7 +895,7 @@ function DashboardLayoutContent({
                   >
                     <span className="flex items-center gap-1.5">
                       <Wallet className="h-3.5 w-3.5" />
-                      Betalinger
+                      {t("nav.sectionPayments")}
                     </span>
                     <ChevronDown
                       className={`h-3 w-3 transition-transform duration-200 ${isPaymentsExpanded ? "rotate-0" : "-rotate-90"}`}
@@ -960,7 +960,7 @@ function DashboardLayoutContent({
                   >
                     <span className="flex items-center gap-1.5">
                       <FileText className="h-3.5 w-3.5" />
-                      Rapporter
+                      {t("nav.sectionReports")}
                     </span>
                     <ChevronDown
                       className={`h-3 w-3 transition-transform duration-200 ${isReportsExpanded ? "rotate-0" : "-rotate-90"}`}
@@ -1028,7 +1028,7 @@ function DashboardLayoutContent({
                   >
                     <span className="flex items-center gap-1.5">
                       <Settings className="h-3.5 w-3.5" />
-                      Innstillinger
+                      {t("nav.sectionSettings")}
                     </span>
                     <ChevronDown
                       className={`h-3 w-3 transition-transform duration-200 ${isSettingsExpanded ? "rotate-0" : "-rotate-90"}`}
