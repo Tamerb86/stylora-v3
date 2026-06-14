@@ -315,7 +315,7 @@ export async function createOrderWithItems(orderData: any, items: any[]) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const { orders, orderItems } = await import("../drizzle/schema");
+  const { orders, orderItems, products } = await import("../drizzle/schema");
 
   return await db.transaction(async (tx) => {
     // 1. Create the order
@@ -330,6 +330,27 @@ export async function createOrderWithItems(orderData: any, items: any[]) {
 
     if (itemsWithOrderId.length > 0) {
       await tx.insert(orderItems).values(itemsWithOrderId);
+    }
+
+    // 2b. Decrement product stock for product line items (inside the same
+    // transaction). Previously POS sales never touched stock, so stockQuantity
+    // and low-stock reporting were fiction. Stock may go negative — that is a
+    // deliberate "oversold" signal rather than blocking a sale for tenants who
+    // don't actively manage inventory.
+    for (const item of items) {
+      if (item.itemType === "product" && item.itemId) {
+        const qty = Number(item.quantity) || 0;
+        if (qty <= 0) continue;
+        await tx
+          .update(products)
+          .set({ stockQuantity: sql`${products.stockQuantity} - ${qty}` })
+          .where(
+            and(
+              eq(products.id, item.itemId),
+              eq(products.tenantId, orderData.tenantId)
+            )
+          );
+      }
     }
 
     // 3. Fetch created order and items
