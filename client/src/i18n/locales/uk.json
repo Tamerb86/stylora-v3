@@ -181,7 +181,7 @@
     "errorService": "Будь ласка, оберіть послугу",
     "errorPriorityReason": "Будь ласка, вкажіть причину пріоритету",
     "confirmStart": "Ви впевнені, що хочете розпочати послугу для цього клієнта?",
-    "confirmRemove": "Ви впевнені, що хочете видалити {name} з черги?",
+    "confirmRemove": "Ви впевнені, що хочете видалити {{name}} з черги?",
     "confirmComplete": "Ви впевнені, що послугу завершено? Клієнта буде надіслано до каси.",
     "smsNotification": "Функція SMS-повідомлень незабаром",
     "availableStaff": "доступні",
@@ -230,8 +230,8 @@
     "processingPayment": "Обробка оплати...",
     "clearCart": "Очистити кошик",
     "backToDashboard": "Повернутися до панелі",
-    "customerSelected": "Клієнта вибрано: {name}",
-    "employeeSelected": "Працівника вибрано: {name}",
+    "customerSelected": "Клієнта вибрано: {{name}}",
+    "employeeSelected": "Працівника вибрано: {{name}}",
     "itemAdded": "Додано до кошика",
     "itemRemoved": "Видалено з кошика",
     "cartCleared": "Кошик очищено",
@@ -390,7 +390,7 @@
       "manageCustomers": "Керувати клієнтами",
       "accessReports": "Доступ до звітів",
       "addEmployee": "Додати працівника",
-      "employeeList": "Працівники ({count}/10)",
+      "employeeList": "Працівники ({{count}}/10)",
       "maxEmployeesReached": "Максимум 10 працівників",
       "canAddLater": "Ви можете додати працівників пізніше з панелі керування",
       "employeeAdded": "Працівника додано",
@@ -416,7 +416,7 @@
       "description": "Опис (необов'язково)",
       "descriptionPlaceholder": "Короткий опис послуги",
       "addService": "Додати послугу",
-      "serviceList": "Послуги ({count}/20)",
+      "serviceList": "Послуги ({{count}}/20)",
       "maxServicesReached": "Максимум 20 послуг",
       "serviceAdded": "Послугу додано",
       "serviceRemoved": "Послугу видалено",
@@ -469,8 +469,8 @@
       "saturdayHours": "Субота: 10:00 - 16:00",
       "sundayHours": "Неділя: Вихідний",
       "noEmployees": "Працівників не додано",
-      "employeeCount": "{count} працівник(ів)",
-      "serviceCount": "{count} послуг(и)",
+      "employeeCount": "{{count}} працівник(ів)",
+      "serviceCount": "{{count}} послуг(и)",
       "stripeEnabled": "Stripe: ✓ Увімкнено",
       "stripeDisabled": "Stripe: ✗ Вимкнено",
       "vippsEnabled": "Vipps: ✓ Увімкнено",
@@ -488,9 +488,9 @@
     },
     "messages": {
       "accountCreated": "Ваш обліковий запис створено! 🎉",
-      "welcomeEmailSent": "Вітальний лист надіслано на {email}",
+      "welcomeEmailSent": "Вітальний лист надіслано на {{email}}",
       "subdomainUnavailable": "Піддомен недоступний",
-      "error": "Сталася помилка: {message}"
+      "error": "Сталася помилка: {{message}}"
     }
   },
   "auth": {
@@ -637,20 +637,20 @@
       "cancel": "Скасувати"
     },
     "bulk": {
-      "selected": "{count} вибрано",
+      "selected": "{{count}} вибрано",
       "delete": "Видалити вибране",
       "sendSMS": "Надіслати SMS",
       "clearSelection": "Очистити вибір"
     },
     "deleteDialog": {
       "title": "Підтвердити видалення",
-      "message": "Ви впевнені, що хочете видалити {count} клієнт(ів)? Цю дію неможливо скасувати.",
+      "message": "Ви впевнені, що хочете видалити {{count}} клієнт(ів)? Цю дію неможливо скасувати.",
       "confirmButton": "Видалити",
       "cancelButton": "Скасувати"
     },
     "smsDialog": {
       "title": "Надіслати масову SMS",
-      "message": "Надіслати повідомлення {count} клієнт(ам)",
+      "message": "Надіслати повідомлення {{count}} клієнт(ам)",
       "messagePlaceholder": "Напишіть своє повідомлення тут...",
       "sendButton": "Надіслати SMS",
       "cancelButton": "Скасувати"
@@ -702,7 +702,7 @@
     },
     "deleteDialog": {
       "title": "Видалити послугу",
-      "message": "Ви впевнені, що хочете видалити '{name}'? Цю дію неможливо скасувати.",
+      "message": "Ви впевнені, що хочете видалити '{{name}}'? Цю дію неможливо скасувати.",
       "confirmButton": "Видалити",
       "cancelButton": "Скасувати"
     }
@@ -779,7 +779,7 @@
       "description": "Підтвердити скасування та повернення коштів",
       "reasonRequired": "Будь ласка, вкажіть причину скасування",
       "originalAmount": "Початкова сума:",
-      "cancellationFee": "Плата за скасування ({percent}%):",
+      "cancellationFee": "Плата за скасування ({{percent}}%):",
       "refund": "Повернення:",
       "lateCancellationWarning": "⚠️ Пізнє скасування - застосовується плата",
       "noPayment": "Для цієї зустрічі не зареєстровано платіж."
@@ -799,8 +799,8 @@
     "notesPlaceholder": "Необов'язкові примітки...",
     "endAfter": "Завершити після",
     "occurrenceCount": "Кількість",
-    "recurringPreviewDate": "Зустрічі будуть створені з {start} до {end}",
-    "recurringPreviewCount": "Буде створено {count} зустрічей",
+    "recurringPreviewDate": "Зустрічі будуть створені з {{start}} до {{end}}",
+    "recurringPreviewCount": "Буде створено {{count}} зустрічей",
     "selectEndOption": "Виберіть дату завершення або кількість повторень",
     "createRecurringButton": "Створити повторювані зустрічі",
     "recurringSeriesBadge": "Частина повторюваної серії",
@@ -852,10 +852,10 @@
     "invalidDate": "Недійсна дата",
     "pastDate": "Не можна вибрати минулу дату",
     "futureDate": "Не можна вибрати майбутню дату",
-    "minLength": "Має бути щонайменше {min} символів",
-    "maxLength": "Не може бути більше {max} символів",
-    "minValue": "Має бути щонайменше {min}",
-    "maxValue": "Не може бути більше {max}",
+    "minLength": "Має бути щонайменше {{min}} символів",
+    "maxLength": "Не може бути більше {{max}} символів",
+    "minValue": "Має бути щонайменше {{min}}",
+    "maxValue": "Не може бути більше {{max}}",
     "allFieldsRequired": "Будь ласка, заповніть усі обов'язкові поля",
     "noTenantAccess": "Немає доступу до орендаря",
     "tenantNotFound": "Орендаря не знайдено",
@@ -891,33 +891,33 @@
   },
   "toasts": {
     "success": {
-      "created": "{item} створено!",
-      "updated": "{item} оновлено!",
-      "deleted": "{item} видалено!",
+      "created": "{{item}} створено!",
+      "updated": "{{item}} оновлено!",
+      "deleted": "{{item}} видалено!",
       "saved": "Збережено!",
       "sent": "Надіслано!",
       "customerCreated": "Клієнта створено!",
       "customerDeleted": "Клієнта видалено!",
-      "customersDeleted": "{count} клієнт(ів) видалено!",
-      "smsSent": "SMS надіслано {count} клієнт(ам)!",
+      "customersDeleted": "{{count}} клієнт(ів) видалено!",
+      "smsSent": "SMS надіслано {{count}} клієнт(ам)!",
       "serviceCreated": "Послугу створено!",
       "serviceUpdated": "Послугу оновлено!",
       "serviceDeleted": "Послугу видалено!",
       "appointmentCreated": "Запис створено!",
-      "appointmentsCreated": "{count} повторюваних записів створено!",
+      "appointmentsCreated": "{{count}} повторюваних записів створено!",
       "appointmentUpdated": "Запис оновлено!",
       "appointmentCancelled": "Запис скасовано!",
       "appointmentRescheduled": "Запис перенесено!",
       "statusUpdated": "Статус оновлено!",
-      "refundProcessed": "Запис скасовано! Повернення {amount} крон оброблено."
+      "refundProcessed": "Запис скасовано! Повернення {{amount}} крон оброблено."
     },
     "error": {
-      "generic": "Помилка: {message}",
-      "createFailed": "Не вдалося створити {item}",
-      "updateFailed": "Не вдалося оновити {item}",
-      "deleteFailed": "Не вдалося видалити {item}",
-      "loadFailed": "Не вдалося завантажити {item}",
-      "someFailed": "Не вдалося видалити деякі {items}",
+      "generic": "Помилка: {{message}}",
+      "createFailed": "Не вдалося створити {{item}}",
+      "updateFailed": "Не вдалося оновити {{item}}",
+      "deleteFailed": "Не вдалося видалити {{item}}",
+      "loadFailed": "Не вдалося завантажити {{item}}",
+      "someFailed": "Не вдалося видалити деякі {{items}}",
       "customerCreateFailed": "Помилка створення клієнта",
       "customerDeleteFailed": "Помилка видалення",
       "serviceCreateFailed": "Помилка створення послуги",
@@ -931,7 +931,7 @@
       "refundFailed": "Запис скасовано, але повернення не вдалося"
     },
     "warning": {
-      "refundFailed": "Запис скасовано, але повернення не вдалося: {error}"
+      "refundFailed": "Запис скасовано, але повернення не вдалося: {{error}}"
     }
   },
   "settings": {
@@ -984,9 +984,9 @@
       "reminderHoursDesc": "Скільки годин перед записом має бути надіслано нагадування",
       "messageTemplates": "Шаблони повідомлень",
       "confirmationMessage": "Повідомлення про підтвердження",
-      "confirmationPlaceholder": "Привіт {name}, ваш запис підтверджено на {date} о {time}.",
+      "confirmationPlaceholder": "Привіт {{name}}, ваш запис підтверджено на {{date}} о {{time}}.",
       "reminderMessage": "Повідомлення-нагадування",
-      "reminderPlaceholder": "Привіт {name}, нагадування про ваш запис завтра о {time}.",
+      "reminderPlaceholder": "Привіт {{name}}, нагадування про ваш запис завтра о {{time}}.",
       "saveNotifications": "Зберегти сповіщення",
       "saved": "Налаштування сповіщень збережено!"
     },

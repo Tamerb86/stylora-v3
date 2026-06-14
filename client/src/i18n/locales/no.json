@@ -181,7 +181,7 @@
     "errorService": "Vennligst velg en tjeneste",
     "errorPriorityReason": "Vennligst oppgi grunn for prioritering",
     "confirmStart": "Er du sikker på at du vil starte tjenesten for denne kunden?",
-    "confirmRemove": "Er du sikker på at du vil fjerne {name} fra køen?",
+    "confirmRemove": "Er du sikker på at du vil fjerne {{name}} fra køen?",
     "confirmComplete": "Er du sikker på at tjenesten er fullført? Kunden vil bli sendt til kassen.",
     "smsNotification": "SMS-varsel funksjon kommer snart",
     "availableStaff": "tilgjengelige",
@@ -230,8 +230,8 @@
     "processingPayment": "Behandler betaling...",
     "clearCart": "Tøm kurv",
     "backToDashboard": "Tilbake til dashbord",
-    "customerSelected": "Kunde valgt: {name}",
-    "employeeSelected": "Ansatt valgt: {name}",
+    "customerSelected": "Kunde valgt: {{name}}",
+    "employeeSelected": "Ansatt valgt: {{name}}",
     "itemAdded": "Lagt til i handlekurv",
     "itemRemoved": "Fjernet fra handlekurv",
     "cartCleared": "Handlekurven er tømt",
@@ -390,7 +390,7 @@
       "manageCustomers": "Administrer kunder",
       "accessReports": "Tilgang til rapporter",
       "addEmployee": "Legg til ansatt",
-      "employeeList": "Ansatte ({count}/10)",
+      "employeeList": "Ansatte ({{count}}/10)",
       "maxEmployeesReached": "Maksimum 10 ansatte",
       "canAddLater": "Du kan legge til ansatte senere fra dashbordet",
       "employeeAdded": "Ansatt lagt til",
@@ -416,7 +416,7 @@
       "description": "Beskrivelse (valgfritt)",
       "descriptionPlaceholder": "Kort beskrivelse av tjenesten",
       "addService": "Legg til tjeneste",
-      "serviceList": "Tjenester ({count}/20)",
+      "serviceList": "Tjenester ({{count}}/20)",
       "maxServicesReached": "Maksimum 20 tjenester",
       "serviceAdded": "Tjeneste lagt til",
       "serviceRemoved": "Tjeneste fjernet",
@@ -469,8 +469,8 @@
       "saturdayHours": "Lørdag: 10:00 - 16:00",
       "sundayHours": "Søndag: Stengt",
       "noEmployees": "Ingen ansatte lagt til",
-      "employeeCount": "{count} ansatt(e)",
-      "serviceCount": "{count} tjeneste(r)",
+      "employeeCount": "{{count}} ansatt(e)",
+      "serviceCount": "{{count}} tjeneste(r)",
       "stripeEnabled": "Stripe: ✓ Aktivert",
       "stripeDisabled": "Stripe: ✗ Deaktivert",
       "vippsEnabled": "Vipps: ✓ Aktivert",
@@ -488,9 +488,9 @@
     },
     "messages": {
       "accountCreated": "Kontoen din er opprettet! 🎉",
-      "welcomeEmailSent": "Velkomst-e-post sendt til {email}",
+      "welcomeEmailSent": "Velkomst-e-post sendt til {{email}}",
       "subdomainUnavailable": "Underdomenet er ikke tilgjengelig",
-      "error": "En feil oppstod: {message}"
+      "error": "En feil oppstod: {{message}}"
     }
   },
   "auth": {
@@ -637,20 +637,20 @@
       "cancel": "Avbryt"
     },
     "bulk": {
-      "selected": "{count} valgt",
+      "selected": "{{count}} valgt",
       "delete": "Slett valgte",
       "sendSMS": "Send SMS",
       "clearSelection": "Tøm valg"
     },
     "deleteDialog": {
       "title": "Bekreft sletting",
-      "message": "Er du sikker på at du vil slette {count} kunde(r)? Denne handlingen kan ikke angres.",
+      "message": "Er du sikker på at du vil slette {{count}} kunde(r)? Denne handlingen kan ikke angres.",
       "confirmButton": "Slett",
       "cancelButton": "Avbryt"
     },
     "smsDialog": {
       "title": "Send bulk SMS",
-      "message": "Send melding til {count} kunde(r)",
+      "message": "Send melding til {{count}} kunde(r)",
       "messagePlaceholder": "Skriv din melding her...",
       "sendButton": "Send SMS",
       "cancelButton": "Avbryt"
@@ -702,7 +702,7 @@
     },
     "deleteDialog": {
       "title": "Slett tjeneste",
-      "message": "Er du sikker på at du vil slette '{name}'? Denne handlingen kan ikke angres.",
+      "message": "Er du sikker på at du vil slette '{{name}}'? Denne handlingen kan ikke angres.",
       "confirmButton": "Slett",
       "cancelButton": "Avbryt"
     }
@@ -779,7 +779,7 @@
       "description": "Bekreft avbestilling og refusjon",
       "reasonRequired": "Vennligst oppgi en grunn for avbestillingen",
       "originalAmount": "Opprinnelig beløp:",
-      "cancellationFee": "Avbestillingsgebyr ({percent}%):",
+      "cancellationFee": "Avbestillingsgebyr ({{percent}}%):",
       "refund": "Refusjon:",
       "lateCancellationWarning": "⚠️ Sen avbestilling - gebyr påligger",
       "noPayment": "Ingen betaling registrert for denne avtalen."
@@ -799,8 +799,8 @@
     "notesPlaceholder": "Valgfrie notater...",
     "endAfter": "Avslutt etter",
     "occurrenceCount": "Antall",
-    "recurringPreviewDate": "Avtaler vil opprettes fra {start} til {end}",
-    "recurringPreviewCount": "{count} avtaler vil bli opprettet",
+    "recurringPreviewDate": "Avtaler vil opprettes fra {{start}} til {{end}}",
+    "recurringPreviewCount": "{{count}} avtaler vil bli opprettet",
     "selectEndOption": "Velg sluttdato eller antall gjentagelser",
     "createRecurringButton": "Opprett gjentakende avtaler",
     "recurringSeriesBadge": "Del av gjentakende serie",
@@ -852,10 +852,10 @@
     "invalidDate": "Ugyldig dato",
     "pastDate": "Kan ikke velge dato i fortiden",
     "futureDate": "Kan ikke velge fremtidig dato",
-    "minLength": "Må være minst {min} tegn",
-    "maxLength": "Kan ikke være mer enn {max} tegn",
-    "minValue": "Må være minst {min}",
-    "maxValue": "Kan ikke være mer enn {max}",
+    "minLength": "Må være minst {{min}} tegn",
+    "maxLength": "Kan ikke være mer enn {{max}} tegn",
+    "minValue": "Må være minst {{min}}",
+    "maxValue": "Kan ikke være mer enn {{max}}",
     "allFieldsRequired": "Vennligst fyll ut alle obligatoriske felt",
     "noTenantAccess": "Ingen tenant-tilgang",
     "tenantNotFound": "Tenant ikke funnet",
@@ -891,33 +891,33 @@
   },
   "toasts": {
     "success": {
-      "created": "{item} opprettet!",
-      "updated": "{item} oppdatert!",
-      "deleted": "{item} slettet!",
+      "created": "{{item}} opprettet!",
+      "updated": "{{item}} oppdatert!",
+      "deleted": "{{item}} slettet!",
       "saved": "Lagret!",
       "sent": "Sendt!",
       "customerCreated": "Kunde opprettet!",
       "customerDeleted": "Kunde slettet!",
-      "customersDeleted": "{count} kunder slettet!",
-      "smsSent": "SMS sendt til {count} kunder!",
+      "customersDeleted": "{{count}} kunder slettet!",
+      "smsSent": "SMS sendt til {{count}} kunder!",
       "serviceCreated": "Tjeneste opprettet!",
       "serviceUpdated": "Tjeneste oppdatert!",
       "serviceDeleted": "Tjeneste slettet!",
       "appointmentCreated": "Avtale opprettet!",
-      "appointmentsCreated": "{count} gjentakende avtaler opprettet!",
+      "appointmentsCreated": "{{count}} gjentakende avtaler opprettet!",
       "appointmentUpdated": "Avtale oppdatert!",
       "appointmentCancelled": "Avtale avbrutt!",
       "appointmentRescheduled": "Avtale flyttet!",
       "statusUpdated": "Status oppdatert!",
-      "refundProcessed": "Avtale avbrutt! Refusjon på {amount} NOK behandlet."
+      "refundProcessed": "Avtale avbrutt! Refusjon på {{amount}} NOK behandlet."
     },
     "error": {
-      "generic": "Feil: {message}",
-      "createFailed": "Kunne ikke opprette {item}",
-      "updateFailed": "Kunne ikke oppdatere {item}",
-      "deleteFailed": "Kunne ikke slette {item}",
-      "loadFailed": "Kunne ikke laste {item}",
-      "someFailed": "Noen {items} kunne ikke slettes",
+      "generic": "Feil: {{message}}",
+      "createFailed": "Kunne ikke opprette {{item}}",
+      "updateFailed": "Kunne ikke oppdatere {{item}}",
+      "deleteFailed": "Kunne ikke slette {{item}}",
+      "loadFailed": "Kunne ikke laste {{item}}",
+      "someFailed": "Noen {{items}} kunne ikke slettes",
       "customerCreateFailed": "Feil ved oppretting av kunde",
       "customerDeleteFailed": "Feil ved sletting",
       "serviceCreateFailed": "Feil ved oppretting av tjeneste",
@@ -931,7 +931,7 @@
       "refundFailed": "Avtale avbrutt, men refusjon feilet"
     },
     "warning": {
-      "refundFailed": "Avtale avbrutt, men refusjon feilet: {error}"
+      "refundFailed": "Avtale avbrutt, men refusjon feilet: {{error}}"
     }
   },
   "settings": {
@@ -984,9 +984,9 @@
       "reminderHoursDesc": "Hvor mange timer før avtalen skal påminnelse sendes",
       "messageTemplates": "Meldingsmaler",
       "confirmationMessage": "Bekreftelsesmelding",
-      "confirmationPlaceholder": "Hei {navn}, din avtale er bekreftet for {dato} kl {tid}.",
+      "confirmationPlaceholder": "Hei {{navn}}, din avtale er bekreftet for {{dato}} kl {{tid}}.",
       "reminderMessage": "Påminnelsesmelding",
-      "reminderPlaceholder": "Hei {navn}, påminnelse om din avtale i morgen kl {tid}.",
+      "reminderPlaceholder": "Hei {{navn}}, påminnelse om din avtale i morgen kl {{tid}}.",
       "saveNotifications": "Lagre varsler",
       "saved": "Varslingsinnstillinger lagret!"
     },

@@ -181,7 +181,7 @@
     "errorService": "يرجى اختيار خدمة",
     "errorPriorityReason": "يرجى إدخال سبب الأولوية",
     "confirmStart": "هل أنت متأكد من بدء الخدمة لهذا العميل؟",
-    "confirmRemove": "هل أنت متأكد من إزالة {name} من القائمة؟",
+    "confirmRemove": "هل أنت متأكد من إزالة {{name}} من القائمة؟",
     "confirmComplete": "هل أنت متأكد من إنهاء الخدمة؟ سيتم توجيه العميل إلى الكاشير.",
     "smsNotification": "خاصية إشعار SMS قريباً",
     "availableStaff": "متاح",
@@ -230,8 +230,8 @@
     "processingPayment": "جاري معالجة الدفع...",
     "clearCart": "إفراغ السلة",
     "backToDashboard": "العودة إلى لوحة التحكم",
-    "customerSelected": "تم اختيار العميل: {name}",
-    "employeeSelected": "تم اختيار الموظف: {name}",
+    "customerSelected": "تم اختيار العميل: {{name}}",
+    "employeeSelected": "تم اختيار الموظف: {{name}}",
     "itemAdded": "تمت الإضافة إلى السلة",
     "itemRemoved": "تمت الإزالة من السلة",
     "cartCleared": "تم إفراغ سلة التسوق",
@@ -390,7 +390,7 @@
       "manageCustomers": "إدارة العملاء",
       "accessReports": "الوصول إلى التقارير",
       "addEmployee": "إضافة موظف",
-      "employeeList": "الموظفون ({count}/10)",
+      "employeeList": "الموظفون ({{count}}/10)",
       "maxEmployeesReached": "الحد الأقصى 10 موظفين",
       "canAddLater": "يمكنك إضافة الموظفين لاحقاً من لوحة التحكم",
       "employeeAdded": "تم إضافة الموظف",
@@ -416,7 +416,7 @@
       "description": "الوصف (اختياري)",
       "descriptionPlaceholder": "وصف مختصر للخدمة",
       "addService": "إضافة خدمة",
-      "serviceList": "الخدمات ({count}/20)",
+      "serviceList": "الخدمات ({{count}}/20)",
       "maxServicesReached": "الحد الأقصى 20 خدمة",
       "serviceAdded": "تم إضافة الخدمة",
       "serviceRemoved": "تم حذف الخدمة",
@@ -469,8 +469,8 @@
       "saturdayHours": "السبت: 10:00 - 16:00",
       "sundayHours": "الأحد: مغلق",
       "noEmployees": "لم يتم إضافة موظفين",
-      "employeeCount": "{count} موظف",
-      "serviceCount": "{count} خدمة",
+      "employeeCount": "{{count}} موظف",
+      "serviceCount": "{{count}} خدمة",
       "stripeEnabled": "Stripe: ✓ مفعل",
       "stripeDisabled": "Stripe: ✗ غير مفعل",
       "vippsEnabled": "Vipps: ✓ مفعل",
@@ -488,9 +488,9 @@
     },
     "messages": {
       "accountCreated": "تم إنشاء حسابك بنجاح! 🎉",
-      "welcomeEmailSent": "تم إرسال بريد إلكتروني ترحيبي إلى {email}",
+      "welcomeEmailSent": "تم إرسال بريد إلكتروني ترحيبي إلى {{email}}",
       "subdomainUnavailable": "النطاق الفرعي غير متاح",
-      "error": "حدث خطأ: {message}"
+      "error": "حدث خطأ: {{message}}"
     }
   },
   "auth": {
@@ -637,20 +637,20 @@
       "cancel": "إلغاء"
     },
     "bulk": {
-      "selected": "{count} محدد",
+      "selected": "{{count}} محدد",
       "delete": "حذف المحدد",
       "sendSMS": "إرسال رسالة قصيرة",
       "clearSelection": "مسح التحديد"
     },
     "deleteDialog": {
       "title": "تأكيد الحذف",
-      "message": "هل أنت متأكد من حذف {count} عميل؟ لا يمكن التراجع عن هذا الإجراء.",
+      "message": "هل أنت متأكد من حذف {{count}} عميل؟ لا يمكن التراجع عن هذا الإجراء.",
       "confirmButton": "حذف",
       "cancelButton": "إلغاء"
     },
     "smsDialog": {
       "title": "إرسال رسالة قصيرة جماعية",
-      "message": "إرسال رسالة إلى {count} عميل",
+      "message": "إرسال رسالة إلى {{count}} عميل",
       "messagePlaceholder": "اكتب رسالتك هنا...",
       "sendButton": "إرسال رسالة قصيرة",
       "cancelButton": "إلغاء"
@@ -702,7 +702,7 @@
     },
     "deleteDialog": {
       "title": "حذف الخدمة",
-      "message": "هل أنت متأكد من حذف '{name}'؟ لا يمكن التراجع عن هذا الإجراء.",
+      "message": "هل أنت متأكد من حذف '{{name}}'؟ لا يمكن التراجع عن هذا الإجراء.",
       "confirmButton": "حذف",
       "cancelButton": "إلغاء"
     }
@@ -779,7 +779,7 @@
       "description": "تأكيد الإلغاء والاسترداد",
       "reasonRequired": "يرجى تقديم سبب للإلغاء",
       "originalAmount": "المبلغ الأصلي:",
-      "cancellationFee": "رسوم الإلغاء ({percent}%):",
+      "cancellationFee": "رسوم الإلغاء ({{percent}}%):",
       "refund": "الاسترداد:",
       "lateCancellationWarning": "⚠️ إلغاء متأخر - تطبق الرسوم",
       "noPayment": "لم يتم تسجيل دفعة لهذا الموعد."
@@ -799,8 +799,8 @@
     "notesPlaceholder": "ملاحظات اختيارية...",
     "endAfter": "الانتهاء بعد",
     "occurrenceCount": "العدد",
-    "recurringPreviewDate": "سيتم إنشاء المواعيد من {start} إلى {end}",
-    "recurringPreviewCount": "سيتم إنشاء {count} موعد",
+    "recurringPreviewDate": "سيتم إنشاء المواعيد من {{start}} إلى {{end}}",
+    "recurringPreviewCount": "سيتم إنشاء {{count}} موعد",
     "selectEndOption": "حدد تاريخ الانتهاء أو عدد التكرارات",
     "createRecurringButton": "إنشاء مواعيد متكررة",
     "recurringSeriesBadge": "جزء من سلسلة متكررة",
@@ -852,10 +852,10 @@
     "invalidDate": "تاريخ غير صالح",
     "pastDate": "لا يمكن اختيار تاريخ في الماضي",
     "futureDate": "لا يمكن اختيار تاريخ مستقبلي",
-    "minLength": "يجب أن يكون {min} أحرف على الأقل",
-    "maxLength": "لا يمكن أن يكون أكثر من {max} أحرف",
-    "minValue": "يجب أن يكون {min} على الأقل",
-    "maxValue": "لا يمكن أن يكون أكثر من {max}",
+    "minLength": "يجب أن يكون {{min}} أحرف على الأقل",
+    "maxLength": "لا يمكن أن يكون أكثر من {{max}} أحرف",
+    "minValue": "يجب أن يكون {{min}} على الأقل",
+    "maxValue": "لا يمكن أن يكون أكثر من {{max}}",
     "allFieldsRequired": "يرجى ملء جميع الحقول المطلوبة",
     "noTenantAccess": "لا يوجد وصول للمستأجر",
     "tenantNotFound": "المستأجر غير موجود",
@@ -891,33 +891,33 @@
   },
   "toasts": {
     "success": {
-      "created": "تم إنشاء {item}!",
-      "updated": "تم تحديث {item}!",
-      "deleted": "تم حذف {item}!",
+      "created": "تم إنشاء {{item}}!",
+      "updated": "تم تحديث {{item}}!",
+      "deleted": "تم حذف {{item}}!",
       "saved": "تم الحفظ!",
       "sent": "تم الإرسال!",
       "customerCreated": "تم إنشاء العميل!",
       "customerDeleted": "تم حذف العميل!",
-      "customersDeleted": "تم حذف {count} عميل!",
-      "smsSent": "تم إرسال رسالة قصيرة إلى {count} عميل!",
+      "customersDeleted": "تم حذف {{count}} عميل!",
+      "smsSent": "تم إرسال رسالة قصيرة إلى {{count}} عميل!",
       "serviceCreated": "تم إنشاء الخدمة!",
       "serviceUpdated": "تم تحديث الخدمة!",
       "serviceDeleted": "تم حذف الخدمة!",
       "appointmentCreated": "تم إنشاء الموعد!",
-      "appointmentsCreated": "تم إنشاء {count} موعد متكرر!",
+      "appointmentsCreated": "تم إنشاء {{count}} موعد متكرر!",
       "appointmentUpdated": "تم تحديث الموعد!",
       "appointmentCancelled": "تم إلغاء الموعد!",
       "appointmentRescheduled": "تم إعادة جدولة الموعد!",
       "statusUpdated": "تم تحديث الحالة!",
-      "refundProcessed": "تم إلغاء الموعد! تمت معالجة استرداد {amount} كرون."
+      "refundProcessed": "تم إلغاء الموعد! تمت معالجة استرداد {{amount}} كرون."
     },
     "error": {
-      "generic": "خطأ: {message}",
-      "createFailed": "تعذر إنشاء {item}",
-      "updateFailed": "تعذر تحديث {item}",
-      "deleteFailed": "تعذر حذف {item}",
-      "loadFailed": "تعذر تحميل {item}",
-      "someFailed": "تعذر حذف بعض {items}",
+      "generic": "خطأ: {{message}}",
+      "createFailed": "تعذر إنشاء {{item}}",
+      "updateFailed": "تعذر تحديث {{item}}",
+      "deleteFailed": "تعذر حذف {{item}}",
+      "loadFailed": "تعذر تحميل {{item}}",
+      "someFailed": "تعذر حذف بعض {{items}}",
       "customerCreateFailed": "خطأ في إنشاء العميل",
       "customerDeleteFailed": "خطأ في الحذف",
       "serviceCreateFailed": "خطأ في إنشاء الخدمة",
@@ -931,7 +931,7 @@
       "refundFailed": "تم إلغاء الموعد، لكن فشل الاسترداد"
     },
     "warning": {
-      "refundFailed": "تم إلغاء الموعد، لكن فشل الاسترداد: {error}"
+      "refundFailed": "تم إلغاء الموعد، لكن فشل الاسترداد: {{error}}"
     }
   },
   "settings": {
@@ -984,9 +984,9 @@
       "reminderHoursDesc": "كم عدد الساعات قبل الموعد التي يجب إرسال التذكير فيها",
       "messageTemplates": "قوالب الرسائل",
       "confirmationMessage": "رسالة التأكيد",
-      "confirmationPlaceholder": "مرحبًا {name}، تم تأكيد موعدك في {date} الساعة {time}.",
+      "confirmationPlaceholder": "مرحبًا {{name}}، تم تأكيد موعدك في {{date}} الساعة {{time}}.",
       "reminderMessage": "رسالة التذكير",
-      "reminderPlaceholder": "مرحبًا {name}، تذكير بموعدك غدًا الساعة {time}.",
+      "reminderPlaceholder": "مرحبًا {{name}}، تذكير بموعدك غدًا الساعة {{time}}.",
       "saveNotifications": "حفظ الإشعارات",
       "saved": "تم حفظ إعدادات الإشعارات!"
     },

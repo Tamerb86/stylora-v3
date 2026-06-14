@@ -181,7 +181,7 @@
     "errorService": "Please select a service",
     "errorPriorityReason": "Please enter priority reason",
     "confirmStart": "Are you sure you want to start the service for this customer?",
-    "confirmRemove": "Are you sure you want to remove {name} from the queue?",
+    "confirmRemove": "Are you sure you want to remove {{name}} from the queue?",
     "confirmComplete": "Are you sure the service is complete? Customer will be sent to checkout.",
     "smsNotification": "SMS notification feature coming soon",
     "availableStaff": "available",
@@ -229,8 +229,8 @@
     "processing": "Processing...",
     "clearCart": "Clear Cart",
     "backToDashboard": "Back to Dashboard",
-    "customerSelected": "Customer selected: {name}",
-    "employeeSelected": "Employee selected: {name}",
+    "customerSelected": "Customer selected: {{name}}",
+    "employeeSelected": "Employee selected: {{name}}",
     "itemAdded": "Added to cart",
     "itemRemoved": "Removed from cart",
     "cartCleared": "Shopping cart cleared",
@@ -391,7 +391,7 @@
       "manageCustomers": "Manage Customers",
       "accessReports": "Access Reports",
       "addEmployee": "Add Employee",
-      "employeeList": "Employees ({count}/10)",
+      "employeeList": "Employees ({{count}}/10)",
       "maxEmployeesReached": "Maximum 10 employees",
       "canAddLater": "You can add employees later from the dashboard",
       "employeeAdded": "Employee added",
@@ -416,7 +416,7 @@
       "description": "Description (optional)",
       "descriptionPlaceholder": "Short description of the service",
       "addService": "Add Service",
-      "serviceList": "Services ({count}/20)",
+      "serviceList": "Services ({{count}}/20)",
       "maxServicesReached": "Maximum 20 services",
       "serviceAdded": "Service added",
       "serviceRemoved": "Service removed",
@@ -469,8 +469,8 @@
       "saturdayHours": "Saturday: 10:00 - 16:00",
       "sundayHours": "Sunday: Closed",
       "noEmployees": "No employees added",
-      "employeeCount": "{count} employee(s)",
-      "serviceCount": "{count} service(s)",
+      "employeeCount": "{{count}} employee(s)",
+      "serviceCount": "{{count}} service(s)",
       "stripeEnabled": "Stripe: ✓ Enabled",
       "stripeDisabled": "Stripe: ✗ Disabled",
       "vippsEnabled": "Vipps: ✓ Enabled",
@@ -488,9 +488,9 @@
     },
     "messages": {
       "accountCreated": "Your account has been created successfully! 🎉",
-      "welcomeEmailSent": "Welcome email sent to {email}",
+      "welcomeEmailSent": "Welcome email sent to {{email}}",
       "subdomainUnavailable": "Subdomain is not available",
-      "error": "An error occurred: {message}"
+      "error": "An error occurred: {{message}}"
     }
   },
   "auth": {
@@ -637,20 +637,20 @@
       "cancel": "Cancel"
     },
     "bulk": {
-      "selected": "{count} selected",
+      "selected": "{{count}} selected",
       "delete": "Delete Selected",
       "sendSMS": "Send SMS",
       "clearSelection": "Clear Selection"
     },
     "deleteDialog": {
       "title": "Confirm Deletion",
-      "message": "Are you sure you want to delete {count} customer(s)? This action cannot be undone.",
+      "message": "Are you sure you want to delete {{count}} customer(s)? This action cannot be undone.",
       "confirmButton": "Delete",
       "cancelButton": "Cancel"
     },
     "smsDialog": {
       "title": "Send Bulk SMS",
-      "message": "Send message to {count} customer(s)",
+      "message": "Send message to {{count}} customer(s)",
       "messagePlaceholder": "Write your message here...",
       "sendButton": "Send SMS",
       "cancelButton": "Cancel"
@@ -702,7 +702,7 @@
     },
     "deleteDialog": {
       "title": "Delete Service",
-      "message": "Are you sure you want to delete '{name}'? This action cannot be undone.",
+      "message": "Are you sure you want to delete '{{name}}'? This action cannot be undone.",
       "confirmButton": "Delete",
       "cancelButton": "Cancel"
     }
@@ -740,8 +740,8 @@
     "endDate": "End Date",
     "occurrences": "Number of occurrences",
     "occurrenceCount": "Count",
-    "recurringPreviewDate": "Appointments will be created from {start} to {end}",
-    "recurringPreviewCount": "{count} appointments will be created",
+    "recurringPreviewDate": "Appointments will be created from {{start}} to {{end}}",
+    "recurringPreviewCount": "{{count}} appointments will be created",
     "selectEndOption": "Select end date or number of occurrences",
     "createRecurringButton": "Create Recurring Appointments",
     "recurringSeriesBadge": "Part of recurring series",
@@ -791,7 +791,7 @@
       "reasonPlaceholder": "e.g: Customer requested to cancel, illness, etc.",
       "reasonRequired": "Please provide a reason for the cancellation",
       "originalAmount": "Original amount:",
-      "cancellationFee": "Cancellation fee ({percent}%):",
+      "cancellationFee": "Cancellation fee ({{percent}}%):",
       "refund": "Refund:",
       "lateCancellationWarning": "⚠️ Late cancellation - fee applies",
       "noPayment": "No payment registered for this appointment.",
@@ -852,10 +852,10 @@
     "invalidDate": "Invalid date",
     "pastDate": "Cannot select date in the past",
     "futureDate": "Cannot select future date",
-    "minLength": "Must be at least {min} characters",
-    "maxLength": "Cannot be more than {max} characters",
-    "minValue": "Must be at least {min}",
-    "maxValue": "Cannot be more than {max}",
+    "minLength": "Must be at least {{min}} characters",
+    "maxLength": "Cannot be more than {{max}} characters",
+    "minValue": "Must be at least {{min}}",
+    "maxValue": "Cannot be more than {{max}}",
     "allFieldsRequired": "Please fill in all required fields",
     "noTenantAccess": "No tenant access",
     "tenantNotFound": "Tenant not found",
@@ -891,33 +891,33 @@
   },
   "toasts": {
     "success": {
-      "created": "{item} created!",
-      "updated": "{item} updated!",
-      "deleted": "{item} deleted!",
+      "created": "{{item}} created!",
+      "updated": "{{item}} updated!",
+      "deleted": "{{item}} deleted!",
       "saved": "Saved!",
       "sent": "Sent!",
       "customerCreated": "Customer created!",
       "customerDeleted": "Customer deleted!",
-      "customersDeleted": "{count} customers deleted!",
-      "smsSent": "SMS sent to {count} customers!",
+      "customersDeleted": "{{count}} customers deleted!",
+      "smsSent": "SMS sent to {{count}} customers!",
       "serviceCreated": "Service created!",
       "serviceUpdated": "Service updated!",
       "serviceDeleted": "Service deleted!",
       "appointmentCreated": "Appointment created!",
-      "appointmentsCreated": "{count} recurring appointments created!",
+      "appointmentsCreated": "{{count}} recurring appointments created!",
       "appointmentUpdated": "Appointment updated!",
       "appointmentCancelled": "Appointment cancelled!",
       "appointmentRescheduled": "Appointment rescheduled!",
       "statusUpdated": "Status updated!",
-      "refundProcessed": "Appointment cancelled! Refund of {amount} NOK processed."
+      "refundProcessed": "Appointment cancelled! Refund of {{amount}} NOK processed."
     },
     "error": {
-      "generic": "Error: {message}",
-      "createFailed": "Could not create {item}",
-      "updateFailed": "Could not update {item}",
-      "deleteFailed": "Could not delete {item}",
-      "loadFailed": "Could not load {item}",
-      "someFailed": "Some {items} could not be deleted",
+      "generic": "Error: {{message}}",
+      "createFailed": "Could not create {{item}}",
+      "updateFailed": "Could not update {{item}}",
+      "deleteFailed": "Could not delete {{item}}",
+      "loadFailed": "Could not load {{item}}",
+      "someFailed": "Some {{items}} could not be deleted",
       "customerCreateFailed": "Error creating customer",
       "customerDeleteFailed": "Error deleting",
       "serviceCreateFailed": "Error creating service",
@@ -931,7 +931,7 @@
       "refundFailed": "Appointment cancelled, but refund failed"
     },
     "warning": {
-      "refundFailed": "Appointment cancelled, but refund failed: {error}"
+      "refundFailed": "Appointment cancelled, but refund failed: {{error}}"
     }
   },
   "settings": {
@@ -984,9 +984,9 @@
       "reminderHoursDesc": "How many hours before the appointment should the reminder be sent",
       "messageTemplates": "Message Templates",
       "confirmationMessage": "Confirmation Message",
-      "confirmationPlaceholder": "Hi {name}, your appointment is confirmed for {date} at {time}.",
+      "confirmationPlaceholder": "Hi {{name}}, your appointment is confirmed for {{date}} at {{time}}.",
       "reminderMessage": "Reminder Message",
-      "reminderPlaceholder": "Hi {name}, reminder about your appointment tomorrow at {time}.",
+      "reminderPlaceholder": "Hi {{name}}, reminder about your appointment tomorrow at {{time}}.",
       "saveNotifications": "Save notifications",
       "saved": "Notification settings saved!"
     },
