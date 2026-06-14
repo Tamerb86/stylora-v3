@@ -357,6 +357,90 @@ async function startServer() {
     handleVippsCallback
   );
 
+  // ============================================================================
+  // CSRF PROTECTION (Origin/Referer allowlist for state-changing API requests)
+  // ============================================================================
+  //
+  // The session cookie is sent on cross-site requests (SameSite=None over HTTPS,
+  // required by the multi-tenant subdomain/custom-domain model), so the browser's
+  // built-in SameSite defence does NOT protect mutating API calls. We instead
+  // verify that unsafe requests originate from an allowed site by checking the
+  // Origin (falling back to Referer) header — which browsers attach to fetch/XHR
+  // and forms and which page JS cannot forge cross-origin.
+  //
+  // Registered AFTER the Stripe/Vipps webhooks (server-to-server, no Origin,
+  // authenticated by signature) so those are never blocked.
+  const allowedOriginHosts = (process.env.ALLOWED_ORIGINS || "")
+    .split(",")
+    .map(s => s.trim().toLowerCase())
+    .filter(Boolean);
+  const appBaseDomain = (process.env.APP_BASE_DOMAIN || "")
+    .trim()
+    .toLowerCase();
+
+  const isAllowedRequestOrigin = (
+    rawOrigin: string | undefined,
+    req: express.Request
+  ): boolean => {
+    if (!rawOrigin) return false;
+    let host: string;
+    try {
+      host = new URL(rawOrigin).host.toLowerCase();
+    } catch {
+      return false;
+    }
+    const reqHost = (req.headers.host || "").toLowerCase();
+    if (host === reqHost) return true; // same-origin
+    // Same registrable domain as the configured app domain (covers tenant
+    // subdomains and the api-vs-app split).
+    if (
+      appBaseDomain &&
+      (host === appBaseDomain || host.endsWith(`.${appBaseDomain}`))
+    ) {
+      return true;
+    }
+    // Explicit allowlist (exact host or any of its subdomains) — custom domains.
+    if (
+      allowedOriginHosts.some(a => host === a || host.endsWith(`.${a}`))
+    ) {
+      return true;
+    }
+    if (isDev && /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host)) return true;
+    return false;
+  };
+
+  const csrfExemptPrefixes = [
+    "/api/stripe/webhook",
+    "/api/vipps/callback",
+    "/api/izettle/callback",
+  ];
+
+  app.use((req, res, next) => {
+    // Only guard state-changing methods; GET/HEAD/OPTIONS are safe.
+    if (req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS") {
+      return next();
+    }
+    const path = getRequestPath(req);
+    if (!path.startsWith("/api/")) return next();
+    if (csrfExemptPrefixes.some(p => path === p || path.startsWith(`${p}/`))) {
+      return next();
+    }
+    const candidate =
+      (req.headers.origin as string | undefined) ||
+      (req.headers.referer as string | undefined);
+    if (isAllowedRequestOrigin(candidate, req)) return next();
+    logger.warn("Blocked cross-origin state-changing request (CSRF guard)", {
+      path,
+      method: req.method,
+      origin: req.headers.origin,
+      referer: req.headers.referer,
+      ip: req.ip,
+    });
+    return res
+      .status(403)
+      .json({ error: "Forespørselen ble blokkert (ugyldig opprinnelse)." });
+  });
+
   // iZettle OAuth callback endpoint
   app.get("/api/izettle/callback", async (req, res) => {
     try {
