@@ -1888,3 +1888,22 @@ export const appointmentHistory = mysqlTable(
 
 export type AppointmentHistory = typeof appointmentHistory.$inferSelect;
 export type InsertAppointmentHistory = typeof appointmentHistory.$inferInsert;
+
+// Idempotency ledger for inbound payment webhooks/callbacks. A unique eventId
+// lets handlers skip events the gateway re-delivers (Stripe retries, etc.) so a
+// confirmation email / status change isn't applied twice.
+export const webhookEvents = mysqlTable(
+  "webhook_events",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    eventId: varchar("eventId", { length: 255 }).notNull().unique(),
+    provider: varchar("provider", { length: 20 }).notNull(),
+    processedAt: timestamp("processedAt").defaultNow().notNull(),
+  },
+  table => ({
+    eventIdIdx: uniqueIndex("webhook_event_id_idx").on(table.eventId),
+  })
+);
+
+export type WebhookEvent = typeof webhookEvents.$inferSelect;
+export type InsertWebhookEvent = typeof webhookEvents.$inferInsert;

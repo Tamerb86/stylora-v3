@@ -70,6 +70,16 @@ export async function handleStripeWebhook(req: Request, res: Response) {
     return res.status(500).send("Database not available");
   }
 
+  // Idempotency: Stripe re-delivers events (retries / at-least-once). Skip an
+  // event we've already processed so we don't re-confirm a booking and re-send
+  // the confirmation email on every replay.
+  const { claimWebhookEvent } = await import("./webhook-idempotency");
+  const isFirstDelivery = await claimWebhookEvent("stripe", event.id);
+  if (!isFirstDelivery) {
+    console.log(`[Stripe Webhook] Duplicate event ${event.id} — skipping`);
+    return res.status(200).json({ received: true, duplicate: true });
+  }
+
   try {
     // Handle checkout.session.completed event
     if (event.type === "checkout.session.completed") {
