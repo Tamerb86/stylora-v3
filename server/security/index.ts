@@ -270,6 +270,43 @@ export function isStrongPassword(password: string): {
 }
 
 /**
+ * Marketing unsubscribe tokens (stateless, HMAC-signed — no DB column needed).
+ * The token binds a specific (tenantId, customerId) pair so a recipient can opt
+ * out from a link in a message without authentication and without being able to
+ * unsubscribe anyone else.
+ */
+import { createHmac, timingSafeEqual } from "crypto";
+
+function unsubscribeSecret(): string {
+  return process.env.JWT_SECRET || "insecure-dev-secret";
+}
+
+export function generateUnsubscribeToken(
+  tenantId: string,
+  customerId: number
+): string {
+  return createHmac("sha256", unsubscribeSecret())
+    .update(`unsubscribe:${tenantId}:${customerId}`)
+    .digest("hex");
+}
+
+export function verifyUnsubscribeToken(
+  tenantId: string,
+  customerId: number,
+  token: string
+): boolean {
+  const expected = generateUnsubscribeToken(tenantId, customerId);
+  if (typeof token !== "string" || token.length !== expected.length) {
+    return false;
+  }
+  try {
+    return timingSafeEqual(Buffer.from(token), Buffer.from(expected));
+  } catch {
+    return false;
+  }
+}
+
+/**
  * CSRF Token Generation
  */
 export function generateCsrfToken(): string {

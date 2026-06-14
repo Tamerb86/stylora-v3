@@ -4163,5 +4163,13 @@
     "previous": "Forrige",
     "page": "Side {{page}}",
     "next": "Neste"
+  },
+  "unsubscribe": {
+    "invalidLink": "Ugyldig avmeldingslenke.",
+    "processing": "Behandler avmeldingen din …",
+    "failed": "Kunne ikke fullføre avmeldingen. Prøv igjen senere.",
+    "successTitle": "Du er avmeldt",
+    "successDescription": "Du vil ikke lenger motta markedsføring fra denne salongen.",
+    "backToHome": "Tilbake til forsiden"
   }
 }

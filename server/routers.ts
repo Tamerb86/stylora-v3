@@ -6945,6 +6945,63 @@ export const appRouter = router({
       }),
 
     /**
+     * Public, token-authenticated marketing opt-out. The link embedded in a
+     * message carries tenantId + customerId + an HMAC token; verifying it lets
+     * the recipient withdraw consent without logging in and without being able
+     * to unsubscribe anyone else. Required by markedsføringsloven §16 / GDPR
+     * Art. 21.
+     */
+    unsubscribe: publicProcedure
+      .input(
+        z.object({
+          tenantId: z.string(),
+          customerId: z.number().int().positive(),
+          token: z.string().min(16).max(128),
+          channel: z.enum(["sms", "email", "all"]).default("all"),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const dbInstance = await db.getDb();
+        if (!dbInstance)
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Database not available",
+          });
+
+        const { verifyUnsubscribeToken } = await import("./security");
+        if (
+          !verifyUnsubscribeToken(input.tenantId, input.customerId, input.token)
+        ) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Invalid unsubscribe link",
+          });
+        }
+
+        const { customers } = await import("../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+
+        const consentUpdate =
+          input.channel === "sms"
+            ? { marketingSmsConsent: false }
+            : input.channel === "email"
+              ? { marketingEmailConsent: false }
+              : { marketingSmsConsent: false, marketingEmailConsent: false };
+
+        await dbInstance
+          .update(customers)
+          .set(consentUpdate)
+          .where(
+            and(
+              eq(customers.id, input.customerId),
+              eq(customers.tenantId, input.tenantId)
+            )
+          );
+
+        return { success: true };
+      }),
+
+    /**
      * Get booking by management token
      * Allows customers to access their booking without authentication
      */
@@ -13558,13 +13615,40 @@ export const appRouter = router({
         const { bulkCampaigns, campaignRecipients, customers } = await import(
           "../drizzle/schema"
         );
-        const { eq, inArray } = await import("drizzle-orm");
+        const { eq, and, inArray, isNull } = await import("drizzle-orm");
 
-        // Get customer contact info
-        const customerList = await dbInstance
-          .select()
-          .from(customers)
-          .where(inArray(customers.id, input.customerIds));
+        // Get customer contact info — SECURITY/COMPLIANCE:
+        // - tenant-scoped (a tenant must not message another tenant's customers)
+        // - exclude soft-deleted customers
+        // - only customers who consented to this channel (markedsføringsloven
+        //   §15 / GDPR Art. 6/7 require prior consent for electronic marketing)
+        const consentColumn =
+          input.type === "sms"
+            ? customers.marketingSmsConsent
+            : customers.marketingEmailConsent;
+        const customerList = (
+          await dbInstance
+            .select()
+            .from(customers)
+            .where(
+              and(
+                inArray(customers.id, input.customerIds),
+                eq(customers.tenantId, ctx.tenantId),
+                isNull(customers.deletedAt),
+                eq(consentColumn, true)
+              )
+            )
+        ).filter(c =>
+          input.type === "sms" ? Boolean(c.phone) : Boolean(c.email)
+        );
+
+        if (customerList.length === 0) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              "Ingen av de valgte kundene har samtykket til denne typen markedsføring.",
+          });
+        }
 
         // Create campaign
         const campaignResult = await dbInstance.insert(bulkCampaigns).values({

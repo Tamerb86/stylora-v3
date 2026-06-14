@@ -4163,5 +4163,13 @@
     "previous": "Previous",
     "page": "Page {{page}}",
     "next": "Next"
+  },
+  "unsubscribe": {
+    "invalidLink": "Invalid unsubscribe link.",
+    "processing": "Processing your request …",
+    "failed": "Could not complete the unsubscribe. Please try again later.",
+    "successTitle": "You have been unsubscribed",
+    "successDescription": "You will no longer receive marketing from this salon.",
+    "backToHome": "Back to home"
   }
 }
