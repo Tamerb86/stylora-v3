@@ -161,23 +161,34 @@ const EMAIL_TEMPLATES = {
 };
 
 /**
- * Mock email sending function (replace with real email service)
+ * Send a reminder email via AWS SES. Returns true on success, false otherwise.
+ * Previously this was a mock that returned a random success and wrote
+ * status:"sent" without sending anything — reminder emails silently never went
+ * out. If SES isn't configured we return false (the caller records "failed")
+ * instead of faking success.
  */
 async function sendEmail(
   to: string,
   subject: string,
   html: string
 ): Promise<boolean> {
-  // TODO: Replace with real email service (SendGrid, AWS SES, etc.)
-  console.log(`[EMAIL] Sending to: ${to}`);
-  console.log(`[EMAIL] Subject: ${subject}`);
-  console.log(`[EMAIL] Body length: ${html.length} characters`);
-
-  // Simulate email sending delay
-  await new Promise(resolve => setTimeout(resolve, 100));
-
-  // Simulate 95% success rate
-  return Math.random() > 0.05;
+  const { isAWSSESConfigured, sendEmailViaSES } = await import(
+    "./_core/aws-ses"
+  );
+  if (!isAWSSESConfigured()) {
+    console.warn(
+      "[EMAIL] AWS SES not configured — reminder email NOT sent to",
+      to
+    );
+    return false;
+  }
+  try {
+    await sendEmailViaSES({ to: [to], subject, htmlBody: html });
+    return true;
+  } catch (error) {
+    console.error(`[EMAIL] Failed to send reminder to ${to}:`, error);
+    return false;
+  }
 }
 
 /**
