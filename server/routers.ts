@@ -3676,7 +3676,49 @@ export const appRouter = router({
           });
         }
 
-        // Create refund record
+        // Execute the ACTUAL gateway refund BEFORE recording it, so we never
+        // persist a "completed" refund without money having moved. The external
+        // call is kept outside any DB transaction. If it throws, the mutation
+        // fails and no refund row is written.
+        const idemKey = `pos-refund-${input.paymentId}-${existingRefunds.length}-${Math.round(
+          input.amount * 100
+        )}`;
+        if (input.refundMethod === "stripe") {
+          if (payment.paymentGateway !== "stripe" || !payment.gatewayPaymentId) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "This payment cannot be refunded via Stripe.",
+            });
+          }
+          const { apiKey, connectedAccountId } = await resolveTerminalStripe(
+            dbInstance,
+            ctx.tenantId
+          );
+          const { refundTerminalPayment } = await import("./stripeTerminal");
+          await refundTerminalPayment(
+            payment.gatewayPaymentId,
+            input.amount,
+            apiKey,
+            connectedAccountId,
+            idemKey
+          );
+        } else if (input.refundMethod === "vipps") {
+          if (payment.paymentGateway !== "vipps" || !payment.gatewaySessionId) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "This payment cannot be refunded via Vipps.",
+            });
+          }
+          const { refundVippsPayment } = await import("./vipps");
+          await refundVippsPayment({
+            orderId: payment.gatewaySessionId,
+            amountNOK: input.amount,
+            transactionText: input.reason,
+          });
+        }
+        // "manual" → cash/manual refund handled at the till; no gateway call.
+
+        // Create refund record (only reached if the gateway refund succeeded)
         const [refund] = await dbInstance.insert(refunds).values({
           tenantId: ctx.tenantId,
           paymentId: input.paymentId,
@@ -6619,6 +6661,10 @@ export const appRouter = router({
             appointmentId: String(appointmentId),
             type: "appointment_payment",
           },
+        }, {
+          // Prevent a double-submit from opening two checkout sessions for the
+          // same appointment.
+          idempotencyKey: `booking-checkout-${appointmentId}`,
         });
 
         // Store payment record with status "pending"
@@ -8120,6 +8166,10 @@ export const appRouter = router({
             appointmentId: String(appointment.id),
             type: "appointment_payment",
           },
+        }, {
+          // Prevent a double-submit from opening two checkout sessions for the
+          // same appointment.
+          idempotencyKey: `appt-checkout-${appointment.id}`,
         });
 
         // 3) Create payment record in DB with status "pending"
@@ -13081,7 +13131,11 @@ export const appRouter = router({
           input.paymentIntentId,
           input.amount,
           apiKey,
-          connectedAccountId
+          connectedAccountId,
+          // Guards against a retry issuing a second refund for the same PI/amount.
+          `terminal-refund-${input.paymentIntentId}-${Math.round(
+            (input.amount ?? 0) * 100
+          )}`
         );
 
         return {
