@@ -50,6 +50,10 @@ COPY --from=builder --chown=stylora:nodejs /app/dist ./dist
 COPY --from=builder --chown=stylora:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=stylora:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=stylora:nodejs /app/drizzle ./drizzle
+# drizzle-kit (the pre-deploy migrate step) needs its config file at runtime.
+# Without it the pre-deploy command exits 1 and the whole deploy is rejected,
+# leaving production stuck on the previous image.
+COPY --from=builder --chown=stylora:nodejs /app/drizzle.config.ts ./drizzle.config.ts
 
 # Switch to non-root user
 USER stylora
