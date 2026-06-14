@@ -303,6 +303,36 @@ export function isIpBlocked(ip: string): boolean {
   return blockedIps.has(ip);
 }
 
+/**
+ * Generic in-memory sliding-window rate limiter for use INSIDE tRPC procedures
+ * (the express rate-limiters don't apply to the /api/trpc batch endpoint).
+ * Returns true if the call is allowed, false if the limit is exceeded.
+ * Not distributed — bounds abuse per app instance, which is sufficient for
+ * brute-force throttling (e.g. employee PIN clock-in).
+ */
+const rateBuckets = new Map<string, number[]>();
+export function consumeRateLimit(
+  key: string,
+  max: number,
+  windowMs: number
+): boolean {
+  const now = Date.now();
+  const hits = (rateBuckets.get(key) || []).filter(ts => now - ts < windowMs);
+  if (hits.length >= max) {
+    rateBuckets.set(key, hits);
+    return false;
+  }
+  hits.push(now);
+  rateBuckets.set(key, hits);
+  // Opportunistic cleanup to keep the map bounded.
+  if (rateBuckets.size > 10000) {
+    for (const [k, v] of rateBuckets) {
+      if (v.every(ts => now - ts >= windowMs)) rateBuckets.delete(k);
+    }
+  }
+  return true;
+}
+
 export function unblockIp(ip: string): void {
   blockedIps.delete(ip);
   ipAttempts.delete(ip);
