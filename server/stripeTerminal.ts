@@ -68,17 +68,22 @@ export async function createTerminalPaymentIntent(
   currency: string = "nok",
   metadata?: Record<string, string>,
   apiKey?: string,
-  connectedAccountId?: string
+  connectedAccountId?: string,
+  idempotencyKey?: string
 ) {
   const stripe = getStripeClient(apiKey, connectedAccountId);
 
-  return await stripe.paymentIntents.create({
-    amount: Math.round(amount * 100), // Convert to cents
-    currency: currency.toLowerCase(),
-    payment_method_types: ["card_present"],
-    capture_method: "automatic",
-    metadata: metadata || {},
-  });
+  return await stripe.paymentIntents.create(
+    {
+      amount: Math.round(amount * 100), // Convert to cents
+      currency: currency.toLowerCase(),
+      payment_method_types: ["card_present"],
+      capture_method: "automatic",
+      metadata: metadata || {},
+    },
+    // Idempotency guards against a double-submit / retry creating two charges.
+    idempotencyKey ? { idempotencyKey } : undefined
+  );
 }
 
 /**
@@ -112,7 +117,8 @@ export async function refundTerminalPayment(
   paymentIntentId: string,
   amount?: number,
   apiKey?: string,
-  connectedAccountId?: string
+  connectedAccountId?: string,
+  idempotencyKey?: string
 ) {
   const stripe = getStripeClient(apiKey, connectedAccountId);
 
@@ -124,7 +130,11 @@ export async function refundTerminalPayment(
     refundData.amount = Math.round(amount * 100);
   }
 
-  return await stripe.refunds.create(refundData);
+  // Idempotency guards against a retry issuing two refunds for one payment.
+  return await stripe.refunds.create(
+    refundData,
+    idempotencyKey ? { idempotencyKey } : undefined
+  );
 }
 
 /**
