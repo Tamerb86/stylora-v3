@@ -238,6 +238,17 @@ export function startNotificationScheduler() {
 }
 
 /**
+ * Stop the notification scheduler (used during graceful shutdown).
+ */
+export function stopNotificationScheduler() {
+  if (schedulerHandle) {
+    clearInterval(schedulerHandle);
+    schedulerHandle = null;
+    console.log("[Scheduler] Notification scheduler stopped");
+  }
+}
+
+/**
  * Manually trigger reminder check (for testing or manual runs)
  */
 export async function triggerReminderCheck(): Promise<{

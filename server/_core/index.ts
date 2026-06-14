@@ -769,6 +769,82 @@ Sitemap: https://www.stylora.no/sitemap.xml`;
       );
     }
   });
+
+  // ============================================================================
+  // GRACEFUL SHUTDOWN
+  // ============================================================================
+  // Railway sends SIGTERM on every deploy/restart. Without this, in-flight
+  // requests are severed and the DB pool/transactions are left dangling.
+  let shuttingDown = false;
+  const shutdown = async (signal: string) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    logger.info(`Received ${signal} — shutting down gracefully`);
+
+    // Stop background work so nothing new starts mid-shutdown.
+    try {
+      const { stopNotificationScheduler } = await import(
+        "../notificationScheduler"
+      );
+      stopNotificationScheduler();
+      const { stopAutoClockOutScheduler } = await import(
+        "../autoClockOutScheduler"
+      );
+      stopAutoClockOutScheduler();
+      const { stopEmailScheduler } = await import("../emailScheduler");
+      stopEmailScheduler();
+    } catch (e) {
+      logger.error("Error stopping schedulers during shutdown", e as Error);
+    }
+
+    // Stop accepting new connections, then drain in-flight requests.
+    server.close(async () => {
+      try {
+        const { closeDb } = await import("../db");
+        await closeDb();
+      } catch (e) {
+        logger.error("Error closing DB during shutdown", e as Error);
+      }
+      logger.info("Shutdown complete");
+      process.exit(0);
+    });
+
+    // Hard cap so a hung connection can't block the deploy forever.
+    setTimeout(() => {
+      logger.error("Forced shutdown after timeout");
+      process.exit(1);
+    }, 15000).unref();
+  };
+
+  process.on("SIGTERM", () => void shutdown("SIGTERM"));
+  process.on("SIGINT", () => void shutdown("SIGINT"));
 }
 
-startServer().catch(console.error);
+// Top-level safety nets: log + report, then exit non-zero so the platform
+// restarts cleanly instead of leaving a half-dead process.
+process.on("uncaughtException", error => {
+  logger.error("Uncaught exception", error);
+  try {
+    Sentry.captureException(error);
+  } catch {
+    /* ignore */
+  }
+  process.exit(1);
+});
+process.on("unhandledRejection", reason => {
+  logger.error(
+    "Unhandled promise rejection",
+    reason instanceof Error ? reason : new Error(String(reason))
+  );
+  try {
+    Sentry.captureException(reason);
+  } catch {
+    /* ignore */
+  }
+  process.exit(1);
+});
+
+startServer().catch(error => {
+  logger.error("Fatal error during startup", error as Error);
+  process.exit(1);
+});
