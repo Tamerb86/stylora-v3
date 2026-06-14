@@ -22,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Edit, Send, RotateCcw, Upload, Palette } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslation } from "react-i18next";
 
 type TemplateType =
   | "reminder_24h"
@@ -32,45 +33,46 @@ type TemplateType =
 
 interface TemplateInfo {
   type: TemplateType;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   icon: string;
 }
 
 const templateTypes: TemplateInfo[] = [
   {
     type: "reminder_24h",
-    title: "24-timers påminnelse",
-    description: "Sendes 24 timer før avtalen",
+    titleKey: "emailTemplates.reminder24hTitle",
+    descriptionKey: "emailTemplates.reminder24hDescription",
     icon: "🕐",
   },
   {
     type: "reminder_2h",
-    title: "2-timers påminnelse",
-    description: "Sendes 2 timer før avtalen",
+    titleKey: "emailTemplates.reminder2hTitle",
+    descriptionKey: "emailTemplates.reminder2hDescription",
     icon: "⏰",
   },
   {
     type: "booking_confirmation",
-    title: "Bookingbekreftelse",
-    description: "Sendes når en booking er bekreftet",
+    titleKey: "emailTemplates.bookingConfirmationTitle",
+    descriptionKey: "emailTemplates.bookingConfirmationDescription",
     icon: "✅",
   },
   {
     type: "booking_cancellation",
-    title: "Avbestilling",
-    description: "Sendes når en booking er kansellert",
+    titleKey: "emailTemplates.bookingCancellationTitle",
+    descriptionKey: "emailTemplates.bookingCancellationDescription",
     icon: "❌",
   },
   {
     type: "booking_update",
-    title: "Oppdatering",
-    description: "Sendes når en booking er endret",
+    titleKey: "emailTemplates.bookingUpdateTitle",
+    descriptionKey: "emailTemplates.bookingUpdateDescription",
     icon: "🔄",
   },
 ];
 
 export function EmailTemplates() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType | null>(
     null
@@ -94,15 +96,15 @@ export function EmailTemplates() {
   const updateMutation = trpc.emailTemplates.update.useMutation({
     onSuccess: () => {
       toast({
-        title: "Mal oppdatert",
-        description: "E-postmalen er oppdatert",
+        title: t("emailTemplates.templateUpdatedTitle"),
+        description: t("emailTemplates.templateUpdatedDescription"),
       });
       utils.emailTemplates.list.invalidate();
       setEditDialogOpen(false);
     },
     onError: error => {
       toast({
-        title: "Feil",
+        title: t("emailTemplates.errorTitle"),
         description: error.message,
         variant: "destructive",
       });
@@ -113,13 +115,13 @@ export function EmailTemplates() {
     onSuccess: data => {
       setLogoUrl(data.url);
       toast({
-        title: "Logo lastet opp",
-        description: "Logoen er lastet opp til S3",
+        title: t("emailTemplates.logoUploadedTitle"),
+        description: t("emailTemplates.logoUploadedDescription"),
       });
     },
     onError: error => {
       toast({
-        title: "Feil ved opplasting",
+        title: t("emailTemplates.uploadErrorTitle"),
         description: error.message,
         variant: "destructive",
       });
@@ -129,15 +131,17 @@ export function EmailTemplates() {
   const sendTestMutation = trpc.emailTemplates.sendTest.useMutation({
     onSuccess: () => {
       toast({
-        title: "Test-e-post sendt",
-        description: `E-post sendt til ${testEmail}`,
+        title: t("emailTemplates.testEmailSentTitle"),
+        description: t("emailTemplates.testEmailSentDescription", {
+          email: testEmail,
+        }),
       });
       setTestEmailDialogOpen(false);
       setTestEmail("");
     },
     onError: error => {
       toast({
-        title: "Feil ved sending",
+        title: t("emailTemplates.sendErrorTitle"),
         description: error.message,
         variant: "destructive",
       });
@@ -147,15 +151,15 @@ export function EmailTemplates() {
   const resetMutation = trpc.emailTemplates.resetToDefault.useMutation({
     onSuccess: () => {
       toast({
-        title: "Mal tilbakestilt",
-        description: "E-postmalen er tilbakestilt til standard",
+        title: t("emailTemplates.templateResetTitle"),
+        description: t("emailTemplates.templateResetDescription"),
       });
       utils.emailTemplates.list.invalidate();
       setEditDialogOpen(false);
     },
     onError: error => {
       toast({
-        title: "Feil",
+        title: t("emailTemplates.errorTitle"),
         description: error.message,
         variant: "destructive",
       });
@@ -205,8 +209,8 @@ export function EmailTemplates() {
     // Validate file type
     if (!file.type.startsWith("image/")) {
       toast({
-        title: "Ugyldig filtype",
-        description: "Vennligst last opp et bilde",
+        title: t("emailTemplates.invalidFileTypeTitle"),
+        description: t("emailTemplates.invalidFileTypeDescription"),
         variant: "destructive",
       });
       return;
@@ -215,8 +219,8 @@ export function EmailTemplates() {
     // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast({
-        title: "Fil for stor",
-        description: "Maksimal filstørrelse er 2MB",
+        title: t("emailTemplates.fileTooLargeTitle"),
+        description: t("emailTemplates.fileTooLargeDescription"),
         variant: "destructive",
       });
       return;
@@ -257,9 +261,7 @@ export function EmailTemplates() {
     if (!selectedTemplate) return;
 
     if (
-      confirm(
-        "Er du sikker på at du vil tilbakestille denne malen til standard?"
-      )
+      confirm(t("emailTemplates.confirmReset"))
     ) {
       resetMutation.mutate({
         templateType: selectedTemplate,
@@ -271,7 +273,9 @@ export function EmailTemplates() {
     return (
       <div className="container py-8">
         <div className="flex items-center justify-center h-64">
-          <div className="text-muted-foreground">Laster e-postmaler...</div>
+          <div className="text-muted-foreground">
+            {t("emailTemplates.loading")}
+          </div>
         </div>
       </div>
     );
@@ -281,10 +285,10 @@ export function EmailTemplates() {
     <div className="container py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
-          E-postmaler
+          {t("emailTemplates.title")}
         </h1>
         <p className="text-muted-foreground">
-          Tilpass e-postmaler for automatiske meldinger til kunder
+          {t("emailTemplates.subtitle")}
         </p>
       </div>
 
@@ -305,10 +309,10 @@ export function EmailTemplates() {
                     <div className="text-4xl">{template.icon}</div>
                     <div>
                       <CardTitle className="text-lg">
-                        {template.title}
+                        {t(template.titleKey)}
                       </CardTitle>
                       <CardDescription className="text-sm">
-                        {template.description}
+                        {t(template.descriptionKey)}
                       </CardDescription>
                     </div>
                   </div>
@@ -318,12 +322,14 @@ export function EmailTemplates() {
                 <div className="space-y-2">
                   {existing ? (
                     <div className="text-sm text-muted-foreground mb-4">
-                      <p className="font-medium">Emne:</p>
+                      <p className="font-medium">
+                        {t("emailTemplates.subjectLabel")}
+                      </p>
                       <p className="truncate">{existing.subject}</p>
                     </div>
                   ) : (
                     <div className="text-sm text-muted-foreground mb-4">
-                      <p>Ingen mal konfigurert ennå</p>
+                      <p>{t("emailTemplates.noTemplateConfigured")}</p>
                     </div>
                   )}
 
@@ -335,7 +341,7 @@ export function EmailTemplates() {
                       onClick={() => handleEditTemplate(template.type)}
                     >
                       <Edit className="h-4 w-4 mr-2" />
-                      Rediger
+                      {t("emailTemplates.edit")}
                     </Button>
                     <Button
                       variant="outline"
@@ -361,11 +367,16 @@ export function EmailTemplates() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              Rediger mal:{" "}
-              {templateTypes.find(t => t.type === selectedTemplate)?.title}
+              {t("emailTemplates.editTemplateTitle")}:{" "}
+              {(() => {
+                const tt = templateTypes.find(
+                  x => x.type === selectedTemplate
+                );
+                return tt ? t(tt.titleKey) : "";
+              })()}
             </DialogTitle>
             <DialogDescription>
-              Tilpass e-postinnhold, logo og farger. Bruk variabler som{" "}
+              {t("emailTemplates.editTemplateDescription")}{" "}
               {`{{customerName}}`}, {`{{appointmentDate}}`},{" "}
               {`{{appointmentTime}}`}, {`{{serviceName}}`}, {`{{employeeName}}`}
               , {`{{salonName}}`}
@@ -374,29 +385,39 @@ export function EmailTemplates() {
 
           <Tabs defaultValue="content" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="content">Innhold</TabsTrigger>
-              <TabsTrigger value="design">Design</TabsTrigger>
-              <TabsTrigger value="preview">Forhåndsvisning</TabsTrigger>
+              <TabsTrigger value="content">
+                {t("emailTemplates.tabContent")}
+              </TabsTrigger>
+              <TabsTrigger value="design">
+                {t("emailTemplates.tabDesign")}
+              </TabsTrigger>
+              <TabsTrigger value="preview">
+                {t("emailTemplates.tabPreview")}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="content" className="space-y-4">
               <div>
-                <Label htmlFor="subject">E-postemne</Label>
+                <Label htmlFor="subject">
+                  {t("emailTemplates.emailSubjectLabel")}
+                </Label>
                 <Input
                   id="subject"
                   value={subject}
                   onChange={e => setSubject(e.target.value)}
-                  placeholder="Emne for e-posten"
+                  placeholder={t("emailTemplates.emailSubjectPlaceholder")}
                 />
               </div>
 
               <div>
-                <Label htmlFor="bodyHtml">E-postinnhold (HTML)</Label>
+                <Label htmlFor="bodyHtml">
+                  {t("emailTemplates.emailBodyLabel")}
+                </Label>
                 <Textarea
                   id="bodyHtml"
                   value={bodyHtml}
                   onChange={e => setBodyHtml(e.target.value)}
-                  placeholder="HTML-innhold for e-posten"
+                  placeholder={t("emailTemplates.emailBodyPlaceholder")}
                   rows={15}
                   className="font-mono text-sm"
                 />
@@ -405,7 +426,7 @@ export function EmailTemplates() {
 
             <TabsContent value="design" className="space-y-4">
               <div>
-                <Label htmlFor="logo">Logo</Label>
+                <Label htmlFor="logo">{t("emailTemplates.logoLabel")}</Label>
                 <div className="flex items-center gap-4 mt-2">
                   <Input
                     id="logo"
@@ -417,7 +438,7 @@ export function EmailTemplates() {
                   {(logoPreview || logoUrl) && (
                     <img
                       src={logoPreview || logoUrl}
-                      alt="Logo preview"
+                      alt={t("emailTemplates.logoPreviewAlt")}
                       className="h-16 w-16 object-contain border rounded"
                     />
                   )}
@@ -431,7 +452,9 @@ export function EmailTemplates() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="primaryColor">Primærfarge</Label>
+                  <Label htmlFor="primaryColor">
+                    {t("emailTemplates.primaryColorLabel")}
+                  </Label>
                   <div className="flex items-center gap-2 mt-2">
                     <Input
                       id="primaryColor"
@@ -450,7 +473,9 @@ export function EmailTemplates() {
                 </div>
 
                 <div>
-                  <Label htmlFor="secondaryColor">Sekundærfarge</Label>
+                  <Label htmlFor="secondaryColor">
+                    {t("emailTemplates.secondaryColorLabel")}
+                  </Label>
                   <div className="flex items-center gap-2 mt-2">
                     <Input
                       id="secondaryColor"
@@ -473,8 +498,12 @@ export function EmailTemplates() {
             <TabsContent value="preview" className="space-y-4">
               <div className="border rounded-lg p-4 bg-muted/50">
                 <div className="mb-4">
-                  <p className="text-sm font-medium">Emne:</p>
-                  <p className="text-lg">{subject || "(Ingen emne)"}</p>
+                  <p className="text-sm font-medium">
+                    {t("emailTemplates.subjectLabel")}
+                  </p>
+                  <p className="text-lg">
+                    {subject || t("emailTemplates.noSubject")}
+                  </p>
                 </div>
                 {/*
                   Render the template in a fully sandboxed iframe (no
@@ -485,19 +514,34 @@ export function EmailTemplates() {
                   the HTML/CSS preview.
                 */}
                 <iframe
-                  title="E-postforhåndsvisning"
+                  title={t("emailTemplates.previewTitle")}
                   sandbox=""
                   className="bg-white rounded border w-full"
                   style={{ height: 500 }}
                   srcDoc={bodyHtml
                     .replace(/{{primaryColor}}/g, primaryColor)
                     .replace(/{{secondaryColor}}/g, secondaryColor)
-                    .replace(/{{customerName}}/g, "Test Kunde")
-                    .replace(/{{salonName}}/g, "Din Salong")
-                    .replace(/{{appointmentDate}}/g, "15. desember 2024")
+                    .replace(
+                      /{{customerName}}/g,
+                      t("emailTemplates.sampleCustomerName")
+                    )
+                    .replace(
+                      /{{salonName}}/g,
+                      t("emailTemplates.sampleSalonName")
+                    )
+                    .replace(
+                      /{{appointmentDate}}/g,
+                      t("emailTemplates.sampleAppointmentDate")
+                    )
                     .replace(/{{appointmentTime}}/g, "14:00")
-                    .replace(/{{serviceName}}/g, "Herreklipp")
-                    .replace(/{{employeeName}}/g, "Stylist Test")}
+                    .replace(
+                      /{{serviceName}}/g,
+                      t("emailTemplates.sampleServiceName")
+                    )
+                    .replace(
+                      /{{employeeName}}/g,
+                      t("emailTemplates.sampleEmployeeName")
+                    )}
                 />
               </div>
             </TabsContent>
@@ -510,7 +554,7 @@ export function EmailTemplates() {
               disabled={resetMutation.isPending}
             >
               <RotateCcw className="h-4 w-4 mr-2" />
-              Tilbakestill til standard
+              {t("emailTemplates.resetToDefault")}
             </Button>
 
             <div className="flex gap-2">
@@ -518,13 +562,13 @@ export function EmailTemplates() {
                 variant="outline"
                 onClick={() => setEditDialogOpen(false)}
               >
-                Avbryt
+                {t("emailTemplates.cancel")}
               </Button>
               <Button
                 onClick={handleSaveTemplate}
                 disabled={updateMutation.isPending || !subject || !bodyHtml}
               >
-                Lagre mal
+                {t("emailTemplates.saveTemplate")}
               </Button>
             </div>
           </div>
@@ -535,21 +579,23 @@ export function EmailTemplates() {
       <Dialog open={testEmailDialogOpen} onOpenChange={setTestEmailDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Send test-e-post</DialogTitle>
+            <DialogTitle>{t("emailTemplates.sendTestEmailTitle")}</DialogTitle>
             <DialogDescription>
-              Send en test-e-post for å se hvordan malen ser ut
+              {t("emailTemplates.sendTestEmailDescription")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div>
-              <Label htmlFor="testEmail">E-postadresse</Label>
+              <Label htmlFor="testEmail">
+                {t("emailTemplates.emailAddressLabel")}
+              </Label>
               <Input
                 id="testEmail"
                 type="email"
                 value={testEmail}
                 onChange={e => setTestEmail(e.target.value)}
-                placeholder="din@epost.no"
+                placeholder={t("emailTemplates.emailAddressPlaceholder")}
               />
             </div>
 
@@ -558,14 +604,14 @@ export function EmailTemplates() {
                 variant="outline"
                 onClick={() => setTestEmailDialogOpen(false)}
               >
-                Avbryt
+                {t("emailTemplates.cancel")}
               </Button>
               <Button
                 onClick={handleSendTest}
                 disabled={sendTestMutation.isPending || !testEmail}
               >
                 <Send className="h-4 w-4 mr-2" />
-                Send test
+                {t("emailTemplates.sendTest")}
               </Button>
             </div>
           </div>

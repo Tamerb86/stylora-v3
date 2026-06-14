@@ -37,8 +37,10 @@ import { CalendarIcon, Plus, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { nb } from "date-fns/locale";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export default function MyLeaves() {
+  const { t } = useTranslation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [leaveType, setLeaveType] = useState<
     "annual" | "sick" | "emergency" | "unpaid"
@@ -52,7 +54,7 @@ export default function MyLeaves() {
   const { data: balance } = trpc.leaves.myBalance.useQuery();
   const createLeave = trpc.leaves.create.useMutation({
     onSuccess: () => {
-      toast.success("Ferieforespørsel sendt!");
+      toast.success(t("myLeaves.requestSent"));
       setIsDialogOpen(false);
       refetchLeaves();
       // Reset form
@@ -62,13 +64,13 @@ export default function MyLeaves() {
       setReason("");
     },
     onError: error => {
-      toast.error(error.message || "Kunne ikke sende forespørsel");
+      toast.error(error.message || t("myLeaves.requestFailed"));
     },
   });
 
   const handleSubmit = () => {
     if (!startDate || !endDate) {
-      toast.error("Velg start- og sluttdato");
+      toast.error(t("myLeaves.selectStartEndDate"));
       return;
     }
 
@@ -86,21 +88,21 @@ export default function MyLeaves() {
         return (
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
             <CheckCircle2 className="h-4 w-4" />
-            Godkjent
+            {t("myLeaves.statusApproved")}
           </span>
         );
       case "rejected":
         return (
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
             <XCircle className="h-4 w-4" />
-            Avslått
+            {t("myLeaves.statusRejected")}
           </span>
         );
       default:
         return (
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
             <Clock className="h-4 w-4" />
-            Venter
+            {t("myLeaves.statusPending")}
           </span>
         );
     }
@@ -109,13 +111,13 @@ export default function MyLeaves() {
   const getLeaveTypeLabel = (type: string) => {
     switch (type) {
       case "annual":
-        return "Årlig ferie";
+        return t("myLeaves.typeAnnual");
       case "sick":
-        return "Sykefravær";
+        return t("myLeaves.typeSick");
       case "emergency":
-        return "Nødferie";
+        return t("myLeaves.typeEmergency");
       case "unpaid":
-        return "Ubetalt permisjon";
+        return t("myLeaves.typeUnpaid");
       default:
         return type;
     }
@@ -132,29 +134,29 @@ export default function MyLeaves() {
       <div className="container py-8 max-w-6xl">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold">Mine Ferier</h1>
+            <h1 className="text-4xl font-bold">{t("myLeaves.title")}</h1>
             <p className="text-muted-foreground mt-2">
-              Administrer ferieforespørsler og se saldo
+              {t("myLeaves.subtitle")}
             </p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button size="lg" className="h-14 gap-2">
                 <Plus className="h-5 w-5" />
-                Ny Ferieforespørsel
+                {t("myLeaves.newRequest")}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
-                <DialogTitle>Ny Ferieforespørsel</DialogTitle>
+                <DialogTitle>{t("myLeaves.newRequest")}</DialogTitle>
                 <DialogDescription>
-                  Send en forespørsel om ferie til din leder
+                  {t("myLeaves.dialogDesc")}
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-6 py-4">
                 <div className="space-y-2">
-                  <Label>Type</Label>
+                  <Label>{t("myLeaves.typeLabel")}</Label>
                   <Select
                     value={leaveType}
                     onValueChange={(v: any) => setLeaveType(v)}
@@ -163,17 +165,17 @@ export default function MyLeaves() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="annual">Årlig ferie</SelectItem>
-                      <SelectItem value="sick">Sykefravær</SelectItem>
-                      <SelectItem value="emergency">Nødferie</SelectItem>
-                      <SelectItem value="unpaid">Ubetalt permisjon</SelectItem>
+                      <SelectItem value="annual">{t("myLeaves.typeAnnual")}</SelectItem>
+                      <SelectItem value="sick">{t("myLeaves.typeSick")}</SelectItem>
+                      <SelectItem value="emergency">{t("myLeaves.typeEmergency")}</SelectItem>
+                      <SelectItem value="unpaid">{t("myLeaves.typeUnpaid")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Startdato</Label>
+                    <Label>{t("myLeaves.startDate")}</Label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
@@ -183,7 +185,7 @@ export default function MyLeaves() {
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {startDate
                             ? format(startDate, "PPP", { locale: nb })
-                            : "Velg dato"}
+                            : t("myLeaves.selectDate")}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
@@ -198,7 +200,7 @@ export default function MyLeaves() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Sluttdato</Label>
+                    <Label>{t("myLeaves.endDate")}</Label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
@@ -208,7 +210,7 @@ export default function MyLeaves() {
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {endDate
                             ? format(endDate, "PPP", { locale: nb })
-                            : "Velg dato"}
+                            : t("myLeaves.selectDate")}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
@@ -228,16 +230,16 @@ export default function MyLeaves() {
 
                 {startDate && endDate && (
                   <div className="text-sm text-muted-foreground">
-                    Antall dager: {calculateDays(startDate, endDate)}
+                    {t("myLeaves.numberOfDays", { count: calculateDays(startDate, endDate) })}
                   </div>
                 )}
 
                 <div className="space-y-2">
-                  <Label>Begrunnelse (valgfritt)</Label>
+                  <Label>{t("myLeaves.reasonLabel")}</Label>
                   <Textarea
                     value={reason}
                     onChange={e => setReason(e.target.value)}
-                    placeholder="Skriv en begrunnelse for ferieforespørselen..."
+                    placeholder={t("myLeaves.reasonPlaceholder")}
                     rows={4}
                   />
                 </div>
@@ -248,13 +250,13 @@ export default function MyLeaves() {
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
                 >
-                  Avbryt
+                  {t("myLeaves.cancel")}
                 </Button>
                 <Button
                   onClick={handleSubmit}
                   disabled={!startDate || !endDate || createLeave.isPending}
                 >
-                  {createLeave.isPending ? "Sender..." : "Send Forespørsel"}
+                  {createLeave.isPending ? t("myLeaves.sending") : t("myLeaves.sendRequest")}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -267,12 +269,12 @@ export default function MyLeaves() {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Årlig Ferie
+                  {t("myLeaves.totalAnnualLeave")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">
-                  {balance.annualLeaveTotal} dager
+                  {t("myLeaves.daysCount", { count: balance.annualLeaveTotal })}
                 </div>
               </CardContent>
             </Card>
@@ -280,12 +282,12 @@ export default function MyLeaves() {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Brukt Ferie
+                  {t("myLeaves.usedLeave")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">
-                  {balance.annualLeaveUsed} dager
+                  {t("myLeaves.daysCount", { count: balance.annualLeaveUsed })}
                 </div>
               </CardContent>
             </Card>
@@ -293,12 +295,12 @@ export default function MyLeaves() {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Gjenværende Ferie
+                  {t("myLeaves.remainingLeave")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-                  {balance.annualLeaveRemaining} dager
+                  {t("myLeaves.daysCount", { count: balance.annualLeaveRemaining })}
                 </div>
               </CardContent>
             </Card>
@@ -308,17 +310,17 @@ export default function MyLeaves() {
         {/* Leave History */}
         <Card>
           <CardHeader>
-            <CardTitle>Feriehistorikk</CardTitle>
+            <CardTitle>{t("myLeaves.historyTitle")}</CardTitle>
             <CardDescription>
-              Alle dine ferieforespørsler og deres status
+              {t("myLeaves.historyDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {!leaves || leaves.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                <p>Ingen ferieforespørsler ennå</p>
+                <p>{t("myLeaves.noRequestsYet")}</p>
                 <p className="text-sm mt-2">
-                  Klikk "Ny Ferieforespørsel" for å komme i gang
+                  {t("myLeaves.getStartedHint")}
                 </p>
               </div>
             ) : (
@@ -341,27 +343,27 @@ export default function MyLeaves() {
                         })}{" "}
                         -{" "}
                         {format(new Date(leave.endDate), "PPP", { locale: nb })}{" "}
-                        (
-                        {calculateDays(
-                          new Date(leave.startDate),
-                          new Date(leave.endDate)
-                        )}{" "}
-                        dager)
+                        {t("myLeaves.daysParenthetical", {
+                          count: calculateDays(
+                            new Date(leave.startDate),
+                            new Date(leave.endDate)
+                          ),
+                        })}
                       </div>
                       {leave.reason && (
                         <div className="text-sm mt-2">{leave.reason}</div>
                       )}
                       {leave.status === "rejected" && leave.rejectionReason && (
                         <div className="text-sm mt-2 text-red-600 dark:text-red-400">
-                          Avslått: {leave.rejectionReason}
+                          {t("myLeaves.rejectedLabel")} {leave.rejectionReason}
                         </div>
                       )}
                       {leave.approverName && (
                         <div className="text-xs text-muted-foreground mt-2">
                           {leave.status === "approved"
-                            ? "Godkjent"
-                            : "Behandlet"}{" "}
-                          av: {leave.approverName}
+                            ? t("myLeaves.approvedBy")
+                            : t("myLeaves.processedBy")}{" "}
+                          {leave.approverName}
                         </div>
                       )}
                     </div>

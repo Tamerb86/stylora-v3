@@ -13,8 +13,10 @@ import {
   LogOut,
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { useTranslation } from "react-i18next";
 
 export default function SaasAdminOverview() {
+  const { t } = useTranslation();
   const { data: overview, isLoading } = trpc.saasAdmin.getOverview.useQuery();
   const { data: recentTenants } = trpc.saasAdmin.listTenants.useQuery({
     page: 1,
@@ -26,7 +28,7 @@ export default function SaasAdminOverview() {
     return (
       <div className="container py-8">
         <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-muted-foreground">Laster...</div>
+          <div className="text-muted-foreground">{t("saasAdminOverview.loading")}</div>
         </div>
       </div>
     );
@@ -36,7 +38,7 @@ export default function SaasAdminOverview() {
     return (
       <div className="container py-8">
         <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-muted-foreground">Ingen data tilgjengelig</div>
+          <div className="text-muted-foreground">{t("saasAdminOverview.noData")}</div>
         </div>
       </div>
     );
@@ -44,37 +46,37 @@ export default function SaasAdminOverview() {
 
   const statCards = [
     {
-      title: "Totalt antall salonger",
+      title: t("saasAdminOverview.totalTenants"),
       value: overview.totalTenants,
       icon: Building2,
       gradient: "from-blue-500 to-cyan-500",
     },
     {
-      title: "Aktive salonger",
+      title: t("saasAdminOverview.activeTenants"),
       value: overview.activeTenants,
       icon: TrendingUp,
       gradient: "from-green-500 to-emerald-500",
     },
     {
-      title: "På prøveperiode",
+      title: t("saasAdminOverview.trialTenants"),
       value: overview.trialTenants,
       icon: Users,
       gradient: "from-purple-500 to-pink-500",
     },
     {
-      title: "Fullførte timer (30d)",
+      title: t("saasAdminOverview.completedAppointments30d"),
       value: overview.totalAppointmentsLast30Days,
       icon: Calendar,
       gradient: "from-orange-500 to-red-500",
     },
     {
-      title: "Bestillinger (30d)",
+      title: t("saasAdminOverview.orders30d"),
       value: overview.totalOrdersLast30Days,
       icon: ShoppingCart,
       gradient: "from-indigo-500 to-purple-500",
     },
     {
-      title: "Omsetning (30d)",
+      title: t("saasAdminOverview.revenue30d"),
       value: `${overview.totalRevenueFromOrdersLast30Days.toLocaleString("no-NO")} kr`,
       icon: DollarSign,
       gradient: "from-yellow-500 to-orange-500",
@@ -87,10 +89,10 @@ export default function SaasAdminOverview() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            SaaS Admin - Oversikt
+            {t("saasAdminOverview.title")}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Plattformadministrasjon for Stylora
+            {t("saasAdminOverview.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -99,7 +101,7 @@ export default function SaasAdminOverview() {
               size="lg"
               className="bg-gradient-to-r from-blue-600 to-purple-600"
             >
-              Se alle salonger
+              {t("saasAdminOverview.seeAllTenants")}
             </Button>
           </Link>
           <Button
@@ -112,7 +114,7 @@ export default function SaasAdminOverview() {
             className="border-red-200 text-red-600 hover:bg-red-50"
           >
             <LogOut className="h-4 w-4 mr-2" />
-            Logg ut
+            {t("saasAdminOverview.logOut")}
           </Button>
         </div>
       </div>
@@ -153,10 +155,10 @@ export default function SaasAdminOverview() {
       <Card className="border-0 shadow-lg">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold">Nylig opprettede salonger</h2>
+            <h2 className="text-xl font-bold">{t("saasAdminOverview.recentTenants")}</h2>
             <Link href="/saas-admin/tenants">
               <Button variant="outline" size="sm">
-                Se alle
+                {t("saasAdminOverview.seeAll")}
               </Button>
             </Link>
           </div>
@@ -181,28 +183,28 @@ export default function SaasAdminOverview() {
                         }
                       >
                         {tenant.status === "active"
-                          ? "Aktiv"
+                          ? t("saasAdminOverview.statusActive")
                           : tenant.status === "trial"
-                            ? "Prøve"
+                            ? t("saasAdminOverview.statusTrial")
                             : tenant.status === "suspended"
-                              ? "Suspendert"
-                              : "Kansellert"}
+                              ? t("saasAdminOverview.statusSuspended")
+                              : t("saasAdminOverview.statusCanceled")}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                       <span>{tenant.subdomain}.stylora.app</span>
                       <span>•</span>
-                      <span>{tenant.planName || "Ingen plan"}</span>
+                      <span>{tenant.planName || t("saasAdminOverview.noPlan")}</span>
                       <span>•</span>
                       <span>
-                        Opprettet:{" "}
+                        {t("saasAdminOverview.created")}:{" "}
                         {new Date(tenant.createdAt).toLocaleDateString("no-NO")}
                       </span>
                     </div>
                   </div>
                   <Link href={`/saas-admin/tenants/${tenant.id}`}>
                     <Button variant="outline" size="sm">
-                      Vis detaljer
+                      {t("saasAdminOverview.viewDetails")}
                     </Button>
                   </Link>
                 </div>
@@ -210,7 +212,7 @@ export default function SaasAdminOverview() {
             </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              Ingen salonger funnet
+              {t("saasAdminOverview.noTenantsFound")}
             </div>
           )}
         </div>

@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { safeToFixed } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,7 @@ import {
 } from "@/components/ui/table";
 
 export function CampaignAnalytics() {
+  const { t } = useTranslation();
   const [selectedCampaignId, setSelectedCampaignId] = useState<number | null>(
     null
   );
@@ -56,13 +58,13 @@ export function CampaignAnalytics() {
     );
 
   const getStatusBadge = (status: string | null) => {
-    if (!status) return <Badge variant="secondary">Ukjent</Badge>;
+    if (!status) return <Badge variant="secondary">{t("campaignAnalytics.statusUnknown")}</Badge>;
     const variants: Record<string, { variant: any; label: string }> = {
-      draft: { variant: "secondary", label: "Utkast" },
-      scheduled: { variant: "default", label: "Planlagt" },
-      sending: { variant: "default", label: "Sender" },
-      completed: { variant: "default", label: "Fullført" },
-      failed: { variant: "destructive", label: "Feilet" },
+      draft: { variant: "secondary", label: t("campaignAnalytics.statusDraft") },
+      scheduled: { variant: "default", label: t("campaignAnalytics.statusScheduled") },
+      sending: { variant: "default", label: t("campaignAnalytics.statusSending") },
+      completed: { variant: "default", label: t("campaignAnalytics.statusCompleted") },
+      failed: { variant: "destructive", label: t("campaignAnalytics.statusFailed") },
     };
 
     const config = variants[status] || variants.draft;
@@ -72,14 +74,14 @@ export function CampaignAnalytics() {
   const getRecipientStatusBadge = (status: string) => {
     const variants: Record<string, { variant: any; label: string; icon: any }> =
       {
-        pending: { variant: "secondary", label: "Venter", icon: Clock },
-        sent: { variant: "default", label: "Sendt", icon: Send },
-        delivered: { variant: "default", label: "Levert", icon: CheckCircle2 },
-        failed: { variant: "destructive", label: "Feilet", icon: XCircle },
-        opened: { variant: "default", label: "Åpnet", icon: Eye },
+        pending: { variant: "secondary", label: t("campaignAnalytics.recipientPending"), icon: Clock },
+        sent: { variant: "default", label: t("campaignAnalytics.recipientSent"), icon: Send },
+        delivered: { variant: "default", label: t("campaignAnalytics.recipientDelivered"), icon: CheckCircle2 },
+        failed: { variant: "destructive", label: t("campaignAnalytics.recipientFailed"), icon: XCircle },
+        opened: { variant: "default", label: t("campaignAnalytics.recipientOpened"), icon: Eye },
         clicked: {
           variant: "default",
-          label: "Klikket",
+          label: t("campaignAnalytics.recipientClicked"),
           icon: MousePointerClick,
         },
       };
@@ -120,9 +122,9 @@ export function CampaignAnalytics() {
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Kampanjeanalyse</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("campaignAnalytics.title")}</h1>
           <p className="text-muted-foreground">
-            Følg med på ytelsen til dine SMS- og e-postkampanjer
+            {t("campaignAnalytics.subtitle")}
           </p>
         </div>
 
@@ -133,10 +135,10 @@ export function CampaignAnalytics() {
                 <TrendingUp className="h-12 w-12 mx-auto text-muted-foreground" />
                 <div>
                   <h3 className="font-semibold text-lg">
-                    Ingen kampanjer ennå
+                    {t("campaignAnalytics.noCampaignsTitle")}
                   </h3>
                   <p className="text-muted-foreground">
-                    Opprett din første masseutsendelse for å se analyser her
+                    {t("campaignAnalytics.noCampaignsDescription")}
                   </p>
                 </div>
               </div>
@@ -163,8 +165,8 @@ export function CampaignAnalytics() {
                         </div>
                         <CardDescription>
                           {campaign.type === "sms"
-                            ? "SMS-kampanje"
-                            : "E-postkampanje"}{" "}
+                            ? t("campaignAnalytics.smsCampaign")
+                            : t("campaignAnalytics.emailCampaign")}{" "}
                           •{" "}
                           {new Date(campaign.createdAt).toLocaleDateString(
                             "no-NO"
@@ -176,7 +178,7 @@ export function CampaignAnalytics() {
                         size="sm"
                         onClick={() => setSelectedCampaignId(campaign.id)}
                       >
-                        Se detaljer
+                        {t("campaignAnalytics.viewDetails")}
                       </Button>
                     </div>
                   </CardHeader>
@@ -185,7 +187,7 @@ export function CampaignAnalytics() {
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Users className="h-4 w-4" />
-                          <span className="text-sm">Mottakere</span>
+                          <span className="text-sm">{t("campaignAnalytics.metricRecipients")}</span>
                         </div>
                         <p className="text-2xl font-bold">
                           {campaign.recipientCount}
@@ -195,7 +197,7 @@ export function CampaignAnalytics() {
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Send className="h-4 w-4" />
-                          <span className="text-sm">Sendt</span>
+                          <span className="text-sm">{t("campaignAnalytics.metricSent")}</span>
                         </div>
                         <p className="text-2xl font-bold">
                           {campaign.sentCount}
@@ -205,7 +207,7 @@ export function CampaignAnalytics() {
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <CheckCircle2 className="h-4 w-4" />
-                          <span className="text-sm">Levert</span>
+                          <span className="text-sm">{t("campaignAnalytics.metricDelivered")}</span>
                         </div>
                         <p className="text-2xl font-bold">
                           {campaign.deliveredCount}
@@ -218,7 +220,7 @@ export function CampaignAnalytics() {
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <XCircle className="h-4 w-4" />
-                          <span className="text-sm">Feilet</span>
+                          <span className="text-sm">{t("campaignAnalytics.metricFailed")}</span>
                         </div>
                         <p className="text-2xl font-bold">
                           {campaign.failedCount}
@@ -230,7 +232,7 @@ export function CampaignAnalytics() {
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 text-muted-foreground">
                               <Eye className="h-4 w-4" />
-                              <span className="text-sm">Åpnet</span>
+                              <span className="text-sm">{t("campaignAnalytics.metricOpened")}</span>
                             </div>
                             <p className="text-2xl font-bold">
                               {campaign.openedCount}
@@ -243,7 +245,7 @@ export function CampaignAnalytics() {
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 text-muted-foreground">
                               <MousePointerClick className="h-4 w-4" />
-                              <span className="text-sm">Klikket</span>
+                              <span className="text-sm">{t("campaignAnalytics.metricClicked")}</span>
                             </div>
                             <p className="text-2xl font-bold">
                               {campaign.clickedCount}
@@ -261,7 +263,7 @@ export function CampaignAnalytics() {
                         <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
                           <Calendar className="h-4 w-4" />
                           <span>
-                            Planlagt:{" "}
+                            {t("campaignAnalytics.scheduledPrefix")}{" "}
                             {new Date(campaign.scheduledAt).toLocaleString(
                               "no-NO"
                             )}
@@ -283,9 +285,9 @@ export function CampaignAnalytics() {
       >
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Kampanjedetaljer</DialogTitle>
+            <DialogTitle>{t("campaignAnalytics.dialogTitle")}</DialogTitle>
             <DialogDescription>
-              Detaljert oversikt over mottakere og status
+              {t("campaignAnalytics.dialogDescription")}
             </DialogDescription>
           </DialogHeader>
 
@@ -298,7 +300,7 @@ export function CampaignAnalytics() {
                 </h3>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <span>
-                    {campaignDetails.campaign.type === "sms" ? "SMS" : "E-post"}
+                    {campaignDetails.campaign.type === "sms" ? t("campaignAnalytics.typeSms") : t("campaignAnalytics.typeEmail")}
                   </span>
                   <span>•</span>
                   <span>
@@ -315,7 +317,7 @@ export function CampaignAnalytics() {
               <div className="border rounded-lg p-4 bg-muted/50">
                 {campaignDetails.campaign.subject && (
                   <p className="font-semibold mb-2">
-                    Emne: {campaignDetails.campaign.subject}
+                    {t("campaignAnalytics.subjectLabel", { subject: campaignDetails.campaign.subject })}
                   </p>
                 )}
                 <p className="text-sm whitespace-pre-wrap">
@@ -326,20 +328,20 @@ export function CampaignAnalytics() {
               {/* Recipients Table */}
               <div>
                 <h4 className="font-semibold mb-4">
-                  Mottakere ({campaignDetails.recipients.length})
+                  {t("campaignAnalytics.recipientsCount", { count: campaignDetails.recipients.length })}
                 </h4>
                 <div className="border rounded-lg">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Kunde</TableHead>
-                        <TableHead>Kontakt</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Sendt</TableHead>
-                        <TableHead>Levert</TableHead>
+                        <TableHead>{t("campaignAnalytics.tableCustomer")}</TableHead>
+                        <TableHead>{t("campaignAnalytics.tableContact")}</TableHead>
+                        <TableHead>{t("campaignAnalytics.tableStatus")}</TableHead>
+                        <TableHead>{t("campaignAnalytics.tableSent")}</TableHead>
+                        <TableHead>{t("campaignAnalytics.tableDelivered")}</TableHead>
                         {campaignDetails.campaign.type === "email" && (
                           <>
-                            <TableHead>Åpnet</TableHead>
+                            <TableHead>{t("campaignAnalytics.tableOpened")}</TableHead>
                           </>
                         )}
                       </TableRow>
@@ -351,7 +353,7 @@ export function CampaignAnalytics() {
                             colSpan={7}
                             className="text-center text-muted-foreground"
                           >
-                            Ingen mottakere
+                            {t("campaignAnalytics.noRecipients")}
                           </TableCell>
                         </TableRow>
                       ) : (
@@ -413,7 +415,7 @@ export function CampaignAnalytics() {
               {campaignDetails.recipients.some((r: any) => r.errorMessage) && (
                 <div className="space-y-2">
                   <h4 className="font-semibold text-destructive">
-                    Feilmeldinger
+                    {t("campaignAnalytics.errorMessages")}
                   </h4>
                   <div className="border border-destructive/50 rounded-lg p-4 space-y-2">
                     {campaignDetails.recipients

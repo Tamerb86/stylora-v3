@@ -14,36 +14,34 @@ import {
   X,
 } from "lucide-react";
 import { Link } from "wouter";
+import { useTranslation } from "react-i18next";
 
 export default function AboutUs() {
+  const { t } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const values = [
     {
       icon: Heart,
-      title: "Kundefokus",
-      description:
-        "Vi setter alltid kundenes behov først. Hver funksjon vi utvikler er designet for å gjøre hverdagen enklere for salongene våre.",
+      title: t("aboutUs.valueCustomerFocusTitle"),
+      description: t("aboutUs.valueCustomerFocusDesc"),
       color: "from-pink-500 to-rose-500",
     },
     {
       icon: Target,
-      title: "Innovasjon",
-      description:
-        "Vi tror på kontinuerlig forbedring. Teknologien utvikler seg, og det gjør også vi. Vi lytter til tilbakemeldinger og implementerer nye løsninger.",
+      title: t("aboutUs.valueInnovationTitle"),
+      description: t("aboutUs.valueInnovationDesc"),
       color: "from-blue-500 to-cyan-500",
     },
     {
       icon: Users,
-      title: "Partnerskap",
-      description:
-        "Vi er ikke bare en leverandør – vi er din partner. Din suksess er vår suksess, og vi jobber sammen for å nå dine mål.",
+      title: t("aboutUs.valuePartnershipTitle"),
+      description: t("aboutUs.valuePartnershipDesc"),
       color: "from-purple-500 to-pink-500",
     },
     {
       icon: Sparkles,
-      title: "Enkelhet",
-      description:
-        "Komplekse problemer krever enkle løsninger. Vi designer intuitive systemer som alle kan bruke, uansett teknisk bakgrunn.",
+      title: t("aboutUs.valueSimplicityTitle"),
+      description: t("aboutUs.valueSimplicityDesc"),
       color: "from-orange-500 to-red-500",
     },
   ];
@@ -51,19 +49,16 @@ export default function AboutUs() {
   const milestones = [
     {
       year: "2023",
-      event:
-        "Stylora grunnlegges med visjonen om å digitalisere skjønnhetsbransjen",
+      event: t("aboutUs.milestone2023"),
     },
     {
       year: "2024",
-      event:
-        "Lansering av første versjon med booking, kalender og kundeadministrasjon",
+      event: t("aboutUs.milestone2024Launch"),
     },
-    { year: "2024", event: "Over 100 salonger i Norge bruker Stylora daglig" },
+    { year: "2024", event: t("aboutUs.milestone2024Salons") },
     {
       year: "2025",
-      event:
-        "Utvidelse med betalingsintegrasjon, lojalitetsprogram og avansert rapportering",
+      event: t("aboutUs.milestone2025"),
     },
   ];
 
@@ -164,7 +159,7 @@ export default function AboutUs() {
           <div className="flex items-center gap-4">
             <Link href="/">
               <Button variant="ghost" className="hidden md:inline-flex">
-                Tilbake til hovedsiden
+                {t("aboutUs.backToHome")}
               </Button>
             </Link>
 
@@ -203,7 +198,7 @@ export default function AboutUs() {
                   className="w-full justify-start text-lg"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Tilbake til hovedsiden
+                  {t("aboutUs.backToHome")}
                 </Button>
               </Link>
             </div>
@@ -218,49 +213,25 @@ export default function AboutUs() {
           <div className="max-w-4xl mx-auto text-center space-y-6">
             <Badge variant="secondary" className="px-6 py-2">
               <Heart className="w-4 h-4 mr-2 inline fill-current" />
-              Om Stylora
+              {t("aboutUs.heroBadge")}
             </Badge>
             <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight">
-              Fortelling om{" "}
+              {t("aboutUs.heroTitlePrefix")}{" "}
               <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-orange-500 bg-clip-text text-transparent">
                 Stylora
               </span>
             </h1>
             <div className="text-lg text-muted-foreground max-w-3xl mx-auto space-y-6 text-left">
+              <p className="leading-relaxed">{t("aboutUs.heroParagraph1")}</p>
               <p className="leading-relaxed">
-                Stylora startet med en enkel observasjon: Mange norske salonger
-                bruker for kompliserte systemer som stjeler tid, skaper
-                frustrasjon og gjør arbeidshverdagen unødvendig tung. Vi ønsket
-                å gjøre det motsatte – å skape et verktøy som gir ro, oversikt
-                og flyt.
+                {t("aboutUs.heroParagraph2Prefix")} <strong>stil</strong>{" "}
+                {t("aboutUs.heroParagraph2And")}{" "}
+                <strong>harmoni</strong>. {t("aboutUs.heroParagraph2Suffix")}
               </p>
-              <p className="leading-relaxed">
-                Navnet Stylora ble valgt fordi det kombinerer to verdier vi
-                mener er grunnleggende for bransjen: <strong>stil</strong> og{" "}
-                <strong>harmoni</strong>. «Style» representerer skjønnhet,
-                presisjon og faglig stolthet. Endelsen «-ora» gir en myk,
-                nordisk klang og signaliserer ro og balanse. Sammen danner de et
-                navn som er både moderne og tidløst, lett å uttale på flere
-                språk, og som speiler vår ambisjon om å skape et system som
-                føles naturlig i den norske hverdagen.
-              </p>
-              <p className="leading-relaxed">
-                Historien vår begynte med å lytte til salongeiere: hva hindrer
-                dem, hva savner de, hva bruker de for mye tid på? Svarene var
-                tydelige. De trengte en løsning som er enkel å forstå, behagelig
-                å bruke og som faktisk hjelper dem å fokusere på det viktigste –
-                kundene sine.
-              </p>
-              <p className="leading-relaxed">
-                Derfor ble Stylora utviklet med et nordisk, minimalistisk
-                uttrykk og funksjoner som gjør arbeidshverdagen lettere, ikke
-                tyngre. Vårt mål er ikke bare å levere teknologi, men å skape en
-                opplevelse som gir trygghet, struktur og profesjonell flyt.
-              </p>
+              <p className="leading-relaxed">{t("aboutUs.heroParagraph3")}</p>
+              <p className="leading-relaxed">{t("aboutUs.heroParagraph4")}</p>
               <p className="leading-relaxed font-semibold text-foreground">
-                Stylora er resultatet av et ønske om å forenkle, forbedre og
-                løfte hverdagen til norske salonger – med et navn som
-                gjenspeiler akkurat det.
+                {t("aboutUs.heroParagraph5")}
               </p>
             </div>
           </div>
@@ -277,12 +248,11 @@ export default function AboutUs() {
                 <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mb-6 shadow-lg">
                   <Target className="h-8 w-8 text-white" />
                 </div>
-                <h2 className="text-3xl font-bold mb-4">Vår visjon</h2>
+                <h2 className="text-3xl font-bold mb-4">
+                  {t("aboutUs.visionTitle")}
+                </h2>
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  Å bli Norges ledende plattform for salongadministrasjon, hvor
-                  hver frisør, barber og skjønnhetsekspert kan fokusere på det
-                  de elsker – å skape vakre opplevelser for sine kunder – mens
-                  vi tar oss av resten.
+                  {t("aboutUs.visionText")}
                 </p>
               </CardContent>
             </Card>
@@ -293,12 +263,11 @@ export default function AboutUs() {
                 <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-6 shadow-lg">
                   <Sparkles className="h-8 w-8 text-white" />
                 </div>
-                <h2 className="text-3xl font-bold mb-4">Vårt oppdrag</h2>
+                <h2 className="text-3xl font-bold mb-4">
+                  {t("aboutUs.missionTitle")}
+                </h2>
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  Vi forenkler hverdagen for norske salonger ved å tilby
-                  intuitive, kraftige verktøy som automatiserer booking,
-                  kundeadministrasjon, betalinger og rapportering – alt i én
-                  plattform.
+                  {t("aboutUs.missionText")}
                 </p>
               </CardContent>
             </Card>
@@ -311,17 +280,16 @@ export default function AboutUs() {
         <div className="container max-w-6xl">
           <div className="text-center mb-16">
             <Badge variant="outline" className="mb-4">
-              Våre verdier
+              {t("aboutUs.valuesBadge")}
             </Badge>
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Hva vi{" "}
+              {t("aboutUs.valuesTitlePrefix")}{" "}
               <span className="bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
-                står for
+                {t("aboutUs.valuesTitleHighlight")}
               </span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Våre verdier styrer alt vi gjør – fra produktutvikling til
-              kundeservice
+              {t("aboutUs.valuesSubtitle")}
             </p>
           </div>
 
@@ -353,12 +321,12 @@ export default function AboutUs() {
         <div className="container max-w-4xl">
           <div className="text-center mb-16">
             <Badge variant="outline" className="mb-4">
-              Vår reise
+              {t("aboutUs.journeyBadge")}
             </Badge>
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Fra idé til{" "}
+              {t("aboutUs.journeyTitlePrefix")}{" "}
               <span className="bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
-                virkelighet
+                {t("aboutUs.journeyTitleHighlight")}
               </span>
             </h2>
           </div>
@@ -390,12 +358,12 @@ export default function AboutUs() {
         <div className="container max-w-4xl">
           <div className="text-center mb-12">
             <Badge variant="outline" className="mb-4">
-              Hvorfor Stylora?
+              {t("aboutUs.whyBadge")}
             </Badge>
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Bygget{" "}
+              {t("aboutUs.whyTitlePrefix")}{" "}
               <span className="bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
-                for Norge
+                {t("aboutUs.whyTitleHighlight")}
               </span>
             </h2>
           </div>
@@ -409,11 +377,10 @@ export default function AboutUs() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold mb-2">
-                      Norsk språk og valuta
+                      {t("aboutUs.whyLanguageTitle")}
                     </h3>
                     <p className="text-muted-foreground">
-                      Alt på norsk (bokmål), med norske kroner, MVA-håndtering
-                      og integrering med norske betalingsløsninger som Vipps.
+                      {t("aboutUs.whyLanguageText")}
                     </p>
                   </div>
                 </div>
@@ -427,10 +394,11 @@ export default function AboutUs() {
                     <CheckCircle2 className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold mb-2">GDPR-kompatibel</h3>
+                    <h3 className="text-xl font-bold mb-2">
+                      {t("aboutUs.whyGdprTitle")}
+                    </h3>
                     <p className="text-muted-foreground">
-                      Alle data lagres sikkert på EU-servere i samsvar med GDPR
-                      og norsk personvernlovgivning.
+                      {t("aboutUs.whyGdprText")}
                     </p>
                   </div>
                 </div>
@@ -445,11 +413,10 @@ export default function AboutUs() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold mb-2">
-                      Norsk kundeservice
+                      {t("aboutUs.whySupportTitle")}
                     </h3>
                     <p className="text-muted-foreground">
-                      Vi snakker ditt språk og forstår din virksomhet. Vårt
-                      supportteam er tilgjengelig på norsk i norsk arbeidstid.
+                      {t("aboutUs.whySupportText")}
                     </p>
                   </div>
                 </div>
@@ -464,12 +431,10 @@ export default function AboutUs() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold mb-2">
-                      Ingen bindingstid
+                      {t("aboutUs.whyNoLockInTitle")}
                     </h3>
                     <p className="text-muted-foreground">
-                      Vi tror på at du skal velge oss fordi vi er best, ikke
-                      fordi du er låst. Ingen bindingstid eller skjulte
-                      kostnader.
+                      {t("aboutUs.whyNoLockInText")}
                     </p>
                   </div>
                 </div>
@@ -486,11 +451,10 @@ export default function AboutUs() {
         <div className="container relative z-10">
           <div className="max-w-4xl mx-auto text-center text-white space-y-8">
             <h2 className="text-4xl md:text-5xl font-extrabold">
-              Klar til å transformere din salong?
+              {t("aboutUs.ctaTitle")}
             </h2>
             <p className="text-xl opacity-90 max-w-2xl mx-auto">
-              Bli med over 100 norske salonger som allerede har digitalisert sin
-              virksomhet med Stylora
+              {t("aboutUs.ctaSubtitle")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/signup">
@@ -499,7 +463,7 @@ export default function AboutUs() {
                   variant="secondary"
                   className="text-lg px-8 py-6 h-auto"
                 >
-                  Prøv gratis i 14 dager
+                  {t("aboutUs.ctaTryFree")}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
@@ -510,12 +474,12 @@ export default function AboutUs() {
                   className="text-lg px-8 py-6 h-auto bg-white/10 border-white/30 text-white hover:bg-white/20"
                 >
                   <Mail className="mr-2 h-5 w-5" />
-                  Kontakt oss
+                  {t("aboutUs.ctaContact")}
                 </Button>
               </Link>
             </div>
             <p className="text-sm opacity-75">
-              Ingen kredittkort nødvendig • Ingen bindingstid • Norsk support
+              {t("aboutUs.ctaFootnote")}
             </p>
           </div>
         </div>

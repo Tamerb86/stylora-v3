@@ -42,8 +42,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { safeToFixed } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 export default function Employees() {
+  const { t } = useTranslation();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
@@ -74,7 +76,7 @@ export default function Employees() {
 
   const createEmployee = trpc.employees.create.useMutation({
     onSuccess: () => {
-      toast.success("Ansatt opprettet!");
+      toast.success(t("employees.created"));
       setIsCreateDialogOpen(false);
       refetch();
       setCreateFormData({
@@ -87,39 +89,39 @@ export default function Employees() {
       });
     },
     onError: error => {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("employees.error", { message: error.message }));
     },
   });
 
   const updateEmployee = trpc.employees.update.useMutation({
     onSuccess: () => {
-      toast.success("Ansatt oppdatert!");
+      toast.success(t("employees.updated"));
       setIsEditDialogOpen(false);
       setSelectedEmployee(null);
       refetch();
     },
     onError: error => {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("employees.error", { message: error.message }));
     },
   });
 
   const deactivateEmployee = trpc.employees.deactivate.useMutation({
     onSuccess: () => {
-      toast.success("Ansatt deaktivert!");
+      toast.success(t("employees.deactivated"));
       refetch();
     },
     onError: error => {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("employees.error", { message: error.message }));
     },
   });
 
   const activateEmployee = trpc.employees.activate.useMutation({
     onSuccess: () => {
-      toast.success("Ansatt aktivert!");
+      toast.success(t("employees.activated"));
       refetch();
     },
     onError: error => {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("employees.error", { message: error.message }));
     },
   });
 
@@ -158,7 +160,7 @@ export default function Employees() {
 
   const handleToggleActive = (employee: any) => {
     if (employee.isActive) {
-      if (confirm(`Er du sikker på at du vil deaktivere ${employee.name}?`)) {
+      if (confirm(t("employees.confirmDeactivate", { name: employee.name }))) {
         deactivateEmployee.mutate({ id: employee.id });
       }
     } else {
@@ -180,8 +182,8 @@ export default function Employees() {
   return (
     <DashboardLayout
       breadcrumbs={[
-        { label: "Dashboard", href: "/dashboard" },
-        { label: "Ansatte" },
+        { label: t("employees.breadcrumbDashboard"), href: "/dashboard" },
+        { label: t("employees.breadcrumbEmployees") },
       ]}
     >
       {/* Background gradient */}
@@ -192,10 +194,10 @@ export default function Employees() {
         <div className="flex justify-between items-center animate-fade-in">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-500 bg-clip-text text-transparent">
-              Ansatte
+              {t("employees.title")}
             </h1>
             <p className="text-muted-foreground mt-1">
-              Administrer behandlere og personale
+              {t("employees.subtitle")}
             </p>
           </div>
 
@@ -207,19 +209,19 @@ export default function Employees() {
             <DialogTrigger asChild>
               <Button className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                 <Plus className="mr-2 h-4 w-4" />
-                Ny ansatt
+                {t("employees.newEmployee")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Opprett ny ansatt</DialogTitle>
+                <DialogTitle>{t("employees.createTitle")}</DialogTitle>
                 <DialogDescription>
-                  Legg til en ny behandler eller administrator
+                  {t("employees.createDescription")}
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleCreateSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="create-name">Navn *</Label>
+                  <Label htmlFor="create-name">{t("employees.nameLabel")}</Label>
                   <Input
                     id="create-name"
                     required
@@ -233,7 +235,7 @@ export default function Employees() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="create-email">E-post</Label>
+                  <Label htmlFor="create-email">{t("employees.emailLabel")}</Label>
                   <Input
                     id="create-email"
                     type="email"
@@ -247,7 +249,7 @@ export default function Employees() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="create-phone">Telefon</Label>
+                  <Label htmlFor="create-phone">{t("employees.phoneLabel")}</Label>
                   <Input
                     id="create-phone"
                     value={createFormData.phone}
@@ -260,7 +262,7 @@ export default function Employees() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="create-role">Rolle</Label>
+                  <Label htmlFor="create-role">{t("employees.roleLabel")}</Label>
                   <Select
                     value={createFormData.role}
                     onValueChange={(value: any) =>
@@ -271,15 +273,15 @@ export default function Employees() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="employee">Behandler</SelectItem>
-                      <SelectItem value="admin">Administrator</SelectItem>
+                      <SelectItem value="employee">{t("employees.roleEmployee")}</SelectItem>
+                      <SelectItem value="admin">{t("employees.roleAdmin")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="create-commissionType">
-                      Provisjonstype
+                      {t("employees.commissionTypeLabel")}
                     </Label>
                     <Select
                       value={createFormData.commissionType}
@@ -294,15 +296,15 @@ export default function Employees() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="percentage">Prosent</SelectItem>
-                        <SelectItem value="fixed">Fast beløp</SelectItem>
-                        <SelectItem value="tiered">Trinnvis</SelectItem>
+                        <SelectItem value="percentage">{t("employees.commissionPercentage")}</SelectItem>
+                        <SelectItem value="fixed">{t("employees.commissionFixed")}</SelectItem>
+                        <SelectItem value="tiered">{t("employees.commissionTiered")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="create-commissionRate">
-                      Provisjonssats
+                      {t("employees.commissionRateLabel")}
                     </Label>
                     <Input
                       id="create-commissionRate"
@@ -325,12 +327,12 @@ export default function Employees() {
                     variant="outline"
                     onClick={() => setIsCreateDialogOpen(false)}
                   >
-                    Avbryt
+                    {t("employees.cancel")}
                   </Button>
                   <Button type="submit" disabled={createEmployee.isPending}>
                     {createEmployee.isPending
-                      ? "Oppretter..."
-                      : "Opprett ansatt"}
+                      ? t("employees.creating")
+                      : t("employees.createButton")}
                   </Button>
                 </DialogFooter>
               </form>
@@ -348,7 +350,7 @@ export default function Employees() {
             <CardHeader className="relative pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium text-white/90">
-                  Totalt ansatte
+                  {t("employees.statTotal")}
                 </CardTitle>
                 <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg">
                   <Users className="h-4 w-4 text-white" />
@@ -359,7 +361,7 @@ export default function Employees() {
               <div className="text-3xl font-bold text-white">
                 {totalEmployees}
               </div>
-              <p className="text-xs text-white/80 mt-1">Registrerte ansatte</p>
+              <p className="text-xs text-white/80 mt-1">{t("employees.statTotalSub")}</p>
             </CardContent>
           </Card>
 
@@ -368,7 +370,7 @@ export default function Employees() {
             <CardHeader className="relative pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium text-white/90">
-                  Aktive ansatte
+                  {t("employees.statActive")}
                 </CardTitle>
                 <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg">
                   <UserCog className="h-4 w-4 text-white" />
@@ -379,7 +381,7 @@ export default function Employees() {
               <div className="text-3xl font-bold text-white">
                 {activeEmployees}
               </div>
-              <p className="text-xs text-white/80 mt-1">Kan booke avtaler</p>
+              <p className="text-xs text-white/80 mt-1">{t("employees.statActiveSub")}</p>
             </CardContent>
           </Card>
 
@@ -388,7 +390,7 @@ export default function Employees() {
             <CardHeader className="relative pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium text-white/90">
-                  Snitt provisjon
+                  {t("employees.statAvgCommission")}
                 </CardTitle>
                 <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg">
                   <Award className="h-4 w-4 text-white" />
@@ -399,7 +401,7 @@ export default function Employees() {
               <div className="text-3xl font-bold text-white">
                 {safeToFixed(avgCommission, 0)}%
               </div>
-              <p className="text-xs text-white/80 mt-1">Gjennomsnittlig sats</p>
+              <p className="text-xs text-white/80 mt-1">{t("employees.statAvgCommissionSub")}</p>
             </CardContent>
           </Card>
 
@@ -408,7 +410,7 @@ export default function Employees() {
             <CardHeader className="relative pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium text-white/90">
-                  Med PIN-kode
+                  {t("employees.statWithPin")}
                 </CardTitle>
                 <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg">
                   <Key className="h-4 w-4 text-white" />
@@ -419,7 +421,7 @@ export default function Employees() {
               <div className="text-3xl font-bold text-white">
                 {employeesWithPin}
               </div>
-              <p className="text-xs text-white/80 mt-1">Kan stemple inn/ut</p>
+              <p className="text-xs text-white/80 mt-1">{t("employees.statWithPinSub")}</p>
             </CardContent>
           </Card>
         </div>
@@ -428,14 +430,14 @@ export default function Employees() {
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Rediger ansatt</DialogTitle>
+              <DialogTitle>{t("employees.editTitle")}</DialogTitle>
               <DialogDescription>
-                Oppdater informasjon for {selectedEmployee?.name}
+                {t("employees.editDescription", { name: selectedEmployee?.name })}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleEditSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-name">Navn *</Label>
+                <Label htmlFor="edit-name">{t("employees.nameLabel")}</Label>
                 <Input
                   id="edit-name"
                   required
@@ -446,7 +448,7 @@ export default function Employees() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-email">E-post</Label>
+                <Label htmlFor="edit-email">{t("employees.emailLabel")}</Label>
                 <Input
                   id="edit-email"
                   type="email"
@@ -457,7 +459,7 @@ export default function Employees() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-phone">Telefon</Label>
+                <Label htmlFor="edit-phone">{t("employees.phoneLabel")}</Label>
                 <Input
                   id="edit-phone"
                   value={editFormData.phone}
@@ -467,14 +469,14 @@ export default function Employees() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-pin">PIN-kode (4-6 siffer)</Label>
+                <Label htmlFor="edit-pin">{t("employees.pinLabel")}</Label>
                 <div className="flex items-center gap-2">
                   <Key className="h-4 w-4 text-muted-foreground" />
                   <Input
                     id="edit-pin"
                     type="text"
                     maxLength={6}
-                    placeholder={selectedEmployee?.pin ? "••••" : "Ikke satt"}
+                    placeholder={selectedEmployee?.pin ? "••••" : t("employees.pinNotSet")}
                     value={editFormData.pin}
                     onChange={e => {
                       const value = e.target.value.replace(/\D/g, "");
@@ -483,12 +485,12 @@ export default function Employees() {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Brukes for inn/ut-stempling på tidsuret
+                  {t("employees.pinHelp")}
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-commissionType">Provisjonstype</Label>
+                  <Label htmlFor="edit-commissionType">{t("employees.commissionTypeLabel")}</Label>
                   <Select
                     value={editFormData.commissionType}
                     onValueChange={(value: any) =>
@@ -502,14 +504,14 @@ export default function Employees() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="percentage">Prosent</SelectItem>
-                      <SelectItem value="fixed">Fast beløp</SelectItem>
-                      <SelectItem value="tiered">Trinnvis</SelectItem>
+                      <SelectItem value="percentage">{t("employees.commissionPercentage")}</SelectItem>
+                      <SelectItem value="fixed">{t("employees.commissionFixed")}</SelectItem>
+                      <SelectItem value="tiered">{t("employees.commissionTiered")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-commissionRate">Provisjonssats</Label>
+                  <Label htmlFor="edit-commissionRate">{t("employees.commissionRateLabel")}</Label>
                   <Input
                     id="edit-commissionRate"
                     type="number"
@@ -531,10 +533,10 @@ export default function Employees() {
                   variant="outline"
                   onClick={() => setIsEditDialogOpen(false)}
                 >
-                  Avbryt
+                  {t("employees.cancel")}
                 </Button>
                 <Button type="submit" disabled={updateEmployee.isPending}>
-                  {updateEmployee.isPending ? "Lagrer..." : "Lagre endringer"}
+                  {updateEmployee.isPending ? t("employees.saving") : t("employees.saveChanges")}
                 </Button>
               </DialogFooter>
             </form>
@@ -585,7 +587,7 @@ export default function Employees() {
                           </CardTitle>
                           {!employee.isActive && (
                             <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
-                              Deaktivert
+                              {t("employees.deactivatedBadge")}
                             </span>
                           )}
                           {employee.pin && (
@@ -596,10 +598,10 @@ export default function Employees() {
                         </div>
                         <CardDescription className="mt-1">
                           {employee.role === "owner"
-                            ? "Eier"
+                            ? t("employees.roleOwner")
                             : employee.role === "admin"
-                              ? "Administrator"
-                              : "Behandler"}
+                              ? t("employees.roleAdmin")
+                              : t("employees.roleEmployee")}
                         </CardDescription>
                       </div>
                     </div>
@@ -652,8 +654,10 @@ export default function Employees() {
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-cyan-100 to-blue-100">
                       <Award className="h-3 w-3 text-cyan-700" />
                       <span className="text-sm font-semibold text-cyan-700">
-                        Provisjon: {employee.commissionRate}% (
-                        {employee.commissionType})
+                        {t("employees.commissionDisplay", {
+                          rate: employee.commissionRate,
+                          type: employee.commissionType,
+                        })}
                       </span>
                     </div>
                   )}
@@ -667,17 +671,16 @@ export default function Employees() {
               <div className="p-4 bg-gradient-to-br from-indigo-100 to-blue-100 rounded-full mb-4">
                 <UserCog className="h-12 w-12 text-indigo-600" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">Ingen ansatte ennå</h3>
+              <h3 className="text-lg font-semibold mb-2">{t("employees.emptyTitle")}</h3>
               <p className="text-muted-foreground mb-6">
-                Opprett din første ansatt for å begynne å administrere
-                personalet ditt!
+                {t("employees.emptyDescription")}
               </p>
               <Button
                 onClick={() => setIsCreateDialogOpen(true)}
                 className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Opprett første ansatt
+                {t("employees.createFirst")}
               </Button>
             </CardContent>
           </Card>

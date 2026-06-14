@@ -25,6 +25,7 @@ import { useStripeTerminal } from "@/contexts/StripeTerminalContext";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Reader } from "@stripe/terminal-js";
+import { useTranslation } from "react-i18next";
 
 interface TestResult {
   name: string;
@@ -34,6 +35,7 @@ interface TestResult {
 }
 
 export default function TerminalTest() {
+  const { t } = useTranslation();
   const {
     terminal,
     connectedReader,
@@ -82,15 +84,15 @@ export default function TerminalTest() {
     const start1 = Date.now();
     try {
       if (stripeStatus?.connected) {
-        updateTest("Stripe-tilkobling", { 
-          status: "success", 
-          message: `Koblet til: ${stripeStatus.accountId}`,
+        updateTest("Stripe-tilkobling", {
+          status: "success",
+          message: t("terminalTest.connectedTo", { accountId: stripeStatus.accountId }),
           duration: Date.now() - start1
         });
       } else {
-        updateTest("Stripe-tilkobling", { 
-          status: "error", 
-          message: "Stripe er ikke koblet til",
+        updateTest("Stripe-tilkobling", {
+          status: "error",
+          message: t("terminalTest.stripeNotConnected"),
           duration: Date.now() - start1
         });
       }
@@ -107,15 +109,15 @@ export default function TerminalTest() {
     const start2 = Date.now();
     try {
       if (typeof window !== "undefined" && (window as any).StripeTerminal) {
-        updateTest("Stripe Terminal SDK", { 
-          status: "success", 
-          message: "SDK lastet korrekt",
+        updateTest("Stripe Terminal SDK", {
+          status: "success",
+          message: t("terminalTest.sdkLoadedCorrectly"),
           duration: Date.now() - start2
         });
       } else {
-        updateTest("Stripe Terminal SDK", { 
-          status: "error", 
-          message: "SDK ikke lastet - sjekk index.html",
+        updateTest("Stripe Terminal SDK", {
+          status: "error",
+          message: t("terminalTest.sdkNotLoaded"),
           duration: Date.now() - start2
         });
       }
@@ -132,15 +134,15 @@ export default function TerminalTest() {
     const start3 = Date.now();
     await new Promise(resolve => setTimeout(resolve, 500)); // Wait for init
     if (isInitialized && terminal) {
-      updateTest("Terminal initialisering", { 
-        status: "success", 
-        message: "Terminal klar til bruk",
+      updateTest("Terminal initialisering", {
+        status: "success",
+        message: t("terminalTest.terminalReady"),
         duration: Date.now() - start3
       });
     } else {
-      updateTest("Terminal initialisering", { 
-        status: "error", 
-        message: "Terminal ikke initialisert",
+      updateTest("Terminal initialisering", {
+        status: "error",
+        message: t("terminalTest.terminalNotInitialized"),
         duration: Date.now() - start3
       });
     }
@@ -150,15 +152,15 @@ export default function TerminalTest() {
     const start4 = Date.now();
     try {
       if ((paymentSettings as any)?.stripePublishableKey || stripeStatus?.connected) {
-        updateTest("API-nøkkel konfigurasjon", { 
-          status: "success", 
-          message: "API-nøkler konfigurert",
+        updateTest("API-nøkkel konfigurasjon", {
+          status: "success",
+          message: t("terminalTest.apiKeysConfigured"),
           duration: Date.now() - start4
         });
       } else {
-        updateTest("API-nøkkel konfigurasjon", { 
-          status: "error", 
-          message: "Mangler API-nøkler",
+        updateTest("API-nøkkel konfigurasjon", {
+          status: "error",
+          message: t("terminalTest.apiKeysMissing"),
           duration: Date.now() - start4
         });
       }
@@ -177,23 +179,23 @@ export default function TerminalTest() {
       if (terminal) {
         const readers = await discoverReaders();
         if (readers.length > 0) {
-          updateTest("Kortleser-søk", { 
-            status: "success", 
-            message: `Fant ${readers.length} leser(e)`,
+          updateTest("Kortleser-søk", {
+            status: "success",
+            message: t("terminalTest.foundReaders", { count: readers.length }),
             duration: Date.now() - start5
           });
           setDiscoveredReaders(readers);
         } else {
-          updateTest("Kortleser-søk", { 
-            status: "error", 
-            message: "Ingen lesere funnet",
+          updateTest("Kortleser-søk", {
+            status: "error",
+            message: t("terminalTest.noReadersFound"),
             duration: Date.now() - start5
           });
         }
       } else {
-        updateTest("Kortleser-søk", { 
-          status: "error", 
-          message: "Terminal ikke tilgjengelig",
+        updateTest("Kortleser-søk", {
+          status: "error",
+          message: t("terminalTest.terminalNotAvailable"),
           duration: Date.now() - start5
         });
       }
@@ -215,12 +217,12 @@ export default function TerminalTest() {
       const readers = await discoverReaders();
       setDiscoveredReaders(readers);
       if (readers.length === 0) {
-        toast.info("Ingen lesere funnet. Sjekk at leseren er påslått.");
+        toast.info(t("terminalTest.noReadersFoundCheckOn"));
       } else {
-        toast.success(`Fant ${readers.length} leser(e)`);
+        toast.success(t("terminalTest.foundReaders", { count: readers.length }));
       }
     } catch (error: any) {
-      toast.error(`Feil ved søk: ${error.message}`);
+      toast.error(t("terminalTest.searchError", { message: error.message }));
     } finally {
       setIsDiscovering(false);
     }
@@ -230,22 +232,22 @@ export default function TerminalTest() {
   const handleConnect = async (reader: Reader) => {
     try {
       await connectReader(reader);
-      toast.success("Kortleser tilkoblet!");
+      toast.success(t("terminalTest.readerConnected"));
     } catch (error: any) {
-      toast.error(`Tilkobling feilet: ${error.message}`);
+      toast.error(t("terminalTest.connectionFailed", { message: error.message }));
     }
   };
 
   // Test payment
   const handleTestPayment = async () => {
     if (!connectedReader) {
-      toast.error("Koble til en kortleser først");
+      toast.error(t("terminalTest.connectReaderFirst"));
       return;
     }
 
     const amount = parseFloat(testAmount);
     if (isNaN(amount) || amount <= 0) {
-      toast.error("Ugyldig beløp");
+      toast.error(t("terminalTest.invalidAmount"));
       return;
     }
 
@@ -253,12 +255,12 @@ export default function TerminalTest() {
     try {
       const result = await processPayment(amount * 100, "nok"); // Convert to øre
       if (result.success) {
-        toast.success(`Betaling vellykket! ${result.cardBrand} ****${result.lastFour}`);
+        toast.success(t("terminalTest.paymentSuccessful", { cardBrand: result.cardBrand, lastFour: result.lastFour }));
       } else {
-        toast.error(`Betaling feilet: ${result.error}`);
+        toast.error(t("terminalTest.paymentFailed", { error: result.error }));
       }
     } catch (error: any) {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("terminalTest.genericError", { message: error.message }));
     } finally {
       setIsProcessingPayment(false);
     }
@@ -283,21 +285,21 @@ export default function TerminalTest() {
       <div className="container mx-auto p-6 max-w-4xl">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-primary">Terminal Test</h1>
+            <h1 className="text-3xl font-bold text-primary">{t("terminalTest.title")}</h1>
             <p className="text-muted-foreground">
-              Test og verifiser Stripe Terminal-tilkoblingen
+              {t("terminalTest.subtitle")}
             </p>
           </div>
           <Button onClick={runDiagnostics} disabled={isRunningTests}>
             {isRunningTests ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Kjører tester...
+                {t("terminalTest.runningTests")}
               </>
             ) : (
               <>
                 <Play className="mr-2 h-4 w-4" />
-                Kjør diagnostikk
+                {t("terminalTest.runDiagnostics")}
               </>
             )}
           </Button>
@@ -316,7 +318,7 @@ export default function TerminalTest() {
                 <div>
                   <p className="font-medium">Stripe Connect</p>
                   <p className="text-sm text-muted-foreground">
-                    {stripeStatus?.connected ? "Tilkoblet" : "Ikke tilkoblet"}
+                    {stripeStatus?.connected ? t("terminalTest.connected") : t("terminalTest.notConnected")}
                   </p>
                 </div>
               </div>
@@ -334,7 +336,7 @@ export default function TerminalTest() {
                 <div>
                   <p className="font-medium">Terminal SDK</p>
                   <p className="text-sm text-muted-foreground">
-                    {isInitialized ? "Initialisert" : "Laster..."}
+                    {isInitialized ? t("terminalTest.initialized") : t("terminalTest.loading")}
                   </p>
                 </div>
               </div>
@@ -350,9 +352,9 @@ export default function TerminalTest() {
                   <WifiOff className="h-8 w-8 text-gray-400" />
                 )}
                 <div>
-                  <p className="font-medium">Kortleser</p>
+                  <p className="font-medium">{t("terminalTest.cardReader")}</p>
                   <p className="text-sm text-muted-foreground">
-                    {connectedReader ? connectedReader.label || "Tilkoblet" : "Ikke tilkoblet"}
+                    {connectedReader ? connectedReader.label || t("terminalTest.connected") : t("terminalTest.notConnected")}
                   </p>
                 </div>
               </div>
@@ -366,7 +368,7 @@ export default function TerminalTest() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Settings className="h-5 w-5" />
-                Diagnostikk-resultater
+                {t("terminalTest.diagnosticResults")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -400,10 +402,10 @@ export default function TerminalTest() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TerminalIcon className="h-5 w-5" />
-              Kortleser-administrasjon
+              {t("terminalTest.readerManagement")}
             </CardTitle>
             <CardDescription>
-              Søk etter og koble til Stripe Terminal-lesere
+              {t("terminalTest.readerManagementDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -411,16 +413,16 @@ export default function TerminalTest() {
               <div className="space-y-4">
                 <Alert className="border-green-200 bg-green-50">
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <AlertTitle className="text-green-800">Kortleser tilkoblet</AlertTitle>
+                  <AlertTitle className="text-green-800">{t("terminalTest.readerConnectedTitle")}</AlertTitle>
                   <AlertDescription className="text-green-700">
-                    <p><strong>Navn:</strong> {connectedReader.label || "Ukjent"}</p>
-                    <p><strong>Serienummer:</strong> {connectedReader.serial_number}</p>
-                    <p><strong>Type:</strong> {connectedReader.device_type}</p>
+                    <p><strong>{t("terminalTest.nameLabel")}</strong> {connectedReader.label || t("terminalTest.unknown")}</p>
+                    <p><strong>{t("terminalTest.serialNumberLabel")}</strong> {connectedReader.serial_number}</p>
+                    <p><strong>{t("terminalTest.typeLabel")}</strong> {connectedReader.device_type}</p>
                   </AlertDescription>
                 </Alert>
                 <Button variant="outline" onClick={disconnectReader}>
                   <WifiOff className="mr-2 h-4 w-4" />
-                  Koble fra
+                  {t("terminalTest.disconnect")}
                 </Button>
               </div>
             ) : (
@@ -429,19 +431,19 @@ export default function TerminalTest() {
                   {isDiscovering ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Søker...
+                      {t("terminalTest.searching")}
                     </>
                   ) : (
                     <>
                       <RefreshCw className="mr-2 h-4 w-4" />
-                      Søk etter lesere
+                      {t("terminalTest.searchForReaders")}
                     </>
                   )}
                 </Button>
 
                 {discoveredReaders.length > 0 && (
                   <div className="space-y-2">
-                    <p className="text-sm font-medium">Funnet {discoveredReaders.length} leser(e):</p>
+                    <p className="text-sm font-medium">{t("terminalTest.foundReadersList", { count: discoveredReaders.length })}</p>
                     {discoveredReaders.map((reader) => (
                       <div 
                         key={reader.id}
@@ -450,7 +452,7 @@ export default function TerminalTest() {
                         <div className="flex items-center gap-3">
                           <Wifi className="h-5 w-5 text-blue-500" />
                           <div>
-                            <p className="font-medium">{reader.label || "Kortleser"}</p>
+                            <p className="font-medium">{reader.label || t("terminalTest.cardReader")}</p>
                             <p className="text-sm text-muted-foreground">
                               {reader.serial_number} • {reader.device_type}
                             </p>
@@ -467,7 +469,7 @@ export default function TerminalTest() {
                           {isConnecting ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
-                            "Koble til"
+                            t("terminalTest.connect")
                           )}
                         </Button>
                       </div>
@@ -478,9 +480,9 @@ export default function TerminalTest() {
                 {!isInitialized && (
                   <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Terminal ikke initialisert</AlertTitle>
+                    <AlertTitle>{t("terminalTest.terminalNotInitializedTitle")}</AlertTitle>
                     <AlertDescription>
-                      Stripe Terminal SDK er ikke lastet. Sjekk at Stripe er konfigurert korrekt.
+                      {t("terminalTest.terminalNotInitializedDesc")}
                     </AlertDescription>
                   </Alert>
                 )}
@@ -494,10 +496,10 @@ export default function TerminalTest() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5" />
-              Test betaling
+              {t("terminalTest.testPayment")}
             </CardTitle>
             <CardDescription>
-              Utfør en testbetaling for å verifisere at alt fungerer
+              {t("terminalTest.testPaymentDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -505,7 +507,7 @@ export default function TerminalTest() {
               <div className="space-y-4">
                 <div className="flex items-end gap-4">
                   <div className="flex-1">
-                    <Label htmlFor="amount">Beløp (NOK)</Label>
+                    <Label htmlFor="amount">{t("terminalTest.amountLabel")}</Label>
                     <Input
                       id="amount"
                       type="number"
@@ -524,26 +526,26 @@ export default function TerminalTest() {
                     {isProcessingPayment ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        Behandler...
+                        {t("terminalTest.processing")}
                       </>
                     ) : (
                       <>
                         <Zap className="h-4 w-4" />
-                        Kjør testbetaling
+                        {t("terminalTest.runTestPayment")}
                       </>
                     )}
                   </Button>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  <strong>Tips:</strong> Bruk testkort 4242 4242 4242 4242 med vilkårlig utløpsdato og CVC.
+                  <strong>{t("terminalTest.tipsLabel")}</strong> {t("terminalTest.testCardTip")}
                 </p>
               </div>
             ) : (
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Kortleser kreves</AlertTitle>
+                <AlertTitle>{t("terminalTest.readerRequired")}</AlertTitle>
                 <AlertDescription>
-                  Du må koble til en kortleser før du kan utføre testbetalinger.
+                  {t("terminalTest.readerRequiredDesc")}
                 </AlertDescription>
               </Alert>
             )}

@@ -38,8 +38,10 @@ import {
   Percent,
   DollarSign,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function Loyalty() {
+  const { t } = useTranslation();
   const [showCreateReward, setShowCreateReward] = useState(false);
   const [rewardForm, setRewardForm] = useState({
     name: "",
@@ -63,7 +65,7 @@ export default function Loyalty() {
 
   const createReward = trpc.loyalty.createReward.useMutation({
     onSuccess: () => {
-      toast.success("Belønning opprettet");
+      toast.success(t("loyalty.rewardCreated"));
       setShowCreateReward(false);
       setRewardForm({
         name: "",
@@ -76,17 +78,17 @@ export default function Loyalty() {
       refetchRewards();
     },
     onError: error => {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("loyalty.error", { message: error.message }));
     },
   });
 
   const updateSettings = trpc.loyalty.updateSettings.useMutation({
     onSuccess: () => {
-      toast.success("Innstillinger lagret");
+      toast.success(t("loyalty.settingsSaved"));
       refetchSettings();
     },
     onError: error => {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("loyalty.error", { message: error.message }));
     },
   });
 
@@ -96,7 +98,7 @@ export default function Loyalty() {
       !rewardForm.pointsCost ||
       !rewardForm.discountValue
     ) {
-      toast.error("Vennligst fyll ut alle obligatoriske felt");
+      toast.error(t("loyalty.fillRequiredFields"));
       return;
     }
 
@@ -129,10 +131,10 @@ export default function Loyalty() {
       <div className="p-6 max-w-6xl">
         <div className="mb-6">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent mb-2">
-            Lojalitetsprogram
+            {t("loyalty.heading")}
           </h1>
           <p className="text-muted-foreground">
-            Administrer lojalitetspoeng, belønninger og innstillinger
+            {t("loyalty.subtitle")}
           </p>
         </div>
 
@@ -140,11 +142,11 @@ export default function Loyalty() {
           <TabsList>
             <TabsTrigger value="rewards">
               <Gift className="w-4 h-4 mr-2" />
-              Belønninger
+              {t("loyalty.rewardsTab")}
             </TabsTrigger>
             <TabsTrigger value="settings">
               <SettingsIcon className="w-4 h-4 mr-2" />
-              Innstillinger
+              {t("loyalty.settingsTab")}
             </TabsTrigger>
           </TabsList>
 
@@ -153,10 +155,10 @@ export default function Loyalty() {
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-xl font-semibold">
-                  Tilgjengelige belønninger
+                  {t("loyalty.availableRewards")}
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  Kunder kan løse inn poeng for disse belønningene
+                  {t("loyalty.availableRewardsDescription")}
                 </p>
               </div>
               <Button
@@ -164,14 +166,14 @@ export default function Loyalty() {
                 className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white shadow-lg"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Ny belønning
+                {t("loyalty.newReward")}
               </Button>
             </div>
 
             {loadingRewards ? (
               <Card>
                 <CardContent className="py-8 text-center text-muted-foreground">
-                  Laster belønninger...
+                  {t("loyalty.loadingRewards")}
                 </CardContent>
               </Card>
             ) : !rewards || rewards.length === 0 ? (
@@ -179,17 +181,17 @@ export default function Loyalty() {
                 <CardContent className="py-12 text-center">
                   <Gift className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
                   <p className="text-lg font-medium mb-2">
-                    Ingen belønninger ennå
+                    {t("loyalty.noRewardsYet")}
                   </p>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Opprett din første belønning for å komme i gang
+                    {t("loyalty.createFirstReward")}
                   </p>
                   <Button
                     onClick={() => setShowCreateReward(true)}
                     className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white shadow-lg"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    Opprett belønning
+                    {t("loyalty.createReward")}
                   </Button>
                 </CardContent>
               </Card>
@@ -210,7 +212,7 @@ export default function Loyalty() {
                           )}
                         </div>
                         <Badge variant="secondary">
-                          {reward.pointsCost} poeng
+                          {t("loyalty.pointsCount", { count: reward.pointsCost })}
                         </Badge>
                       </div>
                     </CardHeader>
@@ -220,20 +222,20 @@ export default function Loyalty() {
                           <>
                             <Percent className="w-4 h-4 text-primary" />
                             <span className="font-medium">
-                              {reward.discountValue}% rabatt
+                              {t("loyalty.percentDiscount", { value: reward.discountValue })}
                             </span>
                           </>
                         ) : (
                           <>
                             <DollarSign className="w-4 h-4 text-primary" />
                             <span className="font-medium">
-                              {reward.discountValue} NOK rabatt
+                              {t("loyalty.fixedDiscount", { value: reward.discountValue })}
                             </span>
                           </>
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground mt-2">
-                        Gyldig i {reward.validityDays} dager etter innløsning
+                        {t("loyalty.validForDays", { count: reward.validityDays ?? 0 })}
                       </p>
                     </CardContent>
                   </Card>
@@ -246,23 +248,23 @@ export default function Loyalty() {
           <TabsContent value="settings" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Lojalitetsinnstillinger</CardTitle>
+                <CardTitle>{t("loyalty.settingsTitle")}</CardTitle>
                 <CardDescription>
-                  Konfigurer hvordan kunder tjener poeng
+                  {t("loyalty.settingsDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {loadingSettings ? (
                   <p className="text-center text-muted-foreground py-4">
-                    Laster innstillinger...
+                    {t("loyalty.loadingSettings")}
                   </p>
                 ) : settings ? (
                   <>
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
-                        <Label>Aktiver lojalitetsprogram</Label>
+                        <Label>{t("loyalty.enableProgram")}</Label>
                         <p className="text-sm text-muted-foreground">
-                          Slå på eller av lojalitetsprogrammet
+                          {t("loyalty.enableProgramDescription")}
                         </p>
                       </div>
                       <Switch
@@ -274,7 +276,7 @@ export default function Loyalty() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="pointsPerVisit">Poeng per besøk</Label>
+                      <Label htmlFor="pointsPerVisit">{t("loyalty.pointsPerVisit")}</Label>
                       <Input
                         id="pointsPerVisit"
                         type="number"
@@ -286,12 +288,12 @@ export default function Loyalty() {
                         }}
                       />
                       <p className="text-sm text-muted-foreground">
-                        Antall poeng kunden får for hver fullførte avtale
+                        {t("loyalty.pointsPerVisitDescription")}
                       </p>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="pointsPerNOK">Poeng per NOK brukt</Label>
+                      <Label htmlFor="pointsPerNOK">{t("loyalty.pointsPerNOK")}</Label>
                       <Input
                         id="pointsPerNOK"
                         type="number"
@@ -304,23 +306,25 @@ export default function Loyalty() {
                         }}
                       />
                       <p className="text-sm text-muted-foreground">
-                        Antall poeng kunden får per krone brukt (f.eks. 1.0 = 1
-                        poeng per NOK)
+                        {t("loyalty.pointsPerNOKDescription")}
                       </p>
                     </div>
 
                     <div className="pt-4 border-t">
-                      <h3 className="font-medium mb-2">Eksempel</h3>
+                      <h3 className="font-medium mb-2">{t("loyalty.example")}</h3>
                       <p className="text-sm text-muted-foreground">
-                        Med nåværende innstillinger: En kunde som fullfører en
-                        avtale til 500 NOK vil få{" "}
+                        {t("loyalty.exampleIntro")}{" "}
                         <strong>
-                          {settings.pointsPerVisit +
-                            Math.floor(500 * settings.pointsPerNOK)}{" "}
-                          poeng
+                          {t("loyalty.pointsCount", {
+                            count:
+                              settings.pointsPerVisit +
+                              Math.floor(500 * settings.pointsPerNOK),
+                          })}
                         </strong>{" "}
-                        ({settings.pointsPerVisit} for besøket +{" "}
-                        {Math.floor(500 * settings.pointsPerNOK)} for beløpet)
+                        {t("loyalty.exampleBreakdown", {
+                          visit: settings.pointsPerVisit,
+                          amount: Math.floor(500 * settings.pointsPerNOK),
+                        })}
                       </p>
                     </div>
                   </>
@@ -334,26 +338,26 @@ export default function Loyalty() {
         <Dialog open={showCreateReward} onOpenChange={setShowCreateReward}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Opprett ny belønning</DialogTitle>
+              <DialogTitle>{t("loyalty.createDialogTitle")}</DialogTitle>
               <DialogDescription>
-                Lag en belønning som kunder kan løse inn med poeng
+                {t("loyalty.createDialogDescription")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="rewardName">Navn *</Label>
+                <Label htmlFor="rewardName">{t("loyalty.fieldName")}</Label>
                 <Input
                   id="rewardName"
                   value={rewardForm.name}
                   onChange={e =>
                     setRewardForm({ ...rewardForm, name: e.target.value })
                   }
-                  placeholder="F.eks. 10% rabatt på neste besøk"
+                  placeholder={t("loyalty.fieldNamePlaceholder")}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="rewardDesc">Beskrivelse</Label>
+                <Label htmlFor="rewardDesc">{t("loyalty.fieldDescription")}</Label>
                 <Textarea
                   id="rewardDesc"
                   value={rewardForm.description}
@@ -363,13 +367,13 @@ export default function Loyalty() {
                       description: e.target.value,
                     })
                   }
-                  placeholder="Valgfri beskrivelse"
+                  placeholder={t("loyalty.fieldDescriptionPlaceholder")}
                   rows={2}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="pointsCost">Poengkostnad *</Label>
+                <Label htmlFor="pointsCost">{t("loyalty.fieldPointsCost")}</Label>
                 <Input
                   id="pointsCost"
                   type="number"
@@ -383,7 +387,7 @@ export default function Loyalty() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="discountType">Rabatttype *</Label>
+                <Label htmlFor="discountType">{t("loyalty.fieldDiscountType")}</Label>
                 <Select
                   value={rewardForm.discountType}
                   onValueChange={(value: "percentage" | "fixed_amount") =>
@@ -394,9 +398,9 @@ export default function Loyalty() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="percentage">Prosent (%)</SelectItem>
+                    <SelectItem value="percentage">{t("loyalty.discountTypePercentage")}</SelectItem>
                     <SelectItem value="fixed_amount">
-                      Fast beløp (NOK)
+                      {t("loyalty.discountTypeFixed")}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -404,7 +408,7 @@ export default function Loyalty() {
 
               <div className="space-y-2">
                 <Label htmlFor="discountValue">
-                  Rabattverdi *{" "}
+                  {t("loyalty.fieldDiscountValue")}{" "}
                   {rewardForm.discountType === "percentage" ? "(%)" : "(NOK)"}
                 </Label>
                 <Input
@@ -426,7 +430,7 @@ export default function Loyalty() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="validityDays">Gyldighetsdager</Label>
+                <Label htmlFor="validityDays">{t("loyalty.fieldValidityDays")}</Label>
                 <Input
                   id="validityDays"
                   type="number"
@@ -440,7 +444,7 @@ export default function Loyalty() {
                   }
                 />
                 <p className="text-xs text-muted-foreground">
-                  Hvor lenge belønningen er gyldig etter innløsning
+                  {t("loyalty.fieldValidityDaysHint")}
                 </p>
               </div>
             </div>
@@ -449,13 +453,13 @@ export default function Loyalty() {
                 variant="outline"
                 onClick={() => setShowCreateReward(false)}
               >
-                Avbryt
+                {t("loyalty.cancel")}
               </Button>
               <Button
                 onClick={handleCreateReward}
                 disabled={createReward.isPending}
               >
-                {createReward.isPending ? "Oppretter..." : "Opprett belønning"}
+                {createReward.isPending ? t("loyalty.creating") : t("loyalty.createReward")}
               </Button>
             </DialogFooter>
           </DialogContent>

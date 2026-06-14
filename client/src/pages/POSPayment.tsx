@@ -33,8 +33,10 @@ import { useStripeTerminal } from "@/hooks/useStripeTerminal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Link } from "wouter";
 import { SplitPaymentDialog } from "@/components/SplitPaymentDialog";
+import { useTranslation } from "react-i18next";
 
 export default function POSPayment() {
+  const { t } = useTranslation();
   const [amount, setAmount] = useState("");
   const [selectedCustomerId, setSelectedCustomerId] = useState<
     number | undefined
@@ -69,25 +71,25 @@ export default function POSPayment() {
 
   const handleSimplePayment = async () => {
     if (!amount || parseFloat(amount) <= 0) {
-      toast.error("Vennligst oppgi et gyldig beløp");
+      toast.error(t("posPayment.invalidAmount"));
       return;
     }
 
     // Use Stripe Terminal for "stripe" payment method
     if (paymentMethod === "stripe") {
       if (!connectedReader) {
-        toast.error("Ingen kortleser tilkoblet", {
-          description: "Vennligst koble til en kortleser fra innstillinger",
+        toast.error(t("posPayment.noReaderConnected"), {
+          description: t("posPayment.noReaderConnectedDescription"),
           action: {
-            label: "Gå til innstillinger",
+            label: t("posPayment.goToSettings"),
             onClick: () => (window.location.href = "/reader-management"),
           },
         });
         return;
       }
 
-      toast.info("Venter på kort...", {
-        description: "Vennligst sett inn eller tap kortet",
+      toast.info(t("posPayment.waitingForCard"), {
+        description: t("posPayment.waitingForCardDescription"),
       });
 
       const result = await processStripePayment(
@@ -100,15 +102,15 @@ export default function POSPayment() {
       );
 
       if (result.success) {
-        toast.success("Betaling fullført!", {
-          description: `Beløp: ${amount} NOK`,
+        toast.success(t("posPayment.paymentCompleted"), {
+          description: t("posPayment.amountLabel", { amount }),
         });
         setAmount("");
         setSelectedCustomerId(undefined);
         setSelectedAppointmentId(undefined);
       } else {
-        toast.error("Betaling feilet", {
-          description: result.error || "Ukjent feil",
+        toast.error(t("posPayment.paymentFailed"), {
+          description: result.error || t("posPayment.unknownError"),
         });
       }
       return;
@@ -124,12 +126,16 @@ export default function POSPayment() {
         appointmentId: selectedAppointmentId,
       });
 
-      toast.success(`Betaling fullført! Kvittering: ${result.receiptNumber}`);
+      toast.success(
+        t("posPayment.paymentCompletedReceipt", {
+          receiptNumber: result.receiptNumber,
+        })
+      );
       setAmount("");
       setSelectedCustomerId(undefined);
       setSelectedAppointmentId(undefined);
     } catch (error: any) {
-      toast.error(`Betaling feilet: ${error.message}`);
+      toast.error(t("posPayment.paymentFailedError", { message: error.message }));
     }
   };
 
@@ -163,13 +169,15 @@ export default function POSPayment() {
       });
 
       toast.success(
-        `Delt betaling fullført! Kvittering: ${result.receiptNumber}`
+        t("posPayment.splitPaymentCompletedReceipt", {
+          receiptNumber: result.receiptNumber,
+        })
       );
       setAmount("");
       setSelectedCustomerId(undefined);
       setSelectedAppointmentId(undefined);
     } catch (error: any) {
-      toast.error(`Betaling feilet: ${error.message}`);
+      toast.error(t("posPayment.paymentFailedError", { message: error.message }));
       throw error;
     }
   };
@@ -179,10 +187,10 @@ export default function POSPayment() {
       <div className="container mx-auto py-8 max-w-4xl">
         <div className="mb-8">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Kasse (POS)
+            {t("posPayment.title")}
           </h1>
           <p className="text-muted-foreground mt-2">
-            Behandle betalinger raskt og enkelt
+            {t("posPayment.subtitle")}
           </p>
         </div>
 
@@ -194,19 +202,23 @@ export default function POSPayment() {
                 {connectedReader ? (
                   <>
                     <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                    <span>Kortleser tilkoblet: {connectedReader.label}</span>
+                    <span>
+                      {t("posPayment.readerConnected", {
+                        label: connectedReader.label,
+                      })}
+                    </span>
                   </>
                 ) : (
                   <>
                     <div className="h-2 w-2 rounded-full bg-red-500" />
-                    <span>Ingen kortleser tilkoblet</span>
+                    <span>{t("posPayment.noReaderConnected")}</span>
                   </>
                 )}
               </div>
               <Link href="/reader-management">
                 <Button variant="outline" size="sm">
                   <Settings className="h-4 w-4 mr-2" />
-                  Innstillinger
+                  {t("posPayment.settings")}
                 </Button>
               </Link>
             </AlertDescription>
@@ -215,7 +227,7 @@ export default function POSPayment() {
 
         <Tabs defaultValue="simple" className="w-full">
           <TabsList className="w-full">
-            <TabsTrigger value="simple">Enkel betaling</TabsTrigger>
+            <TabsTrigger value="simple">{t("posPayment.simplePayment")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="simple">
@@ -223,16 +235,16 @@ export default function POSPayment() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CreditCard className="h-5 w-5" />
-                  Enkel betaling
+                  {t("posPayment.simplePayment")}
                 </CardTitle>
                 <CardDescription>
-                  Velg betalingsmetode og oppgi beløp
+                  {t("posPayment.simplePaymentDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Amount Input */}
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Beløp (NOK) *</Label>
+                  <Label htmlFor="amount">{t("posPayment.amountLabelField")}</Label>
                   <Input
                     id="amount"
                     type="number"
@@ -245,7 +257,7 @@ export default function POSPayment() {
 
                 {/* Payment Method Selection */}
                 <div className="space-y-2">
-                  <Label>Betalingsmetode *</Label>
+                  <Label>{t("posPayment.paymentMethodLabel")}</Label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <Button
                       variant={paymentMethod === "cash" ? "default" : "outline"}
@@ -253,7 +265,7 @@ export default function POSPayment() {
                       className="h-20 flex-col gap-2"
                     >
                       <Banknote className="h-6 w-6" />
-                      <span>Kontant</span>
+                      <span>{t("posPayment.cash")}</span>
                     </Button>
                     <Button
                       variant={paymentMethod === "card" ? "default" : "outline"}
@@ -261,7 +273,7 @@ export default function POSPayment() {
                       className="h-20 flex-col gap-2"
                     >
                       <CreditCard className="h-6 w-6" />
-                      <span>Kort</span>
+                      <span>{t("posPayment.card")}</span>
                     </Button>
                     <Button
                       variant={
@@ -291,7 +303,7 @@ export default function POSPayment() {
                   providers &&
                   providers.length > 0 && (
                     <div className="space-y-2">
-                      <Label htmlFor="provider">Terminal</Label>
+                      <Label htmlFor="provider">{t("posPayment.terminal")}</Label>
                       <Select
                         value={selectedProviderId?.toString()}
                         onValueChange={value =>
@@ -299,7 +311,7 @@ export default function POSPayment() {
                         }
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Velg terminal" />
+                          <SelectValue placeholder={t("posPayment.selectTerminal")} />
                         </SelectTrigger>
                         <SelectContent>
                           {providers
@@ -331,10 +343,12 @@ export default function POSPayment() {
                     {processPayment.isPending || isStripeProcessing ? (
                       <>
                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Behandler...
+                        {t("posPayment.processing")}
                       </>
+                    ) : amount ? (
+                      t("posPayment.payAmount", { amount })
                     ) : (
-                      `Betal ${amount ? `${amount} NOK` : ""}`
+                      t("posPayment.pay")
                     )}
                   </Button>
                   <Button
@@ -344,7 +358,7 @@ export default function POSPayment() {
                     className="h-14 text-lg"
                   >
                     <Split className="mr-2 h-5 w-5" />
-                    Del betaling
+                    {t("posPayment.splitPayment")}
                   </Button>
                 </div>
               </CardContent>
@@ -358,7 +372,7 @@ export default function POSPayment() {
             <Button variant="outline" className="w-full" asChild>
               <a href="/payment-history">
                 <Receipt className="h-4 w-4 mr-2" />
-                Se betalingshistorikk
+                {t("posPayment.viewPaymentHistory")}
               </a>
             </Button>
           </CardContent>

@@ -15,8 +15,10 @@ import { trpc } from "@/lib/trpc";
 import { Package, Plus, Minus, Pencil, ShoppingCart, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export default function Products() {
+  const { t } = useTranslation();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isStockOpen, setIsStockOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -36,49 +38,49 @@ export default function Products() {
 
   const createMutation = trpc.products.create.useMutation({
     onSuccess: () => {
-      toast.success("Produkt opprettet!");
+      toast.success(t("products.productCreated"));
       setIsCreateOpen(false);
       refetch();
       resetForm();
     },
     onError: error => {
-      toast.error("Kunne ikke opprette produkt: " + error.message);
+      toast.error(t("products.createError", { message: error.message }));
     },
   });
 
   const adjustStockMutation = trpc.products.adjustStock.useMutation({
     onSuccess: () => {
-      toast.success("Lagerbeholdning oppdatert!");
+      toast.success(t("products.stockUpdated"));
       setIsStockOpen(false);
       refetch();
       setStockAdjustment("");
     },
     onError: error => {
-      toast.error("Kunne ikke oppdatere lager: " + error.message);
+      toast.error(t("products.stockUpdateError", { message: error.message }));
     },
   });
 
   const updateMutation = trpc.products.update.useMutation({
     onSuccess: () => {
-      toast.success("Produkt oppdatert!");
+      toast.success(t("products.productUpdated"));
       setIsEditOpen(false);
       refetch();
       resetForm();
     },
     onError: error => {
-      toast.error("Kunne ikke oppdatere produkt: " + error.message);
+      toast.error(t("products.updateError", { message: error.message }));
     },
   });
 
   const deleteMutation = trpc.products.delete.useMutation({
     onSuccess: () => {
-      toast.success("Produkt slettet!");
+      toast.success(t("products.productDeleted"));
       setIsDeleteOpen(false);
       setProductToDelete(null);
       refetch();
     },
     onError: error => {
-      toast.error("Kunne ikke slette produkt: " + error.message);
+      toast.error(t("products.deleteError", { message: error.message }));
     },
   });
 
@@ -94,7 +96,7 @@ export default function Products() {
 
   const handleCreate = () => {
     if (!name || !price) {
-      toast.error("Vennligst fyll ut navn og pris");
+      toast.error(t("products.fillNameAndPrice"));
       return;
     }
 
@@ -111,7 +113,7 @@ export default function Products() {
 
   const handleStockAdjustment = () => {
     if (!selectedProduct || !stockAdjustment) {
-      toast.error("Vennligst angi antall");
+      toast.error(t("products.enterQuantity"));
       return;
     }
 
@@ -140,7 +142,7 @@ export default function Products() {
 
   const handleUpdate = () => {
     if (!selectedProduct || !name || !price) {
-      toast.error("Vennligst fyll ut navn og pris");
+      toast.error(t("products.fillNameAndPrice"));
       return;
     }
 
@@ -162,10 +164,10 @@ export default function Products() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
-              Produkter
+              {t("products.title")}
             </h1>
             <p className="text-muted-foreground">
-              Administrer produkter og varelager
+              {t("products.subtitle")}
             </p>
           </div>
           <Button
@@ -173,7 +175,7 @@ export default function Products() {
             className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white shadow-lg"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Nytt produkt
+            {t("products.newProduct")}
           </Button>
         </div>
 
@@ -181,10 +183,9 @@ export default function Products() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Package className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium mb-2">Ingen produkter ennå</p>
+              <p className="text-lg font-medium mb-2">{t("products.noProductsYet")}</p>
               <p className="text-sm text-muted-foreground mb-4 text-center max-w-md">
-                Legg til produkter for å selge dem i kassen. Du kan administrere
-                lager, priser og strekkoder.
+                {t("products.noProductsDescription")}
               </p>
               <div className="flex gap-3">
                 <Button
@@ -192,14 +193,14 @@ export default function Products() {
                   className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white shadow-lg"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Opprett første produkt
+                  {t("products.createFirstProduct")}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => (window.location.href = "/pos")}
                 >
                   <ShoppingCart className="h-4 w-4 mr-2" />
-                  Gå til kasse
+                  {t("products.goToPos")}
                 </Button>
               </div>
             </CardContent>
@@ -228,7 +229,7 @@ export default function Products() {
                       </div>
 
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Pris:</span>
+                        <span className="text-muted-foreground">{t("products.price")}</span>
                         <span className="font-medium">
                           {product.retailPrice} NOK
                         </span>
@@ -237,25 +238,25 @@ export default function Products() {
                       {product.costPrice && (
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">
-                            Kostpris:
+                            {t("products.costPrice")}
                           </span>
                           <span>{product.costPrice} NOK</span>
                         </div>
                       )}
 
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">På lager:</span>
+                        <span className="text-muted-foreground">{t("products.inStock")}</span>
                         <span
                           className={`font-medium ${isLowStock ? "text-red-600" : ""}`}
                         >
-                          {product.stockQuantity} stk
+                          {t("products.stockCount", { count: product.stockQuantity ?? 0 })}
                           {isLowStock && " ⚠️"}
                         </span>
                       </div>
 
                       {product.barcode && (
                         <div className="text-xs text-muted-foreground">
-                          Strekkode: {product.barcode}
+                          {t("products.barcodeLabel", { barcode: product.barcode })}
                         </div>
                       )}
 
@@ -267,7 +268,7 @@ export default function Products() {
                           onClick={() => openEditDialog(product)}
                         >
                           <Pencil className="h-3 w-3 mr-1" />
-                          Rediger
+                          {t("products.edit")}
                         </Button>
                         <Button
                           size="sm"
@@ -275,7 +276,7 @@ export default function Products() {
                           className="flex-1"
                           onClick={() => openStockDialog(product.id)}
                         >
-                          Juster lager
+                          {t("products.adjustStock")}
                         </Button>
                         <Button
                           size="sm"
@@ -296,7 +297,7 @@ export default function Products() {
                         onClick={() => (window.location.href = "/pos")}
                       >
                         <ShoppingCart className="h-3 w-3 mr-2" />
-                        Gå til kasse
+                        {t("products.goToPos")}
                       </Button>
                     </div>
                   </CardContent>
@@ -310,28 +311,28 @@ export default function Products() {
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Nytt produkt</DialogTitle>
+              <DialogTitle>{t("products.newProduct")}</DialogTitle>
               <DialogDescription>
-                Legg til et nytt produkt i lageret
+                {t("products.createDialogDescription")}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4">
               <div>
-                <Label htmlFor="name">Produktnavn *</Label>
+                <Label htmlFor="name">{t("products.productNameLabel")}</Label>
                 <Input
                   id="name"
-                  placeholder="F.eks. Sjampo"
+                  placeholder={t("products.productNamePlaceholder")}
                   value={name}
                   onChange={e => setName(e.target.value)}
                 />
               </div>
 
               <div>
-                <Label htmlFor="description">Beskrivelse</Label>
+                <Label htmlFor="description">{t("products.descriptionLabel")}</Label>
                 <Input
                   id="description"
-                  placeholder="Valgfri beskrivelse"
+                  placeholder={t("products.descriptionPlaceholder")}
                   value={description}
                   onChange={e => setDescription(e.target.value)}
                 />
@@ -339,7 +340,7 @@ export default function Products() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="price">Salgspris (NOK) *</Label>
+                  <Label htmlFor="price">{t("products.salesPriceLabel")}</Label>
                   <Input
                     id="price"
                     type="number"
@@ -350,7 +351,7 @@ export default function Products() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="cost">Kostpris (NOK)</Label>
+                  <Label htmlFor="cost">{t("products.costPriceLabel")}</Label>
                   <Input
                     id="cost"
                     type="number"
@@ -363,10 +364,10 @@ export default function Products() {
               </div>
 
               <div>
-                <Label htmlFor="barcode">Strekkode</Label>
+                <Label htmlFor="barcode">{t("products.barcodeFieldLabel")}</Label>
                 <Input
                   id="barcode"
-                  placeholder="Valgfri strekkode"
+                  placeholder={t("products.barcodePlaceholder")}
                   value={barcode}
                   onChange={e => setBarcode(e.target.value)}
                 />
@@ -374,7 +375,7 @@ export default function Products() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="stockQuantity">Antall på lager</Label>
+                  <Label htmlFor="stockQuantity">{t("products.stockQuantityLabel")}</Label>
                   <Input
                     id="stockQuantity"
                     type="number"
@@ -384,7 +385,7 @@ export default function Products() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="minStockLevel">Min. lagernivå</Label>
+                  <Label htmlFor="minStockLevel">{t("products.minStockLevelLabel")}</Label>
                   <Input
                     id="minStockLevel"
                     type="number"
@@ -398,13 +399,15 @@ export default function Products() {
 
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                Avbryt
+                {t("products.cancel")}
               </Button>
               <Button
                 onClick={handleCreate}
                 disabled={createMutation.isPending}
               >
-                {createMutation.isPending ? "Oppretter..." : "Opprett produkt"}
+                {createMutation.isPending
+                  ? t("products.creating")
+                  : t("products.createProduct")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -414,16 +417,16 @@ export default function Products() {
         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Rediger produkt</DialogTitle>
-              <DialogDescription>Oppdater produktinformasjon</DialogDescription>
+              <DialogTitle>{t("products.editProduct")}</DialogTitle>
+              <DialogDescription>{t("products.editDialogDescription")}</DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4">
               <div>
-                <Label htmlFor="edit-name">Produktnavn *</Label>
+                <Label htmlFor="edit-name">{t("products.productNameLabel")}</Label>
                 <Input
                   id="edit-name"
-                  placeholder="F.eks. Sjampo"
+                  placeholder={t("products.productNamePlaceholder")}
                   value={name}
                   onChange={e => setName(e.target.value)}
                 />
@@ -441,7 +444,7 @@ export default function Products() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="edit-price">Salgspris (NOK) *</Label>
+                  <Label htmlFor="edit-price">{t("products.salesPriceLabel")}</Label>
                   <Input
                     id="edit-price"
                     type="number"
@@ -452,7 +455,7 @@ export default function Products() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="edit-cost">Kostpris (NOK)</Label>
+                  <Label htmlFor="edit-cost">{t("products.costPriceLabel")}</Label>
                   <Input
                     id="edit-cost"
                     type="number"
@@ -465,10 +468,10 @@ export default function Products() {
               </div>
 
               <div>
-                <Label htmlFor="edit-barcode">Strekkode</Label>
+                <Label htmlFor="edit-barcode">{t("products.barcodeFieldLabel")}</Label>
                 <Input
                   id="edit-barcode"
-                  placeholder="Valgfri strekkode"
+                  placeholder={t("products.barcodePlaceholder")}
                   value={barcode}
                   onChange={e => setBarcode(e.target.value)}
                 />
@@ -476,7 +479,7 @@ export default function Products() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="edit-stockQuantity">Antall på lager</Label>
+                  <Label htmlFor="edit-stockQuantity">{t("products.stockQuantityLabel")}</Label>
                   <Input
                     id="edit-stockQuantity"
                     type="number"
@@ -486,7 +489,7 @@ export default function Products() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="edit-minStockLevel">Min. lagernivå</Label>
+                  <Label htmlFor="edit-minStockLevel">{t("products.minStockLevelLabel")}</Label>
                   <Input
                     id="edit-minStockLevel"
                     type="number"
@@ -500,13 +503,15 @@ export default function Products() {
 
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsEditOpen(false)}>
-                Avbryt
+                {t("products.cancel")}
               </Button>
               <Button
                 onClick={handleUpdate}
                 disabled={updateMutation.isPending}
               >
-                {updateMutation.isPending ? "Oppdaterer..." : "Lagre endringer"}
+                {updateMutation.isPending
+                  ? t("products.updating")
+                  : t("products.saveChanges")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -516,16 +521,16 @@ export default function Products() {
         <Dialog open={isStockOpen} onOpenChange={setIsStockOpen}>
           <DialogContent className="max-w-sm">
             <DialogHeader>
-              <DialogTitle>Juster lagerbeholdning</DialogTitle>
+              <DialogTitle>{t("products.adjustStockTitle")}</DialogTitle>
               <DialogDescription>
-                Legg til eller trekk fra antall produkter
+                {t("products.adjustStockDescription")}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4">
               <div>
                 <Label htmlFor="adjustment">
-                  Antall (bruk - for å trekke fra)
+                  {t("products.adjustmentLabel")}
                 </Label>
                 <div className="flex gap-2">
                   <Button
@@ -560,22 +565,22 @@ export default function Products() {
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Eksempel: +10 for å legge til, -5 for å trekke fra
+                  {t("products.adjustmentHint")}
                 </p>
               </div>
             </div>
 
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsStockOpen(false)}>
-                Avbryt
+                {t("products.cancel")}
               </Button>
               <Button
                 onClick={handleStockAdjustment}
                 disabled={adjustStockMutation.isPending}
               >
                 {adjustStockMutation.isPending
-                  ? "Oppdaterer..."
-                  : "Oppdater lager"}
+                  ? t("products.updating")
+                  : t("products.updateStock")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -585,14 +590,14 @@ export default function Products() {
         <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Slett produkt</DialogTitle>
+              <DialogTitle>{t("products.deleteProduct")}</DialogTitle>
               <DialogDescription>
-                Er du sikker på at du vil slette "{productToDelete?.name}"? Denne handlingen kan ikke angres.
+                {t("products.deleteConfirm", { name: productToDelete?.name })}
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>
-                Avbryt
+                {t("products.cancel")}
               </Button>
               <Button
                 variant="destructive"
@@ -603,7 +608,7 @@ export default function Products() {
                 }}
                 disabled={deleteMutation.isPending}
               >
-                {deleteMutation.isPending ? "Sletter..." : "Slett"}
+                {deleteMutation.isPending ? t("products.deleting") : t("products.delete")}
               </Button>
             </DialogFooter>
           </DialogContent>

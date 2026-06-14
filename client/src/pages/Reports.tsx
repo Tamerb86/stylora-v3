@@ -30,8 +30,10 @@ import {
 import { useState } from "react";
 import { exportToPDF, exportToExcel } from "@/lib/exportUtils";
 import { safeToFixed } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 export default function Reports() {
+  const { t } = useTranslation();
   const [period, setPeriod] = useState("week");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<string>("all");
@@ -138,20 +140,20 @@ export default function Reports() {
   const handleExportPDF = () => {
     const exportData = ordersData.map((order: any) => ({
       date: new Date(order.orderDate),
-      customer: order.customerName || "Ukjent",
-      service: order.serviceName || "Diverse",
-      employee: order.employeeName || "Ansatt",
+      customer: order.customerName || t("reports.exportUnknownCustomer"),
+      service: order.serviceName || t("reports.exportMiscService"),
+      employee: order.employeeName || t("reports.exportDefaultEmployee"),
       amount: parseFloat(order.total || "0"),
-      status: "Fullført",
+      status: t("reports.exportStatusCompleted"),
     }));
 
     const columns = [
-      { header: "Dato", key: "date" },
-      { header: "Kunde", key: "customer" },
-      { header: "Tjeneste", key: "service" },
-      { header: "Ansatt", key: "employee" },
-      { header: "Beløp (kr)", key: "amount" },
-      { header: "Status", key: "status" },
+      { header: t("reports.exportColDate"), key: "date" },
+      { header: t("reports.exportColCustomer"), key: "customer" },
+      { header: t("reports.exportColService"), key: "service" },
+      { header: t("reports.exportColEmployee"), key: "employee" },
+      { header: t("reports.exportColAmount"), key: "amount" },
+      { header: t("reports.exportColStatus"), key: "status" },
     ];
 
     const filename =
@@ -161,7 +163,7 @@ export default function Reports() {
           ? `salgsrapport_${customStartDate}_til_${customEndDate}`
           : `salgsrapport_${period}`;
 
-    exportToPDF(exportData, columns, "Salgsrapport", filename, {
+    exportToPDF(exportData, columns, t("reports.exportTitle"), filename, {
       filters: { period },
     });
   };
@@ -169,20 +171,20 @@ export default function Reports() {
   const handleExportExcel = () => {
     const exportData = ordersData.map((order: any) => ({
       date: new Date(order.orderDate),
-      customer: order.customerName || "Ukjent",
-      service: order.serviceName || "Diverse",
-      employee: order.employeeName || "Ansatt",
+      customer: order.customerName || t("reports.exportUnknownCustomer"),
+      service: order.serviceName || t("reports.exportMiscService"),
+      employee: order.employeeName || t("reports.exportDefaultEmployee"),
       amount: parseFloat(order.total || "0"),
-      status: "Fullført",
+      status: t("reports.exportStatusCompleted"),
     }));
 
     const columns = [
-      { header: "Dato", key: "date" },
-      { header: "Kunde", key: "customer" },
-      { header: "Tjeneste", key: "service" },
-      { header: "Ansatt", key: "employee" },
-      { header: "Beløp (kr)", key: "amount" },
-      { header: "Status", key: "status" },
+      { header: t("reports.exportColDate"), key: "date" },
+      { header: t("reports.exportColCustomer"), key: "customer" },
+      { header: t("reports.exportColService"), key: "service" },
+      { header: t("reports.exportColEmployee"), key: "employee" },
+      { header: t("reports.exportColAmount"), key: "amount" },
+      { header: t("reports.exportColStatus"), key: "status" },
     ];
 
     const filename =
@@ -192,7 +194,7 @@ export default function Reports() {
           ? `salgsrapport_${customStartDate}_til_${customEndDate}`
           : `salgsrapport_${period}`;
 
-    exportToExcel(exportData, columns, "Salgsrapport", filename);
+    exportToExcel(exportData, columns, t("reports.exportTitle"), filename);
   };
 
   return (
@@ -201,10 +203,10 @@ export default function Reports() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
-              Rapporter
+              {t("reports.title")}
             </h1>
             <p className="text-muted-foreground">
-              Oversikt over salg og statistikk
+              {t("reports.subtitle")}
             </p>
           </div>
           <div className="flex gap-3">
@@ -213,10 +215,10 @@ export default function Reports() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="week">Siste 7 dager</SelectItem>
-                <SelectItem value="month">Siste 30 dager</SelectItem>
-                <SelectItem value="quarter">Siste 90 dager</SelectItem>
-                <SelectItem value="year">Siste år</SelectItem>
+                <SelectItem value="week">{t("reports.last7Days")}</SelectItem>
+                <SelectItem value="month">{t("reports.last30Days")}</SelectItem>
+                <SelectItem value="quarter">{t("reports.last90Days")}</SelectItem>
+                <SelectItem value="year">{t("reports.lastYear")}</SelectItem>
               </SelectContent>
             </Select>
             <Button
@@ -232,7 +234,7 @@ export default function Reports() {
               className="bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600"
             >
               <FileSpreadsheet className="h-4 w-4 mr-2" />
-              Eksporter
+              {t("reports.export")}
             </Button>
           </div>
         </div>
@@ -247,14 +249,15 @@ export default function Reports() {
                 className="w-full sm:w-auto"
               >
                 <Filter className="h-4 w-4 mr-2" />
-                Avanserte filtre
+                {t("reports.advancedFilters")}
               </Button>
               <div className="text-sm text-muted-foreground">
                 <span className="font-semibold text-orange-600">
                   {filteredCount}
                 </span>{" "}
-                av <span className="font-semibold">{totalCount}</span>{" "}
-                oppføringer vil bli eksportert
+                {t("reports.ofConnector")}{" "}
+                <span className="font-semibold">{totalCount}</span>{" "}
+                {t("reports.entriesWillBeExported")}
               </div>
             </div>
           </CardHeader>
@@ -264,35 +267,35 @@ export default function Reports() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                 <div>
                   <label className="text-sm font-medium mb-2 block">
-                    Måned (MM)
+                    {t("reports.monthLabel")}
                   </label>
                   <Select
                     value={selectedMonth}
                     onValueChange={setSelectedMonth}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Velg måned" />
+                      <SelectValue placeholder={t("reports.selectMonth")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Alle måneder</SelectItem>
-                      <SelectItem value="01">01 - Januar</SelectItem>
-                      <SelectItem value="02">02 - Februar</SelectItem>
-                      <SelectItem value="03">03 - Mars</SelectItem>
-                      <SelectItem value="04">04 - April</SelectItem>
-                      <SelectItem value="05">05 - Mai</SelectItem>
-                      <SelectItem value="06">06 - Juni</SelectItem>
-                      <SelectItem value="07">07 - Juli</SelectItem>
-                      <SelectItem value="08">08 - August</SelectItem>
-                      <SelectItem value="09">09 - September</SelectItem>
-                      <SelectItem value="10">10 - Oktober</SelectItem>
-                      <SelectItem value="11">11 - November</SelectItem>
-                      <SelectItem value="12">12 - Desember</SelectItem>
+                      <SelectItem value="">{t("reports.allMonths")}</SelectItem>
+                      <SelectItem value="01">{t("reports.month01")}</SelectItem>
+                      <SelectItem value="02">{t("reports.month02")}</SelectItem>
+                      <SelectItem value="03">{t("reports.month03")}</SelectItem>
+                      <SelectItem value="04">{t("reports.month04")}</SelectItem>
+                      <SelectItem value="05">{t("reports.month05")}</SelectItem>
+                      <SelectItem value="06">{t("reports.month06")}</SelectItem>
+                      <SelectItem value="07">{t("reports.month07")}</SelectItem>
+                      <SelectItem value="08">{t("reports.month08")}</SelectItem>
+                      <SelectItem value="09">{t("reports.month09")}</SelectItem>
+                      <SelectItem value="10">{t("reports.month10")}</SelectItem>
+                      <SelectItem value="11">{t("reports.month11")}</SelectItem>
+                      <SelectItem value="12">{t("reports.month12")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">År</label>
+                  <label className="text-sm font-medium mb-2 block">{t("reports.yearLabel")}</label>
                   <Select value={selectedYear} onValueChange={setSelectedYear}>
                     <SelectTrigger>
                       <SelectValue />
@@ -307,17 +310,17 @@ export default function Reports() {
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">
-                    Ansatt
+                    {t("reports.employeeLabel")}
                   </label>
                   <Select
                     value={selectedEmployee}
                     onValueChange={setSelectedEmployee}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Velg ansatt" />
+                      <SelectValue placeholder={t("reports.selectEmployee")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Alle ansatte</SelectItem>
+                      <SelectItem value="all">{t("reports.allEmployees")}</SelectItem>
                       {employees.map((emp: any) => (
                         <SelectItem key={emp.id} value={emp.id.toString()}>
                           {emp.name}
@@ -329,17 +332,17 @@ export default function Reports() {
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">
-                    Tjeneste
+                    {t("reports.serviceLabel")}
                   </label>
                   <Select
                     value={selectedService}
                     onValueChange={setSelectedService}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Velg tjeneste" />
+                      <SelectValue placeholder={t("reports.selectService")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Alle tjenester</SelectItem>
+                      <SelectItem value="all">{t("reports.allServices")}</SelectItem>
                       {services.map((svc: any) => (
                         <SelectItem key={svc.id} value={svc.id.toString()}>
                           {svc.name}
@@ -354,7 +357,7 @@ export default function Reports() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium mb-2 block">
-                    Fra dato
+                    {t("reports.fromDate")}
                   </label>
                   <input
                     type="date"
@@ -365,7 +368,7 @@ export default function Reports() {
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-2 block">
-                    Til dato
+                    {t("reports.toDate")}
                   </label>
                   <input
                     type="date"
@@ -407,7 +410,7 @@ export default function Reports() {
                   className="w-full sm:w-auto"
                 >
                   <X className="h-4 w-4 mr-2" />
-                  Nullstill filtre
+                  {t("reports.resetFilters")}
                 </Button>
               </div>
             </CardContent>
@@ -419,7 +422,7 @@ export default function Reports() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Total omsetning
+                {t("reports.totalRevenue")}
               </CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -428,7 +431,7 @@ export default function Reports() {
                 {totalRevenue.toLocaleString()} NOK
               </div>
               <p className="text-xs text-muted-foreground">
-                +12.5% fra forrige periode
+                {t("reports.vsPreviousPeriod")}
               </p>
             </CardContent>
           </Card>
@@ -436,20 +439,20 @@ export default function Reports() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Fullførte avtaler
+                {t("reports.completedAppointments")}
               </CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{completedOrders}</div>
-              <p className="text-xs text-muted-foreground">0 avbrutt</p>
+              <p className="text-xs text-muted-foreground">{t("reports.cancelledCount", { count: 0 })}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Fullføringsrate
+                {t("reports.completionRate")}
               </CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -458,7 +461,7 @@ export default function Reports() {
                 {completedOrders > 0 ? "100" : "0"}%
               </div>
               <p className="text-xs text-muted-foreground">
-                Av totalt {completedOrders} avtaler
+                {t("reports.ofTotalAppointments", { count: completedOrders })}
               </p>
             </CardContent>
           </Card>
@@ -466,14 +469,14 @@ export default function Reports() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Aktive kunder
+                {t("reports.activeCustomers")}
               </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{customers.length}</div>
               <p className="text-xs text-muted-foreground">
-                +{Math.floor(customers.length * 0.08)} denne måneden
+                {t("reports.newThisMonth", { count: Math.floor(customers.length * 0.08) })}
               </p>
             </CardContent>
           </Card>
@@ -483,15 +486,15 @@ export default function Reports() {
         <div className="grid gap-6 md:grid-cols-2 mb-6">
           <Card>
             <CardHeader>
-              <CardTitle>Omsetning per uke</CardTitle>
-              <CardDescription>Siste 8 uker</CardDescription>
+              <CardTitle>{t("reports.revenuePerWeek")}</CardTitle>
+              <CardDescription>{t("reports.last8Weeks")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[300px] flex items-center justify-center text-muted-foreground">
                 <div className="text-center">
                   <BarChart3 className="h-12 w-12 mx-auto mb-4" />
-                  <p>Graf kommer snart</p>
-                  <p className="text-sm">Krever Chart.js integrasjon</p>
+                  <p>{t("reports.chartComingSoon")}</p>
+                  <p className="text-sm">{t("reports.chartRequiresChartjs")}</p>
                 </div>
               </div>
             </CardContent>
@@ -499,15 +502,15 @@ export default function Reports() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Populære tjenester</CardTitle>
-              <CardDescription>Mest bookede tjenester</CardDescription>
+              <CardTitle>{t("reports.popularServices")}</CardTitle>
+              <CardDescription>{t("reports.mostBookedServices")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[300px] flex items-center justify-center text-muted-foreground">
                 <div className="text-center">
                   <BarChart3 className="h-12 w-12 mx-auto mb-4" />
-                  <p>Graf kommer snart</p>
-                  <p className="text-sm">Krever Chart.js integrasjon</p>
+                  <p>{t("reports.chartComingSoon")}</p>
+                  <p className="text-sm">{t("reports.chartRequiresChartjs")}</p>
                 </div>
               </div>
             </CardContent>
@@ -517,20 +520,20 @@ export default function Reports() {
         {/* Employee Sales Section */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Salg per ansatt</CardTitle>
+            <CardTitle>{t("reports.salesPerEmployee")}</CardTitle>
             <CardDescription>
-              Oversikt over hver ansatts omsetning
+              {t("reports.salesPerEmployeeDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {employeeSalesLoading ? (
               <div className="text-center py-8 text-muted-foreground">
-                Laster...
+                {t("reports.loading")}
               </div>
             ) : salesByEmployee.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Ingen salgsdata tilgjengelig for valgt periode</p>
+                <p>{t("reports.noSalesData")}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -545,10 +548,10 @@ export default function Reports() {
                       </div>
                       <div>
                         <p className="font-medium">
-                          {emp.employeeName || "Ukjent ansatt"}
+                          {emp.employeeName || t("reports.unknownEmployee")}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {emp.orderCount || 0} ordre
+                          {t("reports.orderCount", { count: emp.orderCount || 0 })}
                         </p>
                       </div>
                     </div>
@@ -560,7 +563,7 @@ export default function Reports() {
                         kr
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Snitt:{" "}
+                        {t("reports.average")}{" "}
                         {emp.orderCount > 0
                           ? safeToFixed(
                               parseFloat(emp.totalRevenue) / emp.orderCount,
@@ -580,18 +583,18 @@ export default function Reports() {
         {/* Detailed Stats */}
         <Card>
           <CardHeader>
-            <CardTitle>Detaljert statistikk</CardTitle>
+            <CardTitle>{t("reports.detailedStats")}</CardTitle>
             <CardDescription>
-              Ytterligere innsikt i virksomheten
+              {t("reports.detailedStatsDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="flex items-center justify-between border-b pb-3">
                 <div>
-                  <p className="font-medium">Gjennomsnittlig avtaleverdi</p>
+                  <p className="font-medium">{t("reports.avgAppointmentValue")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Per fullført avtale
+                    {t("reports.perCompletedAppointment")}
                   </p>
                 </div>
                 <div className="text-right">
@@ -601,19 +604,19 @@ export default function Reports() {
 
               <div className="flex items-center justify-between border-b pb-3">
                 <div>
-                  <p className="font-medium">Gjennomsnittlig varighet</p>
-                  <p className="text-sm text-muted-foreground">Per avtale</p>
+                  <p className="font-medium">{t("reports.avgDuration")}</p>
+                  <p className="text-sm text-muted-foreground">{t("reports.perAppointment")}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold">45 min</p>
+                  <p className="text-2xl font-bold">{t("reports.durationMinutes", { count: 45 })}</p>
                 </div>
               </div>
 
               <div className="flex items-center justify-between border-b pb-3">
                 <div>
-                  <p className="font-medium">Kundelojalitet</p>
+                  <p className="font-medium">{t("reports.customerLoyalty")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Gjentakende kunder
+                    {t("reports.returningCustomers")}
                   </p>
                 </div>
                 <div className="text-right">
@@ -623,13 +626,13 @@ export default function Reports() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">Beste dag</p>
+                  <p className="font-medium">{t("reports.bestDay")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Mest bookede dag
+                    {t("reports.mostBookedDay")}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold">Lørdag</p>
+                  <p className="text-2xl font-bold">{t("reports.saturday")}</p>
                 </div>
               </div>
             </div>

@@ -12,8 +12,10 @@ import {
   Mail,
 } from "lucide-react";
 import Footer from "@/components/Footer";
+import { useTranslation } from "react-i18next";
 
 export default function Terms() {
+  const { t } = useTranslation();
   const lastUpdated = "16. desember 2024";
 
   return (
@@ -29,7 +31,7 @@ export default function Terms() {
           <Link href="/">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Tilbake til forsiden
+              {t("terms.backToHome")}
             </Button>
           </Link>
         </div>
@@ -43,9 +45,9 @@ export default function Terms() {
               <FileText className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold">Vilkår for bruk</h1>
+              <h1 className="text-3xl font-bold">{t("terms.title")}</h1>
               <p className="text-muted-foreground">
-                Sist oppdatert: {lastUpdated}
+                {t("terms.lastUpdated", { date: lastUpdated })}
               </p>
             </div>
           </div>
@@ -55,11 +57,8 @@ export default function Terms() {
           {/* Introduction */}
           <section className="bg-blue-50 rounded-xl p-6 border border-blue-100">
             <p className="text-lg leading-relaxed m-0">
-              Disse vilkårene regulerer din bruk av Stylora, en skybasert
-              programvare for salongstyring levert av{" "}
-              <strong>Nexify CRM Systems AS</strong> (org.nr. 936 300 278). Ved
-              å opprette en konto eller bruke tjenesten, aksepterer du disse
-              vilkårene i sin helhet.
+              {t("terms.intro.before")}{" "}
+              <strong>Nexify CRM Systems AS</strong> {t("terms.intro.after")}
             </p>
           </section>
 
@@ -67,30 +66,23 @@ export default function Terms() {
           <section>
             <div className="flex items-center gap-2 mb-4">
               <Scale className="h-5 w-5 text-blue-600" />
-              <h2 className="text-xl font-bold m-0">1. Definisjoner</h2>
+              <h2 className="text-xl font-bold m-0">{t("terms.section1.heading")}</h2>
             </div>
             <div className="bg-white rounded-lg border p-4 space-y-2">
               <p>
-                <strong>"Tjenesten"</strong> refererer til Stylora-plattformen,
-                inkludert alle funksjoner, applikasjoner og tilknyttede
-                tjenester.
+                <strong>{t("terms.section1.serviceTerm")}</strong> {t("terms.section1.serviceDef")}
               </p>
               <p>
-                <strong>"Bruker"</strong> refererer til enhver person eller
-                enhet som oppretter en konto eller bruker Tjenesten.
+                <strong>{t("terms.section1.userTerm")}</strong> {t("terms.section1.userDef")}
               </p>
               <p>
-                <strong>"Abonnement"</strong> refererer til den betalte
-                tilgangen til Tjenesten basert på valgt prisplan.
+                <strong>{t("terms.section1.subscriptionTerm")}</strong> {t("terms.section1.subscriptionDef")}
               </p>
               <p>
-                <strong>"Kundedata"</strong> refererer til all informasjon som
-                Brukeren lagrer i Tjenesten, inkludert kundeinformasjon, avtaler
-                og transaksjoner.
+                <strong>{t("terms.section1.customerDataTerm")}</strong> {t("terms.section1.customerDataDef")}
               </p>
               <p>
-                <strong>"Leverandør"</strong> refererer til Nexify CRM Systems
-                AS.
+                <strong>{t("terms.section1.providerTerm")}</strong> {t("terms.section1.providerDef")}
               </p>
             </div>
           </section>
@@ -99,21 +91,20 @@ export default function Terms() {
           <section>
             <div className="flex items-center gap-2 mb-4">
               <Shield className="h-5 w-5 text-blue-600" />
-              <h2 className="text-xl font-bold m-0">2. Tjenestebeskrivelse</h2>
+              <h2 className="text-xl font-bold m-0">{t("terms.section2.heading")}</h2>
             </div>
-            <p>Stylora er en skybasert programvare (SaaS) som tilbyr:</p>
+            <p>{t("terms.section2.intro")}</p>
             <ul className="list-disc pl-6 space-y-1">
-              <li>Timebestilling og kalenderadministrasjon</li>
-              <li>Kunderegistrering og -administrasjon</li>
-              <li>Ansattadministrasjon og provisjonsberegning</li>
-              <li>Kassasystem (POS) og betalingsintegrasjon</li>
-              <li>SMS- og e-postvarsler</li>
-              <li>Rapportering og analyse</li>
-              <li>Integrasjon med regnskapssystemer</li>
+              <li>{t("terms.section2.item1")}</li>
+              <li>{t("terms.section2.item2")}</li>
+              <li>{t("terms.section2.item3")}</li>
+              <li>{t("terms.section2.item4")}</li>
+              <li>{t("terms.section2.item5")}</li>
+              <li>{t("terms.section2.item6")}</li>
+              <li>{t("terms.section2.item7")}</li>
             </ul>
             <p className="mt-4">
-              Leverandøren forbeholder seg retten til å endre, oppdatere eller
-              fjerne funksjoner med rimelig varsel til Brukeren.
+              {t("terms.section2.outro")}
             </p>
           </section>
 
@@ -122,35 +113,28 @@ export default function Terms() {
             <div className="flex items-center gap-2 mb-4">
               <CreditCard className="h-5 w-5 text-blue-600" />
               <h2 className="text-xl font-bold m-0">
-                3. Abonnement og betaling
+                {t("terms.section3.heading")}
               </h2>
             </div>
 
-            <h3 className="text-lg font-semibold mt-4">3.1 Prisplaner</h3>
+            <h3 className="text-lg font-semibold mt-4">{t("terms.section3.sub1Heading")}</h3>
             <p>
-              Tjenesten tilbys i ulike prisplaner som beskrevet på vår nettside.
-              Prisene er oppgitt i norske kroner (NOK) og er eksklusive
-              merverdiavgift (MVA) med mindre annet er angitt.
+              {t("terms.section3.sub1Body")}
             </p>
 
-            <h3 className="text-lg font-semibold mt-4">3.2 Prøveperiode</h3>
+            <h3 className="text-lg font-semibold mt-4">{t("terms.section3.sub2Heading")}</h3>
             <p>
-              Nye brukere kan få tilgang til en gratis prøveperiode på 14 dager.
-              Etter prøveperioden kreves et aktivt abonnement for fortsatt bruk.
+              {t("terms.section3.sub2Body")}
             </p>
 
-            <h3 className="text-lg font-semibold mt-4">3.3 Fakturering</h3>
+            <h3 className="text-lg font-semibold mt-4">{t("terms.section3.sub3Heading")}</h3>
             <p>
-              Abonnementet faktureres månedlig eller årlig forskuddsvis,
-              avhengig av valgt plan. Betalingen skjer via de betalingsmetodene
-              som er tilgjengelige i Tjenesten.
+              {t("terms.section3.sub3Body")}
             </p>
 
-            <h3 className="text-lg font-semibold mt-4">3.4 Prisendringer</h3>
+            <h3 className="text-lg font-semibold mt-4">{t("terms.section3.sub4Heading")}</h3>
             <p>
-              Leverandøren kan endre prisene med minimum 30 dagers skriftlig
-              varsel. Eksisterende abonnementer påvirkes først ved neste
-              fornyelsesperiode.
+              {t("terms.section3.sub4Body")}
             </p>
           </section>
 
@@ -159,39 +143,32 @@ export default function Terms() {
             <div className="flex items-center gap-2 mb-4">
               <Clock className="h-5 w-5 text-blue-600" />
               <h2 className="text-xl font-bold m-0">
-                4. Oppsigelse og refusjon
+                {t("terms.section4.heading")}
               </h2>
             </div>
 
             <h3 className="text-lg font-semibold mt-4">
-              4.1 Oppsigelse av Bruker
+              {t("terms.section4.sub1Heading")}
             </h3>
             <p>
-              Brukeren kan si opp abonnementet når som helst via kontrollpanelet
-              eller ved å kontakte kundeservice. Oppsigelsen trer i kraft ved
-              slutten av gjeldende faktureringsperiode.
+              {t("terms.section4.sub1Body")}
             </p>
 
             <h3 className="text-lg font-semibold mt-4">
-              4.2 Ingen bindingstid
+              {t("terms.section4.sub2Heading")}
             </h3>
             <p>
-              Det er ingen bindingstid på abonnementet. Brukeren kan avslutte
-              når som helst uten ekstra kostnader.
+              {t("terms.section4.sub2Body")}
             </p>
 
-            <h3 className="text-lg font-semibold mt-4">4.3 Refusjon</h3>
+            <h3 className="text-lg font-semibold mt-4">{t("terms.section4.sub3Heading")}</h3>
             <p>
-              Forhåndsbetalte beløp refunderes ikke ved oppsigelse midt i en
-              faktureringsperiode, med mindre annet er avtalt eller påkrevd av
-              gjeldende forbrukerlovgivning.
+              {t("terms.section4.sub3Body")}
             </p>
 
-            <h3 className="text-lg font-semibold mt-4">4.4 Dataeksport</h3>
+            <h3 className="text-lg font-semibold mt-4">{t("terms.section4.sub4Heading")}</h3>
             <p>
-              Ved oppsigelse har Brukeren rett til å eksportere sine data i 30
-              dager etter oppsigelsesdatoen. Etter denne perioden slettes
-              dataene permanent.
+              {t("terms.section4.sub4Body")}
             </p>
           </section>
 
@@ -200,26 +177,23 @@ export default function Terms() {
             <div className="flex items-center gap-2 mb-4">
               <Ban className="h-5 w-5 text-blue-600" />
               <h2 className="text-xl font-bold m-0">
-                5. Brukerens forpliktelser
+                {t("terms.section5.heading")}
               </h2>
             </div>
-            <p>Ved å bruke Tjenesten forplikter Brukeren seg til å:</p>
+            <p>{t("terms.section5.intro")}</p>
             <ul className="list-disc pl-6 space-y-1">
-              <li>Oppgi korrekt og oppdatert informasjon ved registrering</li>
-              <li>Holde påloggingsinformasjon konfidensiell og sikker</li>
-              <li>Ikke dele kontotilgang med uautoriserte personer</li>
+              <li>{t("terms.section5.item1")}</li>
+              <li>{t("terms.section5.item2")}</li>
+              <li>{t("terms.section5.item3")}</li>
               <li>
-                Overholde gjeldende lover og forskrifter, inkludert
-                personvernlovgivning (GDPR)
+                {t("terms.section5.item4")}
               </li>
-              <li>Ikke bruke Tjenesten til ulovlige eller skadelige formål</li>
+              <li>{t("terms.section5.item5")}</li>
               <li>
-                Ikke forsøke å omgå sikkerhetstiltak eller tekniske
-                begrensninger
+                {t("terms.section5.item6")}
               </li>
               <li>
-                Varsle Leverandøren umiddelbart ved mistanke om uautorisert
-                tilgang
+                {t("terms.section5.item7")}
               </li>
             </ul>
           </section>
@@ -229,28 +203,26 @@ export default function Terms() {
             <div className="flex items-center gap-2 mb-4">
               <Shield className="h-5 w-5 text-blue-600" />
               <h2 className="text-xl font-bold m-0">
-                6. Personvern og datasikkerhet
+                {t("terms.section6.heading")}
               </h2>
             </div>
             <p>
-              Behandling av personopplysninger reguleres av vår{" "}
+              {t("terms.section6.introBefore")}{" "}
               <Link href="/privacy" className="text-blue-600 hover:underline">
-                Personvernerklæring
+                {t("terms.section6.privacyLink")}
               </Link>
-              . Leverandøren forplikter seg til å:
+              {t("terms.section6.introAfter")}
             </p>
             <ul className="list-disc pl-6 space-y-1">
               <li>
-                Behandle alle data i samsvar med GDPR og norsk
-                personvernlovgivning
+                {t("terms.section6.item1")}
               </li>
-              <li>Lagre data på sikre servere innenfor EU/EØS</li>
-              <li>Implementere tekniske og organisatoriske sikkerhetstiltak</li>
+              <li>{t("terms.section6.item2")}</li>
+              <li>{t("terms.section6.item3")}</li>
               <li>
-                Ikke dele data med tredjeparter uten samtykke eller lovlig
-                grunnlag
+                {t("terms.section6.item4")}
               </li>
-              <li>Varsle om eventuelle sikkerhetsbrudd innen 72 timer</li>
+              <li>{t("terms.section6.item5")}</li>
             </ul>
           </section>
 
@@ -258,38 +230,32 @@ export default function Terms() {
           <section>
             <div className="flex items-center gap-2 mb-4">
               <AlertTriangle className="h-5 w-5 text-blue-600" />
-              <h2 className="text-xl font-bold m-0">7. Ansvarsbegrensning</h2>
+              <h2 className="text-xl font-bold m-0">{t("terms.section7.heading")}</h2>
             </div>
 
-            <h3 className="text-lg font-semibold mt-4">7.1 Tilgjengelighet</h3>
+            <h3 className="text-lg font-semibold mt-4">{t("terms.section7.sub1Heading")}</h3>
             <p>
-              Leverandøren tilstreber 99,9% oppetid, men garanterer ikke
-              uavbrutt tilgang. Planlagt vedlikehold varsles minimum 24 timer i
-              forveien.
+              {t("terms.section7.sub1Body")}
             </p>
 
             <h3 className="text-lg font-semibold mt-4">
-              7.2 Ansvarsbegrensning
+              {t("terms.section7.sub2Heading")}
             </h3>
             <p>
-              Leverandørens totale ansvar er begrenset til beløpet Brukeren har
-              betalt for Tjenesten de siste 12 månedene. Leverandøren er ikke
-              ansvarlig for:
+              {t("terms.section7.sub2Body")}
             </p>
             <ul className="list-disc pl-6 space-y-1">
-              <li>Indirekte tap, følgeskader eller tapt fortjeneste</li>
-              <li>Tap som skyldes Brukerens egen uaktsomhet</li>
+              <li>{t("terms.section7.item1")}</li>
+              <li>{t("terms.section7.item2")}</li>
               <li>
-                Tap som skyldes tredjepartstjenester (betalingsleverandører,
-                SMS-tjenester, etc.)
+                {t("terms.section7.item3")}
               </li>
-              <li>Force majeure-hendelser</li>
+              <li>{t("terms.section7.item4")}</li>
             </ul>
 
-            <h3 className="text-lg font-semibold mt-4">7.3 Backup</h3>
+            <h3 className="text-lg font-semibold mt-4">{t("terms.section7.sub3Heading")}</h3>
             <p>
-              Leverandøren tar regelmessige sikkerhetskopier, men Brukeren
-              oppfordres til å eksportere viktige data jevnlig.
+              {t("terms.section7.sub3Body")}
             </p>
           </section>
 
@@ -298,18 +264,14 @@ export default function Terms() {
             <div className="flex items-center gap-2 mb-4">
               <Scale className="h-5 w-5 text-blue-600" />
               <h2 className="text-xl font-bold m-0">
-                8. Immaterielle rettigheter
+                {t("terms.section8.heading")}
               </h2>
             </div>
             <p>
-              Alle immaterielle rettigheter til Tjenesten, inkludert
-              programvare, design, varemerker og dokumentasjon, tilhører
-              Leverandøren. Brukeren får en begrenset, ikke-eksklusiv lisens til
-              å bruke Tjenesten i abonnementsperioden.
+              {t("terms.section8.body1")}
             </p>
             <p className="mt-4">
-              Brukeren beholder alle rettigheter til sine egne data (Kundedata)
-              som lagres i Tjenesten.
+              {t("terms.section8.body2")}
             </p>
           </section>
 
@@ -317,20 +279,19 @@ export default function Terms() {
           <section>
             <div className="flex items-center gap-2 mb-4">
               <Ban className="h-5 w-5 text-blue-600" />
-              <h2 className="text-xl font-bold m-0">9. Suspensjon og opphør</h2>
+              <h2 className="text-xl font-bold m-0">{t("terms.section9.heading")}</h2>
             </div>
             <p>
-              Leverandøren kan suspendere eller avslutte Brukerens tilgang ved:
+              {t("terms.section9.intro")}
             </p>
             <ul className="list-disc pl-6 space-y-1">
-              <li>Manglende betaling etter purring</li>
-              <li>Brudd på disse vilkårene</li>
-              <li>Ulovlig eller skadelig bruk av Tjenesten</li>
-              <li>Mistanke om svindel eller misbruk</li>
+              <li>{t("terms.section9.item1")}</li>
+              <li>{t("terms.section9.item2")}</li>
+              <li>{t("terms.section9.item3")}</li>
+              <li>{t("terms.section9.item4")}</li>
             </ul>
             <p className="mt-4">
-              Ved suspensjon gis Brukeren rimelig tid til å rette opp forholdet
-              før eventuell permanent avslutning.
+              {t("terms.section9.outro")}
             </p>
           </section>
 
@@ -339,14 +300,11 @@ export default function Terms() {
             <div className="flex items-center gap-2 mb-4">
               <FileText className="h-5 w-5 text-blue-600" />
               <h2 className="text-xl font-bold m-0">
-                10. Endringer i vilkårene
+                {t("terms.section10.heading")}
               </h2>
             </div>
             <p>
-              Leverandøren kan endre disse vilkårene med minimum 30 dagers
-              varsel. Vesentlige endringer varsles via e-post og/eller i
-              Tjenesten. Fortsatt bruk etter endringstidspunktet anses som
-              aksept av de nye vilkårene.
+              {t("terms.section10.body")}
             </p>
           </section>
 
@@ -355,14 +313,11 @@ export default function Terms() {
             <div className="flex items-center gap-2 mb-4">
               <Scale className="h-5 w-5 text-blue-600" />
               <h2 className="text-xl font-bold m-0">
-                11. Lovvalg og tvisteløsning
+                {t("terms.section11.heading")}
               </h2>
             </div>
             <p>
-              Disse vilkårene er underlagt norsk lov. Eventuelle tvister skal
-              først forsøkes løst gjennom forhandlinger. Dersom enighet ikke
-              oppnås, skal tvisten avgjøres av de ordinære norske domstolene med
-              Oslo tingrett som verneting.
+              {t("terms.section11.body")}
             </p>
           </section>
 
@@ -370,18 +325,18 @@ export default function Terms() {
           <section className="bg-slate-50 rounded-xl p-6 border">
             <div className="flex items-center gap-2 mb-4">
               <Mail className="h-5 w-5 text-blue-600" />
-              <h2 className="text-xl font-bold m-0">12. Kontaktinformasjon</h2>
+              <h2 className="text-xl font-bold m-0">{t("terms.section12.heading")}</h2>
             </div>
             <p className="mb-4">
-              For spørsmål om disse vilkårene, kontakt oss:
+              {t("terms.section12.intro")}
             </p>
             <div className="bg-white rounded-lg border p-4 space-y-2">
               <p>
                 <strong>Nexify CRM Systems AS</strong>
               </p>
-              <p>Organisasjonsnummer: 936 300 278</p>
+              <p>{t("terms.section12.orgNumber", { number: "936 300 278" })}</p>
               <p>
-                E-post:{" "}
+                {t("terms.section12.emailLabel")}{" "}
                 <a
                   href="mailto:support@stylora.no"
                   className="text-blue-600 hover:underline"
@@ -390,7 +345,7 @@ export default function Terms() {
                 </a>
               </p>
               <p>
-                Nettside:{" "}
+                {t("terms.section12.websiteLabel")}{" "}
                 <a
                   href="https://stylora.no"
                   className="text-blue-600 hover:underline"
@@ -406,11 +361,11 @@ export default function Terms() {
         <div className="mt-12 text-center">
           <Link href="/privacy">
             <Button variant="outline" className="mr-4">
-              Les personvernerklæringen
+              {t("terms.readPrivacyPolicy")}
             </Button>
           </Link>
           <Link href="/">
-            <Button>Tilbake til forsiden</Button>
+            <Button>{t("terms.backToHome")}</Button>
           </Link>
         </div>
       </main>

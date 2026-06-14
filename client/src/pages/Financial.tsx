@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
 import { safeToFixed } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 const EXPENSE_CATEGORIES = [
   { value: "rent", label: "Husleie" },
@@ -64,6 +65,7 @@ export default function Financial() {
 }
 
 function FinancialContent() {
+  const { t } = useTranslation();
   const today = new Date();
   const [dateRange, setDateRange] = useState({
     startDate: format(startOfMonth(today), "yyyy-MM-dd"),
@@ -90,7 +92,7 @@ function FinancialContent() {
   // Mutations
   const createExpense = trpc.financial.createExpense.useMutation({
     onSuccess: () => {
-      toast.success("Utgift lagt til");
+      toast.success(t("financial.expenseAdded"));
       refetchSummary();
       refetchExpenses();
       setIsAddDialogOpen(false);
@@ -101,21 +103,21 @@ function FinancialContent() {
         expenseDate: format(today, "yyyy-MM-dd"),
       });
     },
-    onError: error => toast.error(`Feil: ${error.message}`),
+    onError: error => toast.error(t("financial.error", { message: error.message })),
   });
 
   const deleteExpense = trpc.financial.deleteExpense.useMutation({
     onSuccess: () => {
-      toast.success("Utgift slettet");
+      toast.success(t("financial.expenseDeleted"));
       refetchSummary();
       refetchExpenses();
     },
-    onError: error => toast.error(`Feil: ${error.message}`),
+    onError: error => toast.error(t("financial.error", { message: error.message })),
   });
 
   const handleAddExpense = () => {
     if (!newExpense.amount || parseFloat(newExpense.amount) <= 0) {
-      toast.error("Vennligst angi et gyldig beløp");
+      toast.error(t("financial.invalidAmount"));
       return;
     }
     createExpense.mutate(newExpense);
@@ -160,9 +162,9 @@ function FinancialContent() {
       a.download = `finansiell-rapport-${dateRange.startDate}-${dateRange.endDate}.html`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success("PDF-rapport generert");
+      toast.success(t("financial.pdfGenerated"));
     },
-    onError: error => toast.error(`Feil: ${error.message}`),
+    onError: error => toast.error(t("financial.error", { message: error.message })),
   });
 
   const exportExcel = trpc.export.financialExcel.useMutation({
@@ -174,9 +176,9 @@ function FinancialContent() {
       a.download = `utgifter-${dateRange.startDate}-${dateRange.endDate}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success("Excel-fil generert");
+      toast.success(t("financial.excelGenerated"));
     },
-    onError: error => toast.error(`Feil: ${error.message}`),
+    onError: error => toast.error(t("financial.error", { message: error.message })),
   });
 
   return (
@@ -184,10 +186,10 @@ function FinancialContent() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
-            Økonomi
+            {t("financial.title")}
           </h1>
           <p className="text-muted-foreground">
-            Inntekter, utgifter og lønnsomhet
+            {t("financial.subtitle")}
           </p>
         </div>
         <div className="flex gap-2">
@@ -197,7 +199,7 @@ function FinancialContent() {
             disabled={exportPDF.isPending}
           >
             <FileText className="mr-2 h-4 w-4" />
-            {exportPDF.isPending ? "Genererer..." : "Eksporter PDF"}
+            {exportPDF.isPending ? t("financial.generating") : t("financial.exportPDF")}
           </Button>
           <Button
             variant="outline"
@@ -205,25 +207,25 @@ function FinancialContent() {
             disabled={exportExcel.isPending}
           >
             <Download className="mr-2 h-4 w-4" />
-            {exportExcel.isPending ? "Genererer..." : "Eksporter Excel"}
+            {exportExcel.isPending ? t("financial.generating") : t("financial.exportExcel")}
           </Button>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white shadow-lg">
                 <Plus className="mr-2 h-4 w-4" />
-                Ny utgift
+                {t("financial.newExpense")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Legg til utgift</DialogTitle>
+                <DialogTitle>{t("financial.addExpenseTitle")}</DialogTitle>
                 <DialogDescription>
-                  Registrer en ny utgift for salongen
+                  {t("financial.addExpenseDescription")}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="category">Kategori</Label>
+                  <Label htmlFor="category">{t("financial.categoryLabel")}</Label>
                   <Select
                     value={newExpense.category}
                     onValueChange={(value: any) =>
@@ -243,7 +245,7 @@ function FinancialContent() {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="amount">Beløp (NOK)</Label>
+                  <Label htmlFor="amount">{t("financial.amountLabel")}</Label>
                   <Input
                     id="amount"
                     type="number"
@@ -256,7 +258,7 @@ function FinancialContent() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="expenseDate">Dato</Label>
+                  <Label htmlFor="expenseDate">{t("financial.dateLabel")}</Label>
                   <Input
                     id="expenseDate"
                     type="date"
@@ -270,7 +272,7 @@ function FinancialContent() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="description">Beskrivelse (valgfritt)</Label>
+                  <Label htmlFor="description">{t("financial.descriptionLabel")}</Label>
                   <Textarea
                     id="description"
                     value={newExpense.description}
@@ -280,7 +282,7 @@ function FinancialContent() {
                         description: e.target.value,
                       })
                     }
-                    placeholder="Detaljer om utgiften..."
+                    placeholder={t("financial.descriptionPlaceholder")}
                   />
                 </div>
               </div>
@@ -289,13 +291,13 @@ function FinancialContent() {
                   variant="outline"
                   onClick={() => setIsAddDialogOpen(false)}
                 >
-                  Avbryt
+                  {t("financial.cancel")}
                 </Button>
                 <Button
                   onClick={handleAddExpense}
                   disabled={createExpense.isPending}
                 >
-                  {createExpense.isPending ? "Lagrer..." : "Legg til"}
+                  {createExpense.isPending ? t("financial.saving") : t("financial.add")}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -308,7 +310,7 @@ function FinancialContent() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Tidsperiode
+            {t("financial.timePeriod")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -319,34 +321,34 @@ function FinancialContent() {
                 size="sm"
                 onClick={() => setPresetRange("today")}
               >
-                I dag
+                {t("financial.today")}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setPresetRange("week")}
               >
-                Siste 7 dager
+                {t("financial.last7Days")}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setPresetRange("month")}
               >
-                Denne måneden
+                {t("financial.thisMonth")}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setPresetRange("year")}
               >
-                Dette året
+                {t("financial.thisYear")}
               </Button>
             </div>
             <div className="flex gap-2 items-center">
               <div>
                 <Label htmlFor="startDate" className="text-xs">
-                  Fra
+                  {t("financial.from")}
                 </Label>
                 <Input
                   id="startDate"
@@ -360,7 +362,7 @@ function FinancialContent() {
               </div>
               <div>
                 <Label htmlFor="endDate" className="text-xs">
-                  Til
+                  {t("financial.to")}
                 </Label>
                 <Input
                   id="endDate"
@@ -381,7 +383,7 @@ function FinancialContent() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Inntekter</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("financial.revenue")}</CardTitle>
             <TrendingUp className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -389,27 +391,27 @@ function FinancialContent() {
               {formatCurrency(summary?.revenue || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Fra fullførte avtaler
+              {t("financial.revenueSub")}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Utgifter</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("financial.expenses")}</CardTitle>
             <TrendingDown className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
               {formatCurrency(summary?.expenses || 0)}
             </div>
-            <p className="text-xs text-muted-foreground">Totale utgifter</p>
+            <p className="text-xs text-muted-foreground">{t("financial.expensesSub")}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Fortjeneste</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("financial.profit")}</CardTitle>
             <DollarSign className="h-4 w-4" />
           </CardHeader>
           <CardContent>
@@ -418,13 +420,13 @@ function FinancialContent() {
             >
               {formatCurrency(summary?.profit || 0)}
             </div>
-            <p className="text-xs text-muted-foreground">Netto resultat</p>
+            <p className="text-xs text-muted-foreground">{t("financial.profitSub")}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Margin</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("financial.margin")}</CardTitle>
             <PieChart className="h-4 w-4" />
           </CardHeader>
           <CardContent>
@@ -433,7 +435,7 @@ function FinancialContent() {
             >
               {safeToFixed(summary?.profitMargin || 0, 1)}%
             </div>
-            <p className="text-xs text-muted-foreground">Fortjenestemargin</p>
+            <p className="text-xs text-muted-foreground">{t("financial.marginSub")}</p>
           </CardContent>
         </Card>
       </div>
@@ -441,9 +443,9 @@ function FinancialContent() {
       {/* Expense Breakdown */}
       <Card>
         <CardHeader>
-          <CardTitle>Utgifter per kategori</CardTitle>
+          <CardTitle>{t("financial.expensesByCategoryTitle")}</CardTitle>
           <CardDescription>
-            Fordeling av utgifter i valgt periode
+            {t("financial.expensesByCategoryDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -480,7 +482,7 @@ function FinancialContent() {
             </div>
           ) : (
             <p className="text-sm text-muted-foreground text-center py-8">
-              Ingen utgifter i denne perioden
+              {t("financial.noExpensesInPeriod")}
             </p>
           )}
         </CardContent>
@@ -489,8 +491,8 @@ function FinancialContent() {
       {/* Expenses List */}
       <Card>
         <CardHeader>
-          <CardTitle>Utgiftsliste</CardTitle>
-          <CardDescription>Alle registrerte utgifter</CardDescription>
+          <CardTitle>{t("financial.expenseListTitle")}</CardTitle>
+          <CardDescription>{t("financial.expenseListDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           {expenses && expenses.length > 0 ? (
@@ -534,7 +536,7 @@ function FinancialContent() {
                         onClick={() => {
                           if (
                             confirm(
-                              "Er du sikker på at du vil slette denne utgiften?"
+                              t("financial.confirmDeleteExpense")
                             )
                           ) {
                             deleteExpense.mutate({ id: expense.id });
@@ -550,7 +552,7 @@ function FinancialContent() {
             </div>
           ) : (
             <p className="text-sm text-muted-foreground text-center py-8">
-              Ingen utgifter å vise
+              {t("financial.noExpensesToShow")}
             </p>
           )}
         </CardContent>

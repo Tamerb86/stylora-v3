@@ -15,8 +15,10 @@ import {
   Home,
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { useTranslation } from "react-i18next";
 
 export default function TimeClock() {
+  const { t } = useTranslation();
   const { data: currentUser } = trpc.auth.me.useQuery();
   const [, setLocation] = useLocation();
   const [pin, setPin] = useState("");
@@ -133,12 +135,12 @@ export default function TimeClock() {
 
       setLastAction({
         type: "in",
-        name: result.employeeName || "Ansatt",
+        name: result.employeeName || t("timeClock.employeeFallback"),
         time: new Date(result.clockIn).toLocaleTimeString("no-NO"),
       });
       setPin("");
     } catch (error: any) {
-      alert(error.message || "Feil ved innstemplingstid");
+      alert(error.message || t("timeClock.clockInError"));
     }
   };
 
@@ -157,14 +159,14 @@ export default function TimeClock() {
 
       setLastAction({
         type: "out",
-        name: result.employeeName || "Ansatt",
+        name: result.employeeName || t("timeClock.employeeFallback"),
         time: new Date(result.clockOut).toLocaleTimeString("no-NO"),
         hours: result.totalHours,
         warning: result.warning || undefined,
       });
       setPin("");
     } catch (error: any) {
-      alert(error.message || "Feil ved utstemplingstid");
+      alert(error.message || t("timeClock.clockOutError"));
     }
   };
 
@@ -203,7 +205,7 @@ export default function TimeClock() {
         <button
           onClick={() => setLocation("/dashboard")}
           className="fixed top-4 left-4 z-40 p-3 rounded-xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl hover:bg-white/20 transition-all duration-200 hover:scale-110 group"
-          title="Tilbake til Dashboard"
+          title={t("timeClock.backToDashboard")}
         >
           <Home className="w-5 h-5 text-white group-hover:text-blue-200" />
         </button>
@@ -213,7 +215,11 @@ export default function TimeClock() {
           <button
             onClick={toggleFullscreen}
             className="fixed top-4 right-4 z-40 p-3 rounded-xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl hover:bg-white/20 transition-all duration-200 hover:scale-110 group"
-            title={isFullscreen ? "Avslutt fullskjerm" : "Fullskjerm"}
+            title={
+              isFullscreen
+                ? t("timeClock.exitFullscreen")
+                : t("timeClock.fullscreen")
+            }
           >
             {isFullscreen ? (
               <Minimize2 className="w-5 h-5 text-white group-hover:text-blue-200" />
@@ -237,9 +243,11 @@ export default function TimeClock() {
                   <Clock className="w-8 h-8 text-white" />
                 </div>
                 <h1 className="text-3xl font-bold text-white mb-1">
-                  Tidsregistrering
+                  {t("timeClock.title")}
                 </h1>
-                <p className="text-blue-200 text-sm">Tast inn din PIN-kode</p>
+                <p className="text-blue-200 text-sm">
+                  {t("timeClock.enterPin")}
+                </p>
               </div>
 
               {/* Current Time Display */}
@@ -280,7 +288,9 @@ export default function TimeClock() {
                   ))}
                 </div>
                 <p className="text-center text-blue-200 text-xs">
-                  {pin.length === 0 ? "4-6 siffer" : `${pin.length} / 6`}
+                  {pin.length === 0
+                    ? t("timeClock.pinHint")
+                    : `${pin.length} / 6`}
                 </p>
               </div>
 
@@ -318,7 +328,7 @@ export default function TimeClock() {
                   className="h-20 text-base bg-white/10 hover:bg-red-500/50 border-white/30 text-white hover:scale-105 transition-all duration-200 shadow-lg disabled:opacity-30 active:scale-95"
                 >
                   <X className="w-5 h-5 mr-1" />
-                  Slett
+                  {t("timeClock.clear")}
                 </Button>
               </div>
 
@@ -330,7 +340,7 @@ export default function TimeClock() {
                   className="h-16 text-lg font-bold bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                 >
                   <LogIn className="w-6 h-6 mr-2" />
-                  Inn
+                  {t("timeClock.clockIn")}
                 </Button>
                 <Button
                   onClick={handleClockOut}
@@ -338,7 +348,7 @@ export default function TimeClock() {
                   className="h-16 text-lg font-bold bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                 >
                   <LogOut className="w-6 h-6 mr-2" />
-                  Ut
+                  {t("timeClock.clockOut")}
                 </Button>
               </div>
             </Card>
@@ -352,7 +362,7 @@ export default function TimeClock() {
               <div className="flex items-center gap-2 mb-3">
                 <Users className="w-4 h-4 text-green-400" />
                 <h3 className="text-base font-bold text-gray-900">
-                  Innstemplet nå
+                  {t("timeClock.clockedInNow")}
                 </h3>
               </div>
               <div className="space-y-2">
@@ -429,8 +439,8 @@ export default function TimeClock() {
                 <div className="space-y-1 mb-3">
                   <h3 className="text-2xl font-bold text-white">
                     {lastAction.type === "in"
-                      ? "✓ Velkommen!"
-                      : "✓ Ha en fin dag!"}
+                      ? t("timeClock.welcome")
+                      : t("timeClock.haveANiceDay")}
                   </h3>
                   <p className="text-xl font-semibold text-white/90">
                     {lastAction.name}
@@ -443,15 +453,17 @@ export default function TimeClock() {
                     }`}
                   >
                     {lastAction.type === "in"
-                      ? "Du er nå innstemplet"
-                      : "Du er nå utstemplet"}
+                      ? t("timeClock.youAreClockedIn")
+                      : t("timeClock.youAreClockedOut")}
                   </p>
                 </div>
 
                 {/* Time Display */}
                 <div className="bg-white/10 rounded-xl p-3 mb-3">
                   <p className="text-xs text-blue-200 mb-1">
-                    {lastAction.type === "in" ? "Starttid" : "Sluttid"}
+                    {lastAction.type === "in"
+                      ? t("timeClock.startTime")
+                      : t("timeClock.endTime")}
                   </p>
                   <p className="text-4xl font-bold text-white font-mono tracking-tight">
                     {lastAction.time}
@@ -462,14 +474,14 @@ export default function TimeClock() {
                 {lastAction.hours !== undefined && (
                   <div className="bg-white/10 rounded-xl p-4 mt-3">
                     <p className="text-blue-200 text-xs mb-1">
-                      Total arbeidstid i dag
+                      {t("timeClock.totalWorkTimeToday")}
                     </p>
                     <p className="text-4xl font-bold text-white mb-1">
                       {Math.floor(lastAction.hours)}t{" "}
                       {Math.round((lastAction.hours % 1) * 60)}m
                     </p>
                     <p className="text-sm text-blue-200 font-medium">
-                      ({lastAction.hours.toFixed(2)} timer)
+                      ({t("timeClock.hoursValue", { hours: lastAction.hours.toFixed(2) })})
                     </p>
                   </div>
                 )}
@@ -485,7 +497,7 @@ export default function TimeClock() {
 
                 {/* Auto-dismiss indicator */}
                 <p className="text-xs text-white/50 mt-4">
-                  Forsvinner automatisk om 10 sek
+                  {t("timeClock.autoDismiss")}
                 </p>
               </div>
             </Card>

@@ -14,10 +14,12 @@ import {
 import { Mail, Phone, MapPin, Send, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import Footer from "@/components/Footer";
+import { useTranslation } from "react-i18next";
 
 const TENANT_ID = "goeasychargeco@gmail.com"; // Hardcoded for demo
 
 export default function Contact() {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -31,12 +33,12 @@ export default function Contact() {
     onSuccess: () => {
       setSubmitted(true);
       setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
-      toast.success("Melding sendt!", {
-        description: "Vi vil svare deg så snart som mulig.",
+      toast.success(t("contact.toastSent"), {
+        description: t("contact.toastSentDescription"),
       });
     },
     onError: error => {
-      toast.error("Feil ved sending", {
+      toast.error(t("contact.toastError"), {
         description: error.message,
       });
     },
@@ -67,10 +69,9 @@ export default function Contact() {
             <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <CheckCircle2 className="w-10 h-10 text-green-600" />
             </div>
-            <CardTitle className="text-2xl">Takk for din melding!</CardTitle>
+            <CardTitle className="text-2xl">{t("contact.thankYouTitle")}</CardTitle>
             <CardDescription className="text-base mt-2">
-              Vi har mottatt din henvendelse og vil svare deg så snart som
-              mulig.
+              {t("contact.thankYouDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -79,7 +80,7 @@ export default function Contact() {
               variant="outline"
               className="w-full"
             >
-              Send en ny melding
+              {t("contact.sendNewMessage")}
             </Button>
           </CardContent>
         </Card>
@@ -93,10 +94,9 @@ export default function Contact() {
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-orange-500 text-white py-16 shadow-xl">
           <div className="container max-w-6xl">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Kontakt oss</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">{t("contact.heroTitle")}</h1>
             <p className="text-xl opacity-90">
-              Vi er her for å hjelpe deg. Send oss en melding så svarer vi så
-              snart som mulig.
+              {t("contact.heroSubtitle")}
             </p>
           </div>
         </div>
@@ -107,23 +107,23 @@ export default function Contact() {
             {/* Contact Form */}
             <Card className="shadow-xl">
               <CardHeader>
-                <CardTitle className="text-2xl">Send oss en melding</CardTitle>
+                <CardTitle className="text-2xl">{t("contact.formTitle")}</CardTitle>
                 <CardDescription>
-                  Fyll ut skjemaet under så tar vi kontakt med deg.
+                  {t("contact.formDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">
-                      Navn <span className="text-red-500">*</span>
+                      {t("contact.nameLabel")} <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="name"
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
-                      placeholder="Ditt fulle navn"
+                      placeholder={t("contact.namePlaceholder")}
                       required
                       disabled={submitMutation.isPending}
                     />
@@ -131,7 +131,7 @@ export default function Contact() {
 
                   <div className="space-y-2">
                     <Label htmlFor="email">
-                      E-post <span className="text-red-500">*</span>
+                      {t("contact.emailLabel")} <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="email"
@@ -146,7 +146,7 @@ export default function Contact() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Telefon</Label>
+                    <Label htmlFor="phone">{t("contact.phoneLabel")}</Label>
                     <Input
                       id="phone"
                       name="phone"
@@ -159,27 +159,27 @@ export default function Contact() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="subject">Emne</Label>
+                    <Label htmlFor="subject">{t("contact.subjectLabel")}</Label>
                     <Input
                       id="subject"
                       name="subject"
                       value={formData.subject}
                       onChange={handleChange}
-                      placeholder="Hva gjelder henvendelsen?"
+                      placeholder={t("contact.subjectPlaceholder")}
                       disabled={submitMutation.isPending}
                     />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="message">
-                      Melding <span className="text-red-500">*</span>
+                      {t("contact.messageLabel")} <span className="text-red-500">*</span>
                     </Label>
                     <Textarea
                       id="message"
                       name="message"
                       value={formData.message}
                       onChange={handleChange}
-                      placeholder="Skriv din melding her..."
+                      placeholder={t("contact.messagePlaceholder")}
                       rows={6}
                       required
                       disabled={submitMutation.isPending}
@@ -195,12 +195,12 @@ export default function Contact() {
                     {submitMutation.isPending ? (
                       <>
                         <span className="animate-spin mr-2">⏳</span>
-                        Sender...
+                        {t("contact.sending")}
                       </>
                     ) : (
                       <>
                         <Send className="w-4 h-4 mr-2" />
-                        Send melding
+                        {t("contact.sendButton")}
                       </>
                     )}
                   </Button>
@@ -212,7 +212,7 @@ export default function Contact() {
             <div className="space-y-6">
               <Card className="shadow-lg">
                 <CardHeader>
-                  <CardTitle className="text-xl">Kontaktinformasjon</CardTitle>
+                  <CardTitle className="text-xl">{t("contact.contactInfoTitle")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-start gap-3">
@@ -220,7 +220,7 @@ export default function Contact() {
                       <Mail className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <p className="font-semibold">E-post</p>
+                      <p className="font-semibold">{t("contact.emailInfoLabel")}</p>
                       <p className="text-muted-foreground">
                         kontakt@stylora.no
                       </p>
@@ -232,7 +232,7 @@ export default function Contact() {
                       <Phone className="w-5 h-5 text-orange-600" />
                     </div>
                     <div>
-                      <p className="font-semibold">Telefon</p>
+                      <p className="font-semibold">{t("contact.phoneInfoLabel")}</p>
                       <p className="text-muted-foreground">+47 123 45 678</p>
                     </div>
                   </div>
@@ -242,7 +242,7 @@ export default function Contact() {
                       <MapPin className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <p className="font-semibold">Adresse</p>
+                      <p className="font-semibold">{t("contact.addressLabel")}</p>
                       <p className="text-muted-foreground">
                         Eksempelveien 123
                         <br />
@@ -255,20 +255,20 @@ export default function Contact() {
 
               <Card className="shadow-lg bg-gradient-to-br from-blue-50 to-orange-50">
                 <CardHeader>
-                  <CardTitle className="text-xl">Åpningstider</CardTitle>
+                  <CardTitle className="text-xl">{t("contact.openingHoursTitle")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="font-medium">Mandag - Fredag:</span>
+                    <span className="font-medium">{t("contact.weekdays")}</span>
                     <span className="text-muted-foreground">09:00 - 17:00</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="font-medium">Lørdag:</span>
+                    <span className="font-medium">{t("contact.saturday")}</span>
                     <span className="text-muted-foreground">10:00 - 14:00</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="font-medium">Søndag:</span>
-                    <span className="text-muted-foreground">Stengt</span>
+                    <span className="font-medium">{t("contact.sunday")}</span>
+                    <span className="text-muted-foreground">{t("contact.closed")}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -276,9 +276,8 @@ export default function Contact() {
               <Card className="shadow-lg border-2 border-blue-200">
                 <CardContent className="pt-6">
                   <p className="text-sm text-muted-foreground">
-                    <strong>Responstid:</strong> Vi svarer vanligvis innen 24
-                    timer på hverdager. For akutte saker, vennligst ring oss
-                    direkte.
+                    <strong>{t("contact.responseTimeLabel")}</strong>{" "}
+                    {t("contact.responseTimeText")}
                   </p>
                 </CardContent>
               </Card>

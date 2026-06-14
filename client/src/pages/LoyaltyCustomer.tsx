@@ -30,8 +30,10 @@ import {
 import { format } from "date-fns";
 import { nb } from "date-fns/locale";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export default function LoyaltyCustomer() {
+  const { t } = useTranslation();
   const [selectedTab, setSelectedTab] = useState<
     "rewards" | "history" | "redemptions"
   >("rewards");
@@ -103,8 +105,8 @@ export default function LoyaltyCustomer() {
     <div className="container mx-auto py-8 px-4">
       {/* Header with Points Balance */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Lojalitetsprogram</h1>
-        <p className="text-gray-600">Tjen poeng og få eksklusive belønninger</p>
+        <h1 className="text-3xl font-bold mb-2">{t("loyaltyCustomer.heading")}</h1>
+        <p className="text-gray-600">{t("loyaltyCustomer.subtitle")}</p>
       </div>
 
       {/* Points Card */}
@@ -112,11 +114,11 @@ export default function LoyaltyCustomer() {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/80 text-sm mb-1">Dine poeng</p>
+              <p className="text-white/80 text-sm mb-1">{t("loyaltyCustomer.yourPoints")}</p>
               <h2 className="text-5xl font-bold mb-2">{currentPoints}</h2>
               <p className="text-white/90 text-sm">
                 <TrendingUp className="inline h-4 w-4 mr-1" />
-                {lifetimePoints} poeng totalt tjent
+                {t("loyaltyCustomer.lifetimePoints", { count: lifetimePoints })}
               </p>
             </div>
             <div className="bg-white/20 p-4 rounded-full">
@@ -126,7 +128,7 @@ export default function LoyaltyCustomer() {
 
           <div className="mt-6 pt-4 border-t border-white/20">
             <p className="text-white/90 text-sm">
-              💡 Tjen 1 poeng for hver 100 kr du bruker
+              💡 {t("loyaltyCustomer.earnRate")}
             </p>
           </div>
         </CardContent>
@@ -137,15 +139,15 @@ export default function LoyaltyCustomer() {
         <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="rewards">
             <Gift className="h-4 w-4 mr-2" />
-            Belønninger
+            {t("loyaltyCustomer.rewardsTab")}
           </TabsTrigger>
           <TabsTrigger value="history">
             <Clock className="h-4 w-4 mr-2" />
-            Historikk
+            {t("loyaltyCustomer.historyTab")}
           </TabsTrigger>
           <TabsTrigger value="redemptions">
             <Sparkles className="h-4 w-4 mr-2" />
-            Mine kupongkoder
+            {t("loyaltyCustomer.redemptionsTab")}
           </TabsTrigger>
         </TabsList>
 
@@ -153,14 +155,14 @@ export default function LoyaltyCustomer() {
         <TabsContent value="rewards">
           {rewardsLoading ? (
             <div className="text-center py-12 text-gray-500">
-              Laster belønninger...
+              {t("loyaltyCustomer.loadingRewards")}
             </div>
           ) : rewards.length === 0 ? (
             <Card>
               <CardContent className="text-center py-12">
                 <Gift className="h-16 w-16 mx-auto mb-4 text-gray-400" />
                 <p className="text-gray-600">
-                  Ingen belønninger tilgjengelig for øyeblikket
+                  {t("loyaltyCustomer.noRewards")}
                 </p>
               </CardContent>
             </Card>
@@ -170,8 +172,8 @@ export default function LoyaltyCustomer() {
                 const canAfford = currentPoints >= reward.pointsCost;
                 const discountText =
                   reward.discountType === "percentage"
-                    ? `${reward.discountValue}% rabatt`
-                    : `${reward.discountValue} kr rabatt`;
+                    ? t("loyaltyCustomer.percentDiscount", { value: reward.discountValue })
+                    : t("loyaltyCustomer.fixedDiscount", { value: reward.discountValue });
 
                 return (
                   <Card
@@ -189,7 +191,7 @@ export default function LoyaltyCustomer() {
                           </CardDescription>
                         </div>
                         <Badge variant="secondary" className="ml-2">
-                          {reward.pointsCost} poeng
+                          {t("loyaltyCustomer.pointsCount", { count: reward.pointsCost })}
                         </Badge>
                       </div>
                     </CardHeader>
@@ -207,12 +209,12 @@ export default function LoyaltyCustomer() {
                           onClick={() => handleRedeemClick(reward)}
                         >
                           {canAfford
-                            ? "Løs inn"
-                            : `Trenger ${reward.pointsCost - currentPoints} poeng til`}
+                            ? t("loyaltyCustomer.redeem")
+                            : t("loyaltyCustomer.needMorePoints", { count: reward.pointsCost - currentPoints })}
                         </Button>
 
                         <p className="text-xs text-gray-500 text-center">
-                          Gyldig i {reward.validityDays} dager etter innløsning
+                          {t("loyaltyCustomer.validForDays", { count: reward.validityDays })}
                         </p>
                       </div>
                     </CardContent>
@@ -227,13 +229,13 @@ export default function LoyaltyCustomer() {
         <TabsContent value="history">
           {transactionsLoading ? (
             <div className="text-center py-12 text-gray-500">
-              Laster historikk...
+              {t("loyaltyCustomer.loadingHistory")}
             </div>
           ) : transactions.length === 0 ? (
             <Card>
               <CardContent className="text-center py-12">
                 <Clock className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-600">Ingen transaksjoner ennå</p>
+                <p className="text-gray-600">{t("loyaltyCustomer.noTransactions")}</p>
               </CardContent>
             </Card>
           ) : (
@@ -297,15 +299,15 @@ export default function LoyaltyCustomer() {
         <TabsContent value="redemptions">
           {redemptionsLoading ? (
             <div className="text-center py-12 text-gray-500">
-              Laster kupongkoder...
+              {t("loyaltyCustomer.loadingRedemptions")}
             </div>
           ) : redemptions.length === 0 ? (
             <Card>
               <CardContent className="text-center py-12">
                 <Sparkles className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-600">Du har ingen aktive kupongkoder</p>
+                <p className="text-gray-600">{t("loyaltyCustomer.noRedemptions")}</p>
                 <p className="text-sm text-gray-500 mt-2">
-                  Løs inn belønninger for å få kupongkoder
+                  {t("loyaltyCustomer.noRedemptionsHint")}
                 </p>
               </CardContent>
             </Card>
@@ -315,8 +317,8 @@ export default function LoyaltyCustomer() {
                 const isExpired = new Date(redemption.expiresAt) < new Date();
                 const discountText =
                   redemption.discountType === "percentage"
-                    ? `${redemption.discountValue}% rabatt`
-                    : `${redemption.discountValue} kr rabatt`;
+                    ? t("loyaltyCustomer.percentDiscount", { value: redemption.discountValue })
+                    : t("loyaltyCustomer.fixedDiscount", { value: redemption.discountValue });
 
                 return (
                   <Card
@@ -334,7 +336,7 @@ export default function LoyaltyCustomer() {
                           </CardDescription>
                         </div>
                         <Badge variant={isExpired ? "destructive" : "default"}>
-                          {isExpired ? "Utløpt" : "Aktiv"}
+                          {isExpired ? t("loyaltyCustomer.expired") : t("loyaltyCustomer.active")}
                         </Badge>
                       </div>
                     </CardHeader>
@@ -342,7 +344,7 @@ export default function LoyaltyCustomer() {
                       <div className="space-y-3">
                         <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-md p-4">
                           <p className="text-xs text-gray-600 mb-1">
-                            Kupongkode
+                            {t("loyaltyCustomer.couponCode")}
                           </p>
                           <p className="text-2xl font-mono font-bold text-purple-600 tracking-wider">
                             {redemption.code}
@@ -357,7 +359,7 @@ export default function LoyaltyCustomer() {
 
                         <div className="text-sm text-gray-600">
                           <p>
-                            <strong>Utløper:</strong>{" "}
+                            <strong>{t("loyaltyCustomer.expires")}</strong>{" "}
                             {format(
                               new Date(redemption.expiresAt),
                               "d. MMM yyyy",
@@ -365,7 +367,7 @@ export default function LoyaltyCustomer() {
                             )}
                           </p>
                           <p className="mt-1 text-xs text-gray-500">
-                            Vis denne koden til personalet når du betaler
+                            {t("loyaltyCustomer.showCodeHint")}
                           </p>
                         </div>
                       </div>
@@ -382,9 +384,9 @@ export default function LoyaltyCustomer() {
       <Dialog open={redeemDialogOpen} onOpenChange={setRedeemDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Bekreft innløsning</DialogTitle>
+            <DialogTitle>{t("loyaltyCustomer.confirmRedemption")}</DialogTitle>
             <DialogDescription>
-              Er du sikker på at du vil løse inn denne belønningen?
+              {t("loyaltyCustomer.confirmRedemptionQuestion")}
             </DialogDescription>
           </DialogHeader>
 
@@ -396,25 +398,24 @@ export default function LoyaltyCustomer() {
                   {selectedReward.description}
                 </p>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Kostnad:</span>
+                  <span className="text-sm text-gray-600">{t("loyaltyCustomer.cost")}</span>
                   <Badge variant="secondary">
-                    {selectedReward.pointsCost} poeng
+                    {t("loyaltyCustomer.pointsCount", { count: selectedReward.pointsCost })}
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-sm text-gray-600">
-                    Dine poeng etter:
+                    {t("loyaltyCustomer.pointsAfter")}
                   </span>
                   <span className="font-semibold">
-                    {currentPoints - selectedReward.pointsCost} poeng
+                    {t("loyaltyCustomer.pointsCount", { count: currentPoints - selectedReward.pointsCost })}
                   </span>
                 </div>
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
                 <p className="text-sm text-blue-800">
-                  Du vil motta en unik kupongkode som kan brukes i{" "}
-                  {selectedReward.validityDays} dager.
+                  {t("loyaltyCustomer.willReceiveCode", { count: selectedReward.validityDays })}
                 </p>
               </div>
             </div>
@@ -425,13 +426,13 @@ export default function LoyaltyCustomer() {
               variant="outline"
               onClick={() => setRedeemDialogOpen(false)}
             >
-              Avbryt
+              {t("loyaltyCustomer.cancel")}
             </Button>
             <Button
               onClick={handleRedeemConfirm}
               disabled={redeemMutation.isPending}
             >
-              {redeemMutation.isPending ? "Løser inn..." : "Bekreft innløsning"}
+              {redeemMutation.isPending ? t("loyaltyCustomer.redeeming") : t("loyaltyCustomer.confirmRedemption")}
             </Button>
           </DialogFooter>
         </DialogContent>

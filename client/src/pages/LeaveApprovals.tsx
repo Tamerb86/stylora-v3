@@ -23,8 +23,10 @@ import { CheckCircle2, XCircle, Clock, User } from "lucide-react";
 import { format } from "date-fns";
 import { nb } from "date-fns/locale";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export default function LeaveApprovals() {
+  const { t } = useTranslation();
   const [selectedLeave, setSelectedLeave] = useState<any>(null);
   const [isApproving, setIsApproving] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
@@ -32,13 +34,17 @@ export default function LeaveApprovals() {
   const { data: pendingLeaves, refetch } = trpc.leaves.pending.useQuery();
   const approveLeave = trpc.leaves.approve.useMutation({
     onSuccess: data => {
-      toast.success(data.approved ? "Ferie godkjent!" : "Ferie avslått");
+      toast.success(
+        data.approved
+          ? t("leaveApprovals.toastApproved")
+          : t("leaveApprovals.toastRejected")
+      );
       setSelectedLeave(null);
       setRejectionReason("");
       refetch();
     },
     onError: error => {
-      toast.error(error.message || "Kunne ikke behandle forespørsel");
+      toast.error(error.message || t("leaveApprovals.toastError"));
     },
   });
 
@@ -46,7 +52,7 @@ export default function LeaveApprovals() {
     if (!selectedLeave) return;
 
     if (!approved && !rejectionReason.trim()) {
-      toast.error("Vennligst oppgi en begrunnelse for avslag");
+      toast.error(t("leaveApprovals.toastReasonRequired"));
       return;
     }
 
@@ -60,13 +66,13 @@ export default function LeaveApprovals() {
   const getLeaveTypeLabel = (type: string) => {
     switch (type) {
       case "annual":
-        return "Årlig ferie";
+        return t("leaveApprovals.leaveType.annual");
       case "sick":
-        return "Sykefravær";
+        return t("leaveApprovals.leaveType.sick");
       case "emergency":
-        return "Nødferie";
+        return t("leaveApprovals.leaveType.emergency");
       case "unpaid":
-        return "Ubetalt permisjon";
+        return t("leaveApprovals.leaveType.unpaid");
       default:
         return type;
     }
@@ -82,9 +88,9 @@ export default function LeaveApprovals() {
     <DashboardLayout>
       <div className="container py-8 max-w-6xl">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold">Feriegodkjenninger</h1>
+          <h1 className="text-4xl font-bold">{t("leaveApprovals.title")}</h1>
           <p className="text-muted-foreground mt-2">
-            Behandle ventende ferieforespørsler fra ansatte
+            {t("leaveApprovals.subtitle")}
           </p>
         </div>
 
@@ -96,11 +102,12 @@ export default function LeaveApprovals() {
                 <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
                 <div>
                   <div className="font-semibold text-yellow-900 dark:text-yellow-100">
-                    {pendingLeaves.length} ventende forespørsel
-                    {pendingLeaves.length !== 1 ? "er" : ""}
+                    {t("leaveApprovals.pendingCount", {
+                      count: pendingLeaves.length,
+                    })}
                   </div>
                   <div className="text-sm text-yellow-700 dark:text-yellow-300">
-                    Venter på din godkjenning
+                    {t("leaveApprovals.awaitingApproval")}
                   </div>
                 </div>
               </div>
@@ -111,18 +118,18 @@ export default function LeaveApprovals() {
         {/* Pending Leaves List */}
         <Card>
           <CardHeader>
-            <CardTitle>Ventende Forespørsler</CardTitle>
+            <CardTitle>{t("leaveApprovals.listTitle")}</CardTitle>
             <CardDescription>
-              Godkjenn eller avslå ferieforespørsler
+              {t("leaveApprovals.listDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {!pendingLeaves || pendingLeaves.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <CheckCircle2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">Ingen ventende forespørsler</p>
+                <p className="text-lg">{t("leaveApprovals.emptyTitle")}</p>
                 <p className="text-sm mt-2">
-                  Alle ferieforespørsler er behandlet
+                  {t("leaveApprovals.emptyDescription")}
                 </p>
               </div>
             ) : (
@@ -156,18 +163,20 @@ export default function LeaveApprovals() {
                           new Date(leave.startDate),
                           new Date(leave.endDate)
                         )}{" "}
-                        dager)
+                        {t("leaveApprovals.daysSuffix")})
                       </div>
 
                       {leave.reason && (
                         <div className="text-sm mt-3 p-3 bg-muted/50 rounded">
-                          <span className="font-medium">Begrunnelse:</span>{" "}
+                          <span className="font-medium">
+                            {t("leaveApprovals.reasonLabel")}
+                          </span>{" "}
                           {leave.reason}
                         </div>
                       )}
 
                       <div className="text-xs text-muted-foreground mt-3">
-                        Sendt:{" "}
+                        {t("leaveApprovals.sentLabel")}{" "}
                         {format(new Date(leave.createdAt), "PPP 'kl.' HH:mm", {
                           locale: nb,
                         })}
@@ -185,7 +194,7 @@ export default function LeaveApprovals() {
                         }}
                       >
                         <XCircle className="h-5 w-5" />
-                        Avslå
+                        {t("leaveApprovals.reject")}
                       </Button>
                       <Button
                         size="lg"
@@ -202,7 +211,7 @@ export default function LeaveApprovals() {
                         disabled={approveLeave.isPending}
                       >
                         <CheckCircle2 className="h-5 w-5" />
-                        Godkjenn
+                        {t("leaveApprovals.approve")}
                       </Button>
                     </div>
                   </div>
@@ -224,9 +233,9 @@ export default function LeaveApprovals() {
         >
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Avslå Ferieforespørsel</DialogTitle>
+              <DialogTitle>{t("leaveApprovals.dialogTitle")}</DialogTitle>
               <DialogDescription>
-                Oppgi en begrunnelse for avslaget
+                {t("leaveApprovals.dialogDescription")}
               </DialogDescription>
             </DialogHeader>
 
@@ -249,11 +258,11 @@ export default function LeaveApprovals() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Begrunnelse for avslag *</Label>
+                  <Label>{t("leaveApprovals.reasonFieldLabel")}</Label>
                   <Textarea
                     value={rejectionReason}
                     onChange={e => setRejectionReason(e.target.value)}
-                    placeholder="Forklar hvorfor ferieforespørselen avslås..."
+                    placeholder={t("leaveApprovals.reasonPlaceholder")}
                     rows={4}
                   />
                 </div>
@@ -268,14 +277,16 @@ export default function LeaveApprovals() {
                   setRejectionReason("");
                 }}
               >
-                Avbryt
+                {t("leaveApprovals.cancel")}
               </Button>
               <Button
                 variant="destructive"
                 onClick={() => handleApprove(false)}
                 disabled={!rejectionReason.trim() || approveLeave.isPending}
               >
-                {approveLeave.isPending ? "Avslår..." : "Avslå Forespørsel"}
+                {approveLeave.isPending
+                  ? t("leaveApprovals.rejecting")
+                  : t("leaveApprovals.rejectRequest")}
               </Button>
             </DialogFooter>
           </DialogContent>

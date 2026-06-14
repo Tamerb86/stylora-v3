@@ -11,8 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import { useTranslation } from "react-i18next";
 
 export default function Refunds() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const { data: refunds = [], isLoading } = trpc.refunds.list.useQuery({});
 
@@ -22,21 +24,21 @@ export default function Refunds() {
         return (
           <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
             <CheckCircle2 className="w-3 h-3 mr-1" />
-            Fullført
+            {t("refunds.statusCompleted")}
           </Badge>
         );
       case "pending":
         return (
           <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
             <Clock className="w-3 h-3 mr-1" />
-            Venter
+            {t("refunds.statusPending")}
           </Badge>
         );
       case "failed":
         return (
           <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
             <XCircle className="w-3 h-3 mr-1" />
-            Feilet
+            {t("refunds.statusFailed")}
           </Badge>
         );
       default:
@@ -47,11 +49,11 @@ export default function Refunds() {
   const getRefundMethodText = (method: string) => {
     switch (method) {
       case "stripe":
-        return "Stripe (Automatisk)";
+        return t("refunds.methodStripe");
       case "vipps":
-        return "Vipps (Automatisk)";
+        return t("refunds.methodVipps");
       case "manual":
-        return "Manuell";
+        return t("refunds.methodManual");
       default:
         return method;
     }
@@ -61,8 +63,8 @@ export default function Refunds() {
     return (
       <DashboardLayout
         breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Refusjoner" },
+          { label: t("refunds.breadcrumbDashboard"), href: "/dashboard" },
+          { label: t("refunds.breadcrumbRefunds") },
         ]}
       >
         <div className="p-8">
@@ -91,15 +93,15 @@ export default function Refunds() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
-              Refusjoner
+              {t("refunds.title")}
             </h1>
             <p className="text-muted-foreground mt-1">
-              Oversikt over alle refusjoner og avbestillinger
+              {t("refunds.subtitle")}
             </p>
           </div>
           <Button variant="outline" onClick={() => setLocation("/dashboard")}>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Tilbake
+            {t("refunds.back")}
           </Button>
         </div>
 
@@ -108,7 +110,7 @@ export default function Refunds() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Totalt refundert
+                {t("refunds.totalRefunded")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -125,7 +127,7 @@ export default function Refunds() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Fullførte refusjoner
+                {t("refunds.completedRefunds")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -138,7 +140,7 @@ export default function Refunds() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Ventende refusjoner
+                {t("refunds.pendingRefunds")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -152,15 +154,15 @@ export default function Refunds() {
         {/* Refunds List */}
         <Card>
           <CardHeader>
-            <CardTitle>Refusjonshistorikk</CardTitle>
+            <CardTitle>{t("refunds.historyTitle")}</CardTitle>
             <CardDescription>
-              Alle refusjoner sortert etter dato
+              {t("refunds.historyDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {refunds.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                <p>Ingen refusjoner registrert ennå.</p>
+                <p>{t("refunds.empty")}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -180,14 +182,14 @@ export default function Refunds() {
 
                         <div className="text-sm text-muted-foreground space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-medium">Beløp:</span>
+                            <span className="font-medium">{t("refunds.amountLabel")}</span>
                             <span className="text-lg font-bold text-green-600">
                               {parseFloat(refund.amount).toFixed(2)} NOK
                             </span>
                           </div>
 
                           <div className="flex items-center gap-2">
-                            <span className="font-medium">Metode:</span>
+                            <span className="font-medium">{t("refunds.methodLabel")}</span>
                             <span>
                               {getRefundMethodText(refund.refundMethod)}
                             </span>
@@ -196,7 +198,7 @@ export default function Refunds() {
                           {refund.paymentMethod && (
                             <div className="flex items-center gap-2">
                               <span className="font-medium">
-                                Opprinnelig betaling:
+                                {t("refunds.originalPaymentLabel")}
                               </span>
                               <span className="capitalize">
                                 {refund.paymentMethod}
@@ -206,7 +208,7 @@ export default function Refunds() {
 
                           {refund.appointmentId && (
                             <div className="flex items-center gap-2">
-                              <span className="font-medium">Avtale ID:</span>
+                              <span className="font-medium">{t("refunds.appointmentIdLabel")}</span>
                               <span>#{refund.appointmentId}</span>
                             </div>
                           )}
@@ -223,19 +225,19 @@ export default function Refunds() {
                           )}
 
                           <div className="flex items-center gap-2">
-                            <span className="font-medium">Grunn:</span>
+                            <span className="font-medium">{t("refunds.reasonLabel")}</span>
                             <span className="italic">{refund.reason}</span>
                           </div>
 
                           {refund.errorMessage && (
                             <div className="flex items-center gap-2 text-red-600">
-                              <span className="font-medium">Feilmelding:</span>
+                              <span className="font-medium">{t("refunds.errorMessageLabel")}</span>
                               <span>{refund.errorMessage}</span>
                             </div>
                           )}
 
                           <div className="flex items-center gap-2 text-xs">
-                            <span className="font-medium">Dato:</span>
+                            <span className="font-medium">{t("refunds.dateLabel")}</span>
                             <span>
                               {new Date(refund.createdAt).toLocaleDateString(
                                 "no-NO",

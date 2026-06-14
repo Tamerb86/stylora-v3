@@ -21,9 +21,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useTranslation } from "react-i18next";
 // Toast notifications replaced with alerts for compatibility
 
 export default function TimeClockAdmin() {
+  const { t } = useTranslation();
   const [selectedShift, setSelectedShift] = useState<any>(null);
   const [showClockOutDialog, setShowClockOutDialog] = useState(false);
   const [showClockOutAllDialog, setShowClockOutAllDialog] = useState(false);
@@ -42,7 +44,10 @@ export default function TimeClockAdmin() {
   const adminClockOutMutation = trpc.employee.adminClockOut.useMutation({
     onSuccess: data => {
       alert(
-        `✓ Utstemplet\n\n${data.employeeName} ble stemplet ut. Arbeidet ${formatHours(data.totalHours)}.`
+        t("timeClockAdmin.clockedOutMessage", {
+          name: data.employeeName,
+          hours: formatHours(data.totalHours),
+        })
       );
       refetch();
       setShowClockOutDialog(false);
@@ -50,19 +55,27 @@ export default function TimeClockAdmin() {
       setClockOutReason("");
     },
     onError: error => {
-      alert(`Feil: ${error.message || "Kunne ikke stemple ut ansatt"}`);
+      alert(
+        t("timeClockAdmin.errorPrefix", {
+          message: error.message || t("timeClockAdmin.clockOutFailed"),
+        })
+      );
     },
   });
 
   const adminClockOutAllMutation = trpc.employee.adminClockOutAll.useMutation({
     onSuccess: data => {
-      alert(`✓ Alle utstemplet\n\n${data.message}`);
+      alert(t("timeClockAdmin.allClockedOutMessage", { message: data.message }));
       refetch();
       setShowClockOutAllDialog(false);
       setClockOutReason("");
     },
     onError: error => {
-      alert(`Feil: ${error.message || "Kunne ikke stemple ut ansatte"}`);
+      alert(
+        t("timeClockAdmin.errorPrefix", {
+          message: error.message || t("timeClockAdmin.clockOutAllFailed"),
+        })
+      );
     },
   });
 
@@ -120,10 +133,10 @@ export default function TimeClockAdmin() {
               </div>
               <div>
                 <h1 className="text-3xl font-bold">
-                  Tidsregistrering - Administrasjon
+                  {t("timeClockAdmin.title")}
                 </h1>
                 <p className="text-muted-foreground">
-                  Administrer aktive vakter og stemple ut ansatte
+                  {t("timeClockAdmin.subtitle")}
                 </p>
               </div>
             </div>
@@ -137,7 +150,7 @@ export default function TimeClockAdmin() {
                 <RefreshCw
                   className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
                 />
-                Oppdater
+                {t("timeClockAdmin.refresh")}
               </Button>
               {activeShifts.length > 0 && (
                 <Button
@@ -146,7 +159,7 @@ export default function TimeClockAdmin() {
                   onClick={() => setShowClockOutAllDialog(true)}
                 >
                   <LogOut className="w-4 h-4 mr-2" />
-                  Stemple ut alle
+                  {t("timeClockAdmin.clockOutAll")}
                 </Button>
               )}
             </div>
@@ -161,7 +174,9 @@ export default function TimeClockAdmin() {
                 <Users className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Aktive vakter</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("timeClockAdmin.activeShifts")}
+                </p>
                 <p className="text-2xl font-bold">{activeShifts.length}</p>
               </div>
             </div>
@@ -173,7 +188,9 @@ export default function TimeClockAdmin() {
                 <Clock className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Klokken nå</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("timeClockAdmin.currentTime")}
+                </p>
                 <p className="text-2xl font-bold font-mono">
                   {currentTime.toLocaleTimeString("no-NO", {
                     hour: "2-digit",
@@ -191,7 +208,7 @@ export default function TimeClockAdmin() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Lange vakter (&gt;12t)
+                  {t("timeClockAdmin.longShifts")}
                 </p>
                 <p className="text-2xl font-bold">
                   {
@@ -209,7 +226,9 @@ export default function TimeClockAdmin() {
           <Card className="p-8">
             <div className="flex items-center justify-center">
               <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
-              <span className="ml-2 text-muted-foreground">Laster...</span>
+              <span className="ml-2 text-muted-foreground">
+                {t("timeClockAdmin.loading")}
+              </span>
             </div>
           </Card>
         ) : activeShifts.length === 0 ? (
@@ -217,10 +236,10 @@ export default function TimeClockAdmin() {
             <div className="text-center">
               <Users className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
               <h3 className="text-lg font-semibold mb-1">
-                Ingen aktive vakter
+                {t("timeClockAdmin.noActiveShifts")}
               </h3>
               <p className="text-muted-foreground">
-                Alle ansatte er for øyeblikket utstemplet
+                {t("timeClockAdmin.allClockedOut")}
               </p>
             </div>
           </Card>
@@ -266,7 +285,9 @@ export default function TimeClockAdmin() {
                   {/* Clock In Time */}
                   <div className="space-y-2 mb-4">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Innstemplet</span>
+                      <span className="text-muted-foreground">
+                        {t("timeClockAdmin.clockedIn")}
+                      </span>
                       <span className="font-mono font-semibold">
                         {new Date(shift.clockIn).toLocaleTimeString("no-NO", {
                           hour: "2-digit",
@@ -275,7 +296,9 @@ export default function TimeClockAdmin() {
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Dato</span>
+                      <span className="text-muted-foreground">
+                        {t("timeClockAdmin.date")}
+                      </span>
                       <span className="font-semibold">
                         {new Date(shift.workDate).toLocaleDateString("no-NO", {
                           day: "numeric",
@@ -288,13 +311,13 @@ export default function TimeClockAdmin() {
                   {/* Elapsed Time */}
                   <div className="mb-4 p-3 rounded-lg bg-gradient-to-br from-blue-50 to-orange-50 dark:from-blue-950 dark:to-orange-950">
                     <p className="text-xs text-muted-foreground mb-1">
-                      Arbeidet så langt
+                      {t("timeClockAdmin.workedSoFar")}
                     </p>
                     <p className="text-2xl font-bold">
                       {formatHours(elapsedHours)}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      ({elapsedHours.toFixed(2)} timer)
+                      ({t("timeClockAdmin.hoursValue", { hours: elapsedHours.toFixed(2) })})
                     </p>
                   </div>
 
@@ -302,14 +325,14 @@ export default function TimeClockAdmin() {
                   {isVeryLong && (
                     <div className="mb-4 p-2 rounded bg-red-500/10 border border-red-500/20">
                       <p className="text-xs text-red-600 dark:text-red-400 font-medium">
-                        ⚠️ Svært lang vakt! Glemte ansatt å stemple ut?
+                        {t("timeClockAdmin.veryLongShiftWarning")}
                       </p>
                     </div>
                   )}
                   {isLong && !isVeryLong && (
                     <div className="mb-4 p-2 rounded bg-orange-500/10 border border-orange-500/20">
                       <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">
-                        ⚠️ Lang vakt
+                        {t("timeClockAdmin.longShiftWarning")}
                       </p>
                     </div>
                   )}
@@ -321,7 +344,7 @@ export default function TimeClockAdmin() {
                     disabled={adminClockOutMutation.isPending}
                   >
                     <LogOut className="w-4 h-4 mr-2" />
-                    Stemple ut
+                    {t("timeClockAdmin.clockOut")}
                   </Button>
                 </Card>
               );
@@ -333,18 +356,19 @@ export default function TimeClockAdmin() {
         <Dialog open={showClockOutDialog} onOpenChange={setShowClockOutDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Stemple ut ansatt</DialogTitle>
+              <DialogTitle>{t("timeClockAdmin.clockOutEmployeeTitle")}</DialogTitle>
               <DialogDescription>
-                Er du sikker på at du vil stemple ut{" "}
-                {selectedShift?.employeeName}?
+                {t("timeClockAdmin.clockOutConfirm", {
+                  name: selectedShift?.employeeName,
+                })}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="reason">Årsak (valgfritt)</Label>
+                <Label htmlFor="reason">{t("timeClockAdmin.reasonLabel")}</Label>
                 <Input
                   id="reason"
-                  placeholder="F.eks: Glemte å stemple ut, teknisk problem..."
+                  placeholder={t("timeClockAdmin.reasonPlaceholder")}
                   value={clockOutReason}
                   onChange={e => setClockOutReason(e.target.value)}
                 />
@@ -358,7 +382,7 @@ export default function TimeClockAdmin() {
                   setClockOutReason("");
                 }}
               >
-                Avbryt
+                {t("timeClockAdmin.cancel")}
               </Button>
               <Button
                 onClick={confirmClockOut}
@@ -366,8 +390,8 @@ export default function TimeClockAdmin() {
                 className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700"
               >
                 {adminClockOutMutation.isPending
-                  ? "Stempler ut..."
-                  : "Stemple ut"}
+                  ? t("timeClockAdmin.clockingOut")
+                  : t("timeClockAdmin.clockOut")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -380,18 +404,21 @@ export default function TimeClockAdmin() {
         >
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Stemple ut alle ansatte</DialogTitle>
+              <DialogTitle>{t("timeClockAdmin.clockOutAllTitle")}</DialogTitle>
               <DialogDescription>
-                Er du sikker på at du vil stemple ut alle {activeShifts.length}{" "}
-                ansatte? Dette brukes vanligvis ved slutten av dagen.
+                {t("timeClockAdmin.clockOutAllConfirm", {
+                  count: activeShifts.length,
+                })}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="reason-all">Årsak (valgfritt)</Label>
+                <Label htmlFor="reason-all">
+                  {t("timeClockAdmin.reasonLabel")}
+                </Label>
                 <Input
                   id="reason-all"
-                  placeholder="F.eks: Slutt på dagen, stengetid..."
+                  placeholder={t("timeClockAdmin.reasonAllPlaceholder")}
                   value={clockOutReason}
                   onChange={e => setClockOutReason(e.target.value)}
                 />
@@ -405,7 +432,7 @@ export default function TimeClockAdmin() {
                   setClockOutReason("");
                 }}
               >
-                Avbryt
+                {t("timeClockAdmin.cancel")}
               </Button>
               <Button
                 onClick={confirmClockOutAll}
@@ -413,8 +440,8 @@ export default function TimeClockAdmin() {
                 variant="destructive"
               >
                 {adminClockOutAllMutation.isPending
-                  ? "Stempler ut..."
-                  : "Stemple ut alle"}
+                  ? t("timeClockAdmin.clockingOut")
+                  : t("timeClockAdmin.clockOutAll")}
               </Button>
             </DialogFooter>
           </DialogContent>

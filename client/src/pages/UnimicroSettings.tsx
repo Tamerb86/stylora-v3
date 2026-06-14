@@ -34,8 +34,10 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export default function UnimicroSettings() {
+  const { t } = useTranslation();
   const utils = trpc.useUtils();
 
   // Fetch settings
@@ -66,38 +68,42 @@ export default function UnimicroSettings() {
   // Mutations
   const updateSettings = trpc.unimicro.updateSettings.useMutation({
     onSuccess: () => {
-      toast.success("Innstillinger lagret", {
-        description: "Unimicro-innstillingene er oppdatert",
+      toast.success(t("unimicroSettings.settingsSavedTitle"), {
+        description: t("unimicroSettings.settingsSavedDescription"),
       });
       utils.unimicro.getSettings.invalidate();
     },
     onError: error => {
-      toast.error("Feil: " + error.message);
+      toast.error(t("unimicroSettings.errorPrefix", { message: error.message }));
     },
   });
 
   const testConnection = trpc.unimicro.testConnection.useMutation({
     onSuccess: data => {
       if (data.success) {
-        toast.success("Tilkobling vellykket!", {
-          description: "Koblingen til Unimicro fungerer",
+        toast.success(t("unimicroSettings.connectionSuccessTitle"), {
+          description: t("unimicroSettings.connectionSuccessDescription"),
         });
       } else {
-        toast.error("Tilkobling mislyktes: " + data.message);
+        toast.error(
+          t("unimicroSettings.connectionFailed", { message: data.message })
+        );
       }
       utils.unimicro.getSyncLogs.invalidate();
     },
     onError: error => {
-      toast.error("Feil: " + error.message);
+      toast.error(t("unimicroSettings.errorPrefix", { message: error.message }));
     },
   });
 
   const manualSync = trpc.unimicro.manualSync.useMutation({
     onSuccess: data => {
       if (data.success) {
-        toast.success("Synkronisering fullført", { description: data.message });
+        toast.success(t("unimicroSettings.syncCompletedTitle"), {
+          description: data.message,
+        });
       } else {
-        toast.warning("Synkronisering delvis fullført", {
+        toast.warning(t("unimicroSettings.syncPartialTitle"), {
           description: data.message,
         });
       }
@@ -107,7 +113,9 @@ export default function UnimicroSettings() {
       utils.unimicro.getUnsyncedOrders.invalidate();
     },
     onError: error => {
-      toast.error("Synkronisering mislyktes: " + error.message);
+      toast.error(
+        t("unimicroSettings.syncFailed", { message: error.message })
+      );
     },
   });
 
@@ -160,10 +168,11 @@ export default function UnimicroSettings() {
     <DashboardLayout>
       <div className="container py-8 max-w-6xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Unimicro Integrasjon</h1>
+          <h1 className="text-3xl font-bold mb-2">
+            {t("unimicroSettings.pageTitle")}
+          </h1>
           <p className="text-muted-foreground">
-            Koble Stylora til Unimicro regnskapssystem for automatisk
-            synkronisering av fakturaer, kunder og betalinger.
+            {t("unimicroSettings.pageSubtitle")}
           </p>
         </div>
 
@@ -171,15 +180,15 @@ export default function UnimicroSettings() {
           <TabsList>
             <TabsTrigger value="settings">
               <Settings className="h-4 w-4 mr-2" />
-              Innstillinger
+              {t("unimicroSettings.tabSettings")}
             </TabsTrigger>
             <TabsTrigger value="status">
               <Database className="h-4 w-4 mr-2" />
-              Status
+              {t("unimicroSettings.tabStatus")}
             </TabsTrigger>
             <TabsTrigger value="logs">
               <Clock className="h-4 w-4 mr-2" />
-              Logg
+              {t("unimicroSettings.tabLogs")}
             </TabsTrigger>
           </TabsList>
 
@@ -188,9 +197,9 @@ export default function UnimicroSettings() {
             {/* Connection Status */}
             <Card>
               <CardHeader>
-                <CardTitle>Tilkoblingsstatus</CardTitle>
+                <CardTitle>{t("unimicroSettings.connectionStatusTitle")}</CardTitle>
                 <CardDescription>
-                  Status for tilkobling til Unimicro API
+                  {t("unimicroSettings.connectionStatusDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -203,12 +212,14 @@ export default function UnimicroSettings() {
                     )}
                     <div>
                       <p className="font-medium">
-                        {enabled ? "Aktivert" : "Deaktivert"}
+                        {enabled
+                          ? t("unimicroSettings.enabled")
+                          : t("unimicroSettings.disabled")}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {enabled
-                          ? "Unimicro-integrasjon er aktiv"
-                          : "Unimicro-integrasjon er ikke aktiv"}
+                          ? t("unimicroSettings.integrationActive")
+                          : t("unimicroSettings.integrationInactive")}
                       </p>
                     </div>
                   </div>
@@ -222,7 +233,7 @@ export default function UnimicroSettings() {
                     ) : (
                       <RefreshCw className="h-4 w-4 mr-2" />
                     )}
-                    Test tilkobling
+                    {t("unimicroSettings.testConnection")}
                   </Button>
                 </div>
 
@@ -230,7 +241,7 @@ export default function UnimicroSettings() {
                   <div className="pt-4 border-t">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">
-                        Siste synkronisering:
+                        {t("unimicroSettings.lastSync")}
                       </span>
                       <div className="flex items-center gap-2">
                         <span>
@@ -238,21 +249,25 @@ export default function UnimicroSettings() {
                         </span>
                         {lastSyncStatus === "success" && (
                           <Badge variant="default" className="bg-green-600">
-                            Vellykket
+                            {t("unimicroSettings.statusSuccess")}
                           </Badge>
                         )}
                         {lastSyncStatus === "failed" && (
-                          <Badge variant="destructive">Mislyktes</Badge>
+                          <Badge variant="destructive">
+                            {t("unimicroSettings.statusFailed")}
+                          </Badge>
                         )}
                         {lastSyncStatus === "partial" && (
-                          <Badge variant="secondary">Delvis</Badge>
+                          <Badge variant="secondary">
+                            {t("unimicroSettings.statusPartial")}
+                          </Badge>
                         )}
                       </div>
                     </div>
                     {nextSyncAt && syncFrequency !== "manual" && (
                       <div className="flex items-center justify-between text-sm mt-2">
                         <span className="text-muted-foreground">
-                          Neste synkronisering:
+                          {t("unimicroSettings.nextSync")}
                         </span>
                         <span>
                           {new Date(nextSyncAt).toLocaleString("no-NO")}
@@ -267,17 +282,17 @@ export default function UnimicroSettings() {
             {/* API Credentials */}
             <Card>
               <CardHeader>
-                <CardTitle>API-legitimasjon</CardTitle>
+                <CardTitle>{t("unimicroSettings.apiCredentialsTitle")}</CardTitle>
                 <CardDescription>
-                  Opprett en API-klient i Unimicro og fyll inn legitimasjonen
-                  her.{" "}
+                  {t("unimicroSettings.apiCredentialsDescription")}{" "}
                   <a
                     href="https://developer.unimicro.no/guide/authentication/server-application"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary hover:underline inline-flex items-center gap-1"
                   >
-                    Les mer <ExternalLink className="h-3 w-3" />
+                    {t("unimicroSettings.readMore")}{" "}
+                    <ExternalLink className="h-3 w-3" />
                   </a>
                 </CardDescription>
               </CardHeader>
@@ -317,9 +332,11 @@ export default function UnimicroSettings() {
 
                 <div className="flex items-center justify-between pt-4 border-t">
                   <div className="space-y-0.5">
-                    <Label htmlFor="enabled">Aktiver integrasjon</Label>
+                    <Label htmlFor="enabled">
+                      {t("unimicroSettings.enableIntegration")}
+                    </Label>
                     <p className="text-sm text-muted-foreground">
-                      Slå på automatisk synkronisering
+                      {t("unimicroSettings.enableIntegrationHint")}
                     </p>
                   </div>
                   <Switch
@@ -334,14 +351,16 @@ export default function UnimicroSettings() {
             {/* Sync Frequency */}
             <Card>
               <CardHeader>
-                <CardTitle>Synkroniseringsfrekvens</CardTitle>
+                <CardTitle>{t("unimicroSettings.syncFrequencyTitle")}</CardTitle>
                 <CardDescription>
-                  Velg hvor ofte data skal synkroniseres til Unimicro
+                  {t("unimicroSettings.syncFrequencyDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="syncFrequency">Frekvens</Label>
+                  <Label htmlFor="syncFrequency">
+                    {t("unimicroSettings.frequencyLabel")}
+                  </Label>
                   <Select
                     value={syncFrequency}
                     onValueChange={(v: any) => setSyncFrequency(v)}
@@ -350,33 +369,61 @@ export default function UnimicroSettings() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="daily">Daglig</SelectItem>
-                      <SelectItem value="weekly">Ukentlig</SelectItem>
-                      <SelectItem value="monthly">Månedlig</SelectItem>
-                      <SelectItem value="manual">Kun manuelt</SelectItem>
-                      <SelectItem value="custom">Tilpasset</SelectItem>
+                      <SelectItem value="daily">
+                        {t("unimicroSettings.freqDaily")}
+                      </SelectItem>
+                      <SelectItem value="weekly">
+                        {t("unimicroSettings.freqWeekly")}
+                      </SelectItem>
+                      <SelectItem value="monthly">
+                        {t("unimicroSettings.freqMonthly")}
+                      </SelectItem>
+                      <SelectItem value="manual">
+                        {t("unimicroSettings.freqManual")}
+                      </SelectItem>
+                      <SelectItem value="custom">
+                        {t("unimicroSettings.freqCustom")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 {syncFrequency === "weekly" && (
                   <div className="space-y-2">
-                    <Label htmlFor="syncDayOfWeek">Dag i uken</Label>
+                    <Label htmlFor="syncDayOfWeek">
+                      {t("unimicroSettings.dayOfWeekLabel")}
+                    </Label>
                     <Select
                       value={syncDayOfWeek?.toString()}
                       onValueChange={v => setSyncDayOfWeek(parseInt(v))}
                     >
                       <SelectTrigger id="syncDayOfWeek">
-                        <SelectValue placeholder="Velg dag" />
+                        <SelectValue
+                          placeholder={t("unimicroSettings.selectDayPlaceholder")}
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="0">Søndag</SelectItem>
-                        <SelectItem value="1">Mandag</SelectItem>
-                        <SelectItem value="2">Tirsdag</SelectItem>
-                        <SelectItem value="3">Onsdag</SelectItem>
-                        <SelectItem value="4">Torsdag</SelectItem>
-                        <SelectItem value="5">Fredag</SelectItem>
-                        <SelectItem value="6">Lørdag</SelectItem>
+                        <SelectItem value="0">
+                          {t("unimicroSettings.sunday")}
+                        </SelectItem>
+                        <SelectItem value="1">
+                          {t("unimicroSettings.monday")}
+                        </SelectItem>
+                        <SelectItem value="2">
+                          {t("unimicroSettings.tuesday")}
+                        </SelectItem>
+                        <SelectItem value="3">
+                          {t("unimicroSettings.wednesday")}
+                        </SelectItem>
+                        <SelectItem value="4">
+                          {t("unimicroSettings.thursday")}
+                        </SelectItem>
+                        <SelectItem value="5">
+                          {t("unimicroSettings.friday")}
+                        </SelectItem>
+                        <SelectItem value="6">
+                          {t("unimicroSettings.saturday")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -384,7 +431,9 @@ export default function UnimicroSettings() {
 
                 {syncFrequency === "monthly" && (
                   <div className="space-y-2">
-                    <Label htmlFor="syncDayOfMonth">Dag i måneden</Label>
+                    <Label htmlFor="syncDayOfMonth">
+                      {t("unimicroSettings.dayOfMonthLabel")}
+                    </Label>
                     <Select
                       value={syncDayOfMonth?.toString()}
                       onValueChange={v => setSyncDayOfMonth(parseInt(v))}
@@ -396,11 +445,13 @@ export default function UnimicroSettings() {
                         {Array.from({ length: 31 }, (_, i) => i + 1).map(
                           day => (
                             <SelectItem key={day} value={day.toString()}>
-                              {day}. dag
+                              {t("unimicroSettings.dayOrdinal", { day })}
                             </SelectItem>
                           )
                         )}
-                        <SelectItem value="-1">Siste dag i måneden</SelectItem>
+                        <SelectItem value="-1">
+                          {t("unimicroSettings.lastDayOfMonth")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -408,7 +459,9 @@ export default function UnimicroSettings() {
 
                 {syncFrequency !== "manual" && (
                   <div className="space-y-2">
-                    <Label htmlFor="syncHour">Klokkeslett</Label>
+                    <Label htmlFor="syncHour">
+                      {t("unimicroSettings.timeLabel")}
+                    </Label>
                     <Select
                       value={syncHour.toString()}
                       onValueChange={v => setSyncHour(parseInt(v))}
@@ -431,8 +484,7 @@ export default function UnimicroSettings() {
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
-                      Med manuell synkronisering må du selv trykke "Synkroniser
-                      nå" for å sende data til Unimicro.
+                      {t("unimicroSettings.manualSyncAlert")}
                     </AlertDescription>
                   </Alert>
                 )}
@@ -449,7 +501,7 @@ export default function UnimicroSettings() {
                 {updateSettings.isPending ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : null}
-                Lagre innstillinger
+                {t("unimicroSettings.saveSettings")}
               </Button>
             </div>
           </TabsContent>
@@ -460,9 +512,9 @@ export default function UnimicroSettings() {
               {/* Unsynced Customers */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Kunder</CardTitle>
+                  <CardTitle>{t("unimicroSettings.customersTitle")}</CardTitle>
                   <CardDescription>
-                    Kunder som ikke er synkronisert til Unimicro
+                    {t("unimicroSettings.customersDescription")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -470,7 +522,7 @@ export default function UnimicroSettings() {
                     {unsyncedCustomers?.length || 0}
                   </div>
                   <p className="text-sm text-muted-foreground mt-2">
-                    usynkroniserte kunder
+                    {t("unimicroSettings.unsyncedCustomers")}
                   </p>
                 </CardContent>
               </Card>
@@ -478,9 +530,9 @@ export default function UnimicroSettings() {
               {/* Unsynced Orders */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Fakturaer</CardTitle>
+                  <CardTitle>{t("unimicroSettings.invoicesTitle")}</CardTitle>
                   <CardDescription>
-                    Ordrer som ikke er synkronisert til Unimicro
+                    {t("unimicroSettings.invoicesDescription")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -488,7 +540,7 @@ export default function UnimicroSettings() {
                     {unsyncedOrders?.length || 0}
                   </div>
                   <p className="text-sm text-muted-foreground mt-2">
-                    usynkroniserte ordrer
+                    {t("unimicroSettings.unsyncedOrders")}
                   </p>
                 </CardContent>
               </Card>
@@ -497,10 +549,9 @@ export default function UnimicroSettings() {
             {/* Manual Sync */}
             <Card>
               <CardHeader>
-                <CardTitle>Manuell synkronisering</CardTitle>
+                <CardTitle>{t("unimicroSettings.manualSyncTitle")}</CardTitle>
                 <CardDescription>
-                  Synkroniser alle usynkroniserte kunder og ordrer til Unimicro
-                  nå
+                  {t("unimicroSettings.manualSyncDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -515,11 +566,11 @@ export default function UnimicroSettings() {
                   ) : (
                     <RefreshCw className="h-4 w-4 mr-2" />
                   )}
-                  Synkroniser nå
+                  {t("unimicroSettings.syncNow")}
                 </Button>
                 {!enabled && (
                   <p className="text-sm text-muted-foreground mt-2 text-center">
-                    Aktiver integrasjonen først for å synkronisere
+                    {t("unimicroSettings.enableFirstHint")}
                   </p>
                 )}
               </CardContent>
@@ -530,9 +581,9 @@ export default function UnimicroSettings() {
           <TabsContent value="logs" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Synkroniseringslogg</CardTitle>
+                <CardTitle>{t("unimicroSettings.syncLogTitle")}</CardTitle>
                 <CardDescription>
-                  Historikk over synkroniseringsoperasjoner
+                  {t("unimicroSettings.syncLogDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -562,15 +613,15 @@ export default function UnimicroSettings() {
                           <div className="flex items-center justify-between">
                             <p className="font-medium">
                               {log.operation === "customer_sync" &&
-                                "Kunde-synkronisering"}
+                                t("unimicroSettings.opCustomerSync")}
                               {log.operation === "invoice_sync" &&
-                                "Faktura-synkronisering"}
+                                t("unimicroSettings.opInvoiceSync")}
                               {log.operation === "payment_sync" &&
-                                "Betalings-synkronisering"}
+                                t("unimicroSettings.opPaymentSync")}
                               {log.operation === "full_sync" &&
-                                "Full synkronisering"}
+                                t("unimicroSettings.opFullSync")}
                               {log.operation === "test_connection" &&
-                                "Tilkoblingstest"}
+                                t("unimicroSettings.opTestConnection")}
                             </p>
                             <Badge
                               variant={
@@ -580,8 +631,8 @@ export default function UnimicroSettings() {
                               }
                             >
                               {log.triggeredBy === "manual"
-                                ? "Manuell"
-                                : "Automatisk"}
+                                ? t("unimicroSettings.triggerManual")
+                                : t("unimicroSettings.triggerAutomatic")}
                             </Badge>
                           </div>
                           <p className="text-sm text-muted-foreground">
@@ -589,11 +640,17 @@ export default function UnimicroSettings() {
                           </p>
                           <div className="flex items-center gap-4 text-sm">
                             <span className="text-green-600">
-                              ✓ {log.itemsProcessed} vellykket
+                              ✓{" "}
+                              {t("unimicroSettings.itemsProcessed", {
+                                count: log.itemsProcessed ?? 0,
+                              })}
                             </span>
                             {(log.itemsFailed || 0) > 0 && (
                               <span className="text-red-600">
-                                ✗ {log.itemsFailed} feilet
+                                ✗{" "}
+                                {t("unimicroSettings.itemsFailed", {
+                                  count: log.itemsFailed ?? 0,
+                                })}
                               </span>
                             )}
                             {log.duration && (
@@ -615,7 +672,7 @@ export default function UnimicroSettings() {
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
-                    Ingen synkroniseringslogger ennå
+                    {t("unimicroSettings.noLogs")}
                   </div>
                 )}
               </CardContent>

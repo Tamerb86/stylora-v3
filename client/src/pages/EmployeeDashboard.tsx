@@ -34,6 +34,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { getLoginUrl } from "@/const";
+import { useTranslation } from "react-i18next";
 
 export default function EmployeeDashboard() {
   return (
@@ -44,6 +45,7 @@ export default function EmployeeDashboard() {
 }
 
 function EmployeeDashboardContent() {
+  const { t } = useTranslation();
   const { user, logout, loading } = useAuth();
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
@@ -62,24 +64,24 @@ function EmployeeDashboardContent() {
 
   const updateStatus = trpc.employee.updateAppointmentStatus.useMutation({
     onSuccess: () => {
-      toast.success("Status oppdatert");
+      toast.success(t("employeeDashboard.statusUpdated"));
       refetch();
     },
     onError: error => {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("employeeDashboard.error", { message: error.message }));
     },
   });
 
   const addNote = trpc.employee.addAppointmentNote.useMutation({
     onSuccess: () => {
-      toast.success("Notat lagt til");
+      toast.success(t("employeeDashboard.noteAdded"));
       setShowNoteDialog(false);
       setNoteText("");
       setSelectedAppointment(null);
       refetch();
     },
     onError: error => {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("employeeDashboard.error", { message: error.message }));
     },
   });
 
@@ -96,7 +98,7 @@ function EmployeeDashboardContent() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Laster...</p>
+          <p className="text-muted-foreground">{t("employeeDashboard.loading")}</p>
         </div>
       </div>
     );
@@ -107,14 +109,14 @@ function EmployeeDashboardContent() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-orange-50">
         <Card className="w-full max-w-md mx-4">
           <CardHeader>
-            <CardTitle>Logg inn</CardTitle>
+            <CardTitle>{t("employeeDashboard.logIn")}</CardTitle>
             <CardDescription>
-              Du må logge inn for å se dine avtaler
+              {t("employeeDashboard.loginRequired")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <a href={getLoginUrl()}>
-              <Button className="w-full">Logg inn</Button>
+              <Button className="w-full">{t("employeeDashboard.logIn")}</Button>
             </a>
           </CardContent>
         </Card>
@@ -128,28 +130,28 @@ function EmployeeDashboardContent() {
         return (
           <Badge className="bg-blue-500">
             <CheckCircle className="w-3 h-3 mr-1" />
-            Bekreftet
+            {t("employeeDashboard.statusConfirmed")}
           </Badge>
         );
       case "completed":
         return (
           <Badge className="bg-green-500">
             <CheckCircle className="w-3 h-3 mr-1" />
-            Fullført
+            {t("employeeDashboard.statusCompleted")}
           </Badge>
         );
       case "canceled":
         return (
           <Badge variant="destructive">
             <XCircle className="w-3 h-3 mr-1" />
-            Avlyst
+            {t("employeeDashboard.statusCanceled")}
           </Badge>
         );
       case "no_show":
         return (
           <Badge variant="destructive">
             <AlertCircle className="w-3 h-3 mr-1" />
-            Møtte ikke
+            {t("employeeDashboard.statusNoShow")}
           </Badge>
         );
       case "pending":
@@ -157,7 +159,7 @@ function EmployeeDashboardContent() {
         return (
           <Badge variant="secondary">
             <Clock className="w-3 h-3 mr-1" />
-            Venter
+            {t("employeeDashboard.statusPending")}
           </Badge>
         );
     }
@@ -199,11 +201,11 @@ function EmployeeDashboardContent() {
         <div className="container py-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-primary">Stylora</h1>
-            <p className="text-sm text-muted-foreground">Ansatt: {user.name}</p>
+            <p className="text-sm text-muted-foreground">{t("employeeDashboard.employeeLabel", { name: user.name })}</p>
           </div>
           <Button variant="outline" size="sm" onClick={logout}>
             <LogOut className="w-4 h-4 mr-2" />
-            Logg ut
+            {t("employeeDashboard.logOut")}
           </Button>
         </div>
       </header>
@@ -214,7 +216,7 @@ function EmployeeDashboardContent() {
           <CardContent className="py-4">
             <div className="flex items-center justify-between gap-4">
               <Button variant="outline" size="sm" onClick={goToPreviousDay}>
-                ← Forrige dag
+                {t("employeeDashboard.previousDay")}
               </Button>
               <div className="text-center flex-1">
                 <p className="text-lg font-semibold">
@@ -226,11 +228,11 @@ function EmployeeDashboardContent() {
                   onClick={goToToday}
                   className="text-xs"
                 >
-                  Gå til i dag
+                  {t("employeeDashboard.goToToday")}
                 </Button>
               </div>
               <Button variant="outline" size="sm" onClick={goToNextDay}>
-                Neste dag →
+                {t("employeeDashboard.nextDay")}
               </Button>
             </div>
           </CardContent>
@@ -240,7 +242,7 @@ function EmployeeDashboardContent() {
         {isLoading ? (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
-              Laster avtaler...
+              {t("employeeDashboard.loadingAppointments")}
             </CardContent>
           </Card>
         ) : !appointments || appointments.length === 0 ? (
@@ -248,10 +250,10 @@ function EmployeeDashboardContent() {
             <CardContent className="py-12 text-center">
               <CalendarIcon className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
               <p className="text-lg font-medium mb-2">
-                Ingen avtaler denne dagen
+                {t("employeeDashboard.noAppointmentsThisDay")}
               </p>
               <p className="text-sm text-muted-foreground">
-                Du har ingen planlagte avtaler for {formatDate(selectedDate)}
+                {t("employeeDashboard.noAppointmentsForDate", { date: formatDate(selectedDate) })}
               </p>
             </CardContent>
           </Card>
@@ -276,7 +278,7 @@ function EmployeeDashboardContent() {
                         <CardDescription className="mt-1">
                           {appointment.services
                             ?.map((s: any) => s?.name)
-                            .join(", ") || "Ingen tjeneste"}
+                            .join(", ") || t("employeeDashboard.noService")}
                         </CardDescription>
                       </div>
                     </div>
@@ -322,12 +324,13 @@ function EmployeeDashboardContent() {
                     <div className="mb-4">
                       <div className="flex items-center gap-2 mb-2 text-sm font-medium">
                         <Scissors className="w-4 h-4" />
-                        Tjenester:
+                        {t("employeeDashboard.servicesLabel")}
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {appointment.services.map((service: any) => (
                           <Badge key={service?.id} variant="outline">
-                            {service?.name} - {service?.duration} min
+                            {service?.name} - {service?.duration}{" "}
+                            {t("employeeDashboard.minutesShort")}
                           </Badge>
                         ))}
                       </div>
@@ -337,7 +340,7 @@ function EmployeeDashboardContent() {
                   {/* Notes */}
                   {appointment.notes && (
                     <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-sm font-medium mb-1">Notater:</p>
+                      <p className="text-sm font-medium mb-1">{t("employeeDashboard.notesLabel")}</p>
                       <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                         {appointment.notes}
                       </p>
@@ -358,7 +361,7 @@ function EmployeeDashboardContent() {
                         disabled={updateStatus.isPending}
                       >
                         <CheckCircle className="w-4 h-4 mr-1" />
-                        Bekreft
+                        {t("employeeDashboard.confirm")}
                       </Button>
                     )}
                     {(appointment.status === "pending" ||
@@ -376,7 +379,7 @@ function EmployeeDashboardContent() {
                         disabled={updateStatus.isPending}
                       >
                         <CheckCircle className="w-4 h-4 mr-1" />
-                        Fullfør
+                        {t("employeeDashboard.complete")}
                       </Button>
                     )}
                     <Button
@@ -387,7 +390,7 @@ function EmployeeDashboardContent() {
                         setShowNoteDialog(true);
                       }}
                     >
-                      Legg til notat
+                      {t("employeeDashboard.addNote")}
                     </Button>
                     {appointment.status !== "canceled" &&
                       appointment.status !== "completed" && (
@@ -403,7 +406,7 @@ function EmployeeDashboardContent() {
                           disabled={updateStatus.isPending}
                         >
                           <XCircle className="w-4 h-4 mr-1" />
-                          Avlys
+                          {t("employeeDashboard.cancel")}
                         </Button>
                       )}
                   </div>
@@ -418,20 +421,20 @@ function EmployeeDashboardContent() {
       <Dialog open={showNoteDialog} onOpenChange={setShowNoteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Legg til notat</DialogTitle>
+            <DialogTitle>{t("employeeDashboard.addNote")}</DialogTitle>
             <DialogDescription>
-              Skriv et notat for denne avtalen
+              {t("employeeDashboard.noteDialogDescription")}
             </DialogDescription>
           </DialogHeader>
           <Textarea
             value={noteText}
             onChange={e => setNoteText(e.target.value)}
-            placeholder="Skriv notat her..."
+            placeholder={t("employeeDashboard.notePlaceholder")}
             rows={4}
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNoteDialog(false)}>
-              Avbryt
+              {t("employeeDashboard.dialogCancel")}
             </Button>
             <Button
               onClick={() => {
@@ -444,7 +447,7 @@ function EmployeeDashboardContent() {
               }}
               disabled={!noteText.trim() || addNote.isPending}
             >
-              Lagre notat
+              {t("employeeDashboard.saveNote")}
             </Button>
           </DialogFooter>
         </DialogContent>

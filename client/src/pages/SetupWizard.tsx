@@ -26,20 +26,22 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useTranslation } from "react-i18next";
 
 type WizardStep = "welcome" | "service" | "employee" | "hours" | "complete";
 
 const WORK_DAYS = [
-  { value: 1, label: "Mandag" },
-  { value: 2, label: "Tirsdag" },
-  { value: 3, label: "Onsdag" },
-  { value: 4, label: "Torsdag" },
-  { value: 5, label: "Fredag" },
-  { value: 6, label: "Lørdag" },
-  { value: 0, label: "Søndag" },
+  { value: 1, labelKey: "setupWizard.days.monday" },
+  { value: 2, labelKey: "setupWizard.days.tuesday" },
+  { value: 3, labelKey: "setupWizard.days.wednesday" },
+  { value: 4, labelKey: "setupWizard.days.thursday" },
+  { value: 5, labelKey: "setupWizard.days.friday" },
+  { value: 6, labelKey: "setupWizard.days.saturday" },
+  { value: 0, labelKey: "setupWizard.days.sunday" },
 ];
 
 export default function SetupWizard() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState<WizardStep>("welcome");
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">(
@@ -236,7 +238,7 @@ export default function SetupWizard() {
     } else if (currentStep === "service") {
       // Validate service form
       if (!serviceName || !servicePrice) {
-        toast.error("Vennligst fyll ut alle påkrevde felt");
+        toast.error(t("setupWizard.errors.fillRequired"));
         return;
       }
 
@@ -249,9 +251,9 @@ export default function SetupWizard() {
         });
         await updateStep.mutateAsync({ step: "employee" });
         setCurrentStep("employee");
-        toast.success("Tjeneste lagt til!");
+        toast.success(t("setupWizard.toasts.serviceAdded"));
       } catch (error: any) {
-        toast.error("Kunne ikke legge til tjeneste", {
+        toast.error(t("setupWizard.errors.serviceAddFailed"), {
           description: error.message,
         });
       }
@@ -259,7 +261,7 @@ export default function SetupWizard() {
       if (!skipEmployee) {
         // Validate employee form
         if (!employeeName) {
-          toast.error("Vennligst fyll ut ansatt navn");
+          toast.error(t("setupWizard.errors.fillEmployeeName"));
           return;
         }
 
@@ -270,9 +272,9 @@ export default function SetupWizard() {
             phone: employeePhone || undefined,
             commissionRate: parseFloat(employeeCommission),
           });
-          toast.success("Ansatt lagt til!");
+          toast.success(t("setupWizard.toasts.employeeAdded"));
         } catch (error: any) {
-          toast.error("Kunne ikke legge til ansatt", {
+          toast.error(t("setupWizard.errors.employeeAddFailed"), {
             description: error.message,
           });
           return;
@@ -284,7 +286,7 @@ export default function SetupWizard() {
     } else if (currentStep === "hours") {
       // Validate hours
       if (workDays.length === 0) {
-        toast.error("Vennligst velg minst én arbeidsdag");
+        toast.error(t("setupWizard.errors.selectWorkDay"));
         return;
       }
 
@@ -298,9 +300,9 @@ export default function SetupWizard() {
         // Clear draft data after completion
         await saveDraft.mutateAsync({});
         setCurrentStep("complete");
-        toast.success("Oppsettet er fullført!");
+        toast.success(t("setupWizard.toasts.setupComplete"));
       } catch (error: any) {
-        toast.error("Kunne ikke lagre åpningstider", {
+        toast.error(t("setupWizard.errors.hoursSaveFailed"), {
           description: error.message,
         });
       }
@@ -322,10 +324,10 @@ export default function SetupWizard() {
   const handleSkip = async () => {
     try {
       await skipWizard.mutateAsync();
-      toast.success("Veiviser hoppet over");
+      toast.success(t("setupWizard.toasts.wizardSkipped"));
       setLocation("/dashboard");
     } catch (error: any) {
-      toast.error("Kunne ikke hoppe over veiviser", {
+      toast.error(t("setupWizard.errors.wizardSkipFailed"), {
         description: error.message,
       });
     }
@@ -358,10 +360,10 @@ export default function SetupWizard() {
             <Sparkles className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
-            Velkommen til Stylora!
+            {t("setupWizard.header.title")}
           </h1>
           <p className="text-muted-foreground mt-2">
-            La oss sette opp din salong på 2 minutter
+            {t("setupWizard.header.subtitle")}
           </p>
         </div>
 
@@ -370,7 +372,7 @@ export default function SetupWizard() {
           <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-medium text-muted-foreground">
-                Steg {getStepNumber()} av 5
+                {t("setupWizard.progress.step", { current: getStepNumber() })}
               </span>
               <span className="text-sm font-medium text-muted-foreground">
                 {Math.round((getStepNumber() / 5) * 100)}%
@@ -442,19 +444,19 @@ export default function SetupWizard() {
                 <PartyPopper className="w-5 h-5 text-blue-600" />
               )}
 
-              {currentStep === "welcome" && "Velkommen!"}
-              {currentStep === "service" && "Legg til din første tjeneste"}
-              {currentStep === "employee" && "Legg til en ansatt (valgfritt)"}
-              {currentStep === "hours" && "Sett åpningstider"}
-              {currentStep === "complete" && "Alt klart!"}
+              {currentStep === "welcome" && t("setupWizard.steps.welcome.cardTitle")}
+              {currentStep === "service" && t("setupWizard.steps.service.cardTitle")}
+              {currentStep === "employee" && t("setupWizard.steps.employee.cardTitle")}
+              {currentStep === "hours" && t("setupWizard.steps.hours.cardTitle")}
+              {currentStep === "complete" && t("setupWizard.steps.complete.cardTitle")}
             </CardTitle>
             <CardDescription>
               {currentStep === "welcome" &&
-                "Vi hjelper deg å komme i gang raskt"}
-              {currentStep === "service" && "Hva slags tjenester tilbyr du?"}
-              {currentStep === "employee" && "Hvem jobber i salongen din?"}
-              {currentStep === "hours" && "Når er dere åpne?"}
-              {currentStep === "complete" && "Din salong er klar til bruk!"}
+                t("setupWizard.steps.welcome.cardDescription")}
+              {currentStep === "service" && t("setupWizard.steps.service.cardDescription")}
+              {currentStep === "employee" && t("setupWizard.steps.employee.cardDescription")}
+              {currentStep === "hours" && t("setupWizard.steps.hours.cardDescription")}
+              {currentStep === "complete" && t("setupWizard.steps.complete.cardDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -463,33 +465,33 @@ export default function SetupWizard() {
               <div className="space-y-6">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
                   <h3 className="font-semibold text-blue-900 mb-3">
-                    Hva skjer nå?
+                    {t("setupWizard.welcome.whatHappensNow")}
                   </h3>
                   <ul className="space-y-2 text-sm text-blue-800">
                     <li className="flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" />
                       <span>
-                        Legg til din første tjeneste (f.eks. "Herreklipp")
+                        {t("setupWizard.welcome.item1")}
                       </span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" />
                       <span>
-                        Legg til ansatte (eller hopp over hvis du jobber alene)
+                        {t("setupWizard.welcome.item2")}
                       </span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                      <span>Sett åpningstider for din salong</span>
+                      <span>{t("setupWizard.welcome.item3")}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                      <span>Begynn å ta imot bookinger!</span>
+                      <span>{t("setupWizard.welcome.item4")}</span>
                     </li>
                   </ul>
                 </div>
                 <p className="text-sm text-muted-foreground text-center">
-                  Dette tar bare 2 minutter, og du kan alltid endre det senere
+                  {t("setupWizard.welcome.footer")}
                 </p>
               </div>
             )}
@@ -499,11 +501,11 @@ export default function SetupWizard() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="serviceName">
-                    Tjenestenavn <span className="text-red-500">*</span>
+                    {t("setupWizard.service.nameLabel")} <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="serviceName"
-                    placeholder="F.eks. Herreklipp, Dameklipp, Skjeggstuss"
+                    placeholder={t("setupWizard.service.namePlaceholder")}
                     value={serviceName}
                     onChange={e => setServiceName(e.target.value)}
                     disabled={isLoading}
@@ -513,7 +515,7 @@ export default function SetupWizard() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="serviceDuration">
-                      Varighet (minutter){" "}
+                      {t("setupWizard.service.durationLabel")}{" "}
                       <span className="text-red-500">*</span>
                     </Label>
                     <Input
@@ -528,7 +530,7 @@ export default function SetupWizard() {
 
                   <div className="space-y-2">
                     <Label htmlFor="servicePrice">
-                      Pris (NOK) <span className="text-red-500">*</span>
+                      {t("setupWizard.service.priceLabel")} <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="servicePrice"
@@ -543,11 +545,11 @@ export default function SetupWizard() {
 
                 <div className="space-y-2">
                   <Label htmlFor="serviceDescription">
-                    Beskrivelse (valgfritt)
+                    {t("setupWizard.service.descriptionLabel")}
                   </Label>
                   <Input
                     id="serviceDescription"
-                    placeholder="Kort beskrivelse av tjenesten"
+                    placeholder={t("setupWizard.service.descriptionPlaceholder")}
                     value={serviceDescription}
                     onChange={e => setServiceDescription(e.target.value)}
                     disabled={isLoading}
@@ -571,7 +573,7 @@ export default function SetupWizard() {
                     htmlFor="skipEmployee"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                   >
-                    Jeg jobber alene akkurat nå (hopp over dette steget)
+                    {t("setupWizard.employee.workAlone")}
                   </label>
                 </div>
 
@@ -579,11 +581,11 @@ export default function SetupWizard() {
                   <>
                     <div className="space-y-2">
                       <Label htmlFor="employeeName">
-                        Navn <span className="text-red-500">*</span>
+                        {t("setupWizard.employee.nameLabel")} <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="employeeName"
-                        placeholder="F.eks. Ole Hansen"
+                        placeholder={t("setupWizard.employee.namePlaceholder")}
                         value={employeeName}
                         onChange={e => setEmployeeName(e.target.value)}
                         disabled={isLoading}
@@ -591,7 +593,7 @@ export default function SetupWizard() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="employeeEmail">E-post (valgfritt)</Label>
+                      <Label htmlFor="employeeEmail">{t("setupWizard.employee.emailLabel")}</Label>
                       <Input
                         id="employeeEmail"
                         type="email"
@@ -603,7 +605,7 @@ export default function SetupWizard() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="employeePhone">Telefon (valgfritt)</Label>
+                      <Label htmlFor="employeePhone">{t("setupWizard.employee.phoneLabel")}</Label>
                       <Input
                         id="employeePhone"
                         type="tel"
@@ -615,7 +617,7 @@ export default function SetupWizard() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="employeeCommission">Provisjon (%)</Label>
+                      <Label htmlFor="employeeCommission">{t("setupWizard.employee.commissionLabel")}</Label>
                       <Input
                         id="employeeCommission"
                         type="number"
@@ -625,7 +627,7 @@ export default function SetupWizard() {
                         disabled={isLoading}
                       />
                       <p className="text-xs text-muted-foreground">
-                        Standard provisjon er 40% av tjenestepris
+                        {t("setupWizard.employee.commissionHint")}
                       </p>
                     </div>
                   </>
@@ -638,7 +640,7 @@ export default function SetupWizard() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="openTime">Åpningstid</Label>
+                    <Label htmlFor="openTime">{t("setupWizard.hours.openLabel")}</Label>
                     <Input
                       id="openTime"
                       type="time"
@@ -649,7 +651,7 @@ export default function SetupWizard() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="closeTime">Stengetid</Label>
+                    <Label htmlFor="closeTime">{t("setupWizard.hours.closeLabel")}</Label>
                     <Input
                       id="closeTime"
                       type="time"
@@ -661,7 +663,7 @@ export default function SetupWizard() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Arbeidsdager</Label>
+                  <Label>{t("setupWizard.hours.workDaysLabel")}</Label>
                   <div className="grid grid-cols-2 gap-2">
                     {WORK_DAYS.map(day => (
                       <div
@@ -678,7 +680,7 @@ export default function SetupWizard() {
                           htmlFor={`day-${day.value}`}
                           className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                         >
-                          {day.label}
+                          {t(day.labelKey)}
                         </label>
                       </div>
                     ))}
@@ -686,7 +688,7 @@ export default function SetupWizard() {
                 </div>
 
                 <p className="text-xs text-muted-foreground">
-                  Du kan alltid endre åpningstider senere i innstillinger
+                  {t("setupWizard.hours.hint")}
                 </p>
               </div>
             )}
@@ -698,22 +700,20 @@ export default function SetupWizard() {
                   <CheckCircle2 className="w-10 h-10 text-green-600" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold mb-2">Gratulerer! 🎉</h3>
+                  <h3 className="text-2xl font-bold mb-2">{t("setupWizard.complete.congrats")}</h3>
                   <p className="text-muted-foreground">
-                    Din salong er nå klar til å ta imot bookinger. Du kan
-                    begynne å legge til flere tjenester, ansatte og kunder fra
-                    dashbordet.
+                    {t("setupWizard.complete.description")}
                   </p>
                 </div>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h4 className="font-semibold text-blue-900 mb-2">
-                    Neste steg:
+                    {t("setupWizard.complete.nextStepsTitle")}
                   </h4>
                   <ul className="text-sm text-blue-800 space-y-1 text-left">
-                    <li>• Legg til flere tjenester og priser</li>
-                    <li>• Inviter flere ansatte til systemet</li>
-                    <li>• Del booking-linken med kundene dine</li>
-                    <li>• Begynn å registrere avtaler</li>
+                    <li>• {t("setupWizard.complete.nextStep1")}</li>
+                    <li>• {t("setupWizard.complete.nextStep2")}</li>
+                    <li>• {t("setupWizard.complete.nextStep3")}</li>
+                    <li>• {t("setupWizard.complete.nextStep4")}</li>
                   </ul>
                 </div>
               </div>
@@ -729,7 +729,7 @@ export default function SetupWizard() {
                     disabled={isLoading}
                   >
                     <ArrowLeft className="w-4 h-4 mr-2" />
-                    Tilbake
+                    {t("setupWizard.nav.back")}
                   </Button>
                 )}
               </div>
@@ -741,7 +741,7 @@ export default function SetupWizard() {
                     onClick={handleSkip}
                     disabled={isLoading || skipWizard.isPending}
                   >
-                    Hopp over
+                    {t("setupWizard.nav.skip")}
                   </Button>
                 )}
 
@@ -753,16 +753,16 @@ export default function SetupWizard() {
                   {isLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Vennligst vent...
+                      {t("setupWizard.nav.pleaseWait")}
                     </>
                   ) : currentStep === "complete" ? (
                     <>
-                      Gå til Dashboard
+                      {t("setupWizard.nav.goToDashboard")}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </>
                   ) : (
                     <>
-                      Neste
+                      {t("setupWizard.nav.next")}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </>
                   )}

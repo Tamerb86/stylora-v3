@@ -12,8 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Bell, CheckCircle, XCircle, Clock, Send } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
+import { useTranslation } from "react-i18next";
 
 export default function Notifications() {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState<
     "all" | "pending" | "sent" | "delivered" | "failed"
   >("all");
@@ -30,38 +32,44 @@ export default function Notifications() {
   const triggerReminders = trpc.notifications.triggerReminders.useMutation({
     onSuccess: result => {
       toast.success(
-        `Påminnelser sendt: ${result.sent} vellykket, ${result.failed} feilet`
+        t("notifications.remindersSent", {
+          sent: result.sent,
+          failed: result.failed,
+        })
       );
       refetch();
     },
     onError: error => {
-      toast.error(`Feil ved sending av påminnelser: ${error.message}`);
+      toast.error(
+        t("notifications.remindersError", { message: error.message })
+      );
     },
   });
 
   const getStatusBadge = (status: string | null) => {
-    if (!status) return <Badge variant="outline">Ukjent</Badge>;
+    if (!status)
+      return <Badge variant="outline">{t("notifications.statusUnknown")}</Badge>;
     switch (status) {
       case "sent":
       case "delivered":
         return (
           <Badge className="bg-green-500">
             <CheckCircle className="w-3 h-3 mr-1" />
-            Sendt
+            {t("notifications.statusSent")}
           </Badge>
         );
       case "failed":
         return (
           <Badge variant="destructive">
             <XCircle className="w-3 h-3 mr-1" />
-            Feilet
+            {t("notifications.statusFailed")}
           </Badge>
         );
       case "pending":
         return (
           <Badge variant="secondary">
             <Clock className="w-3 h-3 mr-1" />
-            Venter
+            {t("notifications.statusPending")}
           </Badge>
         );
       default:
@@ -86,10 +94,10 @@ export default function Notifications() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Bell className="w-8 h-8" />
-              Varsler
+              {t("notifications.title")}
             </h1>
             <p className="text-muted-foreground mt-1">
-              SMS-påminnelser og varsler sendt til kunder
+              {t("notifications.subtitle")}
             </p>
           </div>
           <Button
@@ -97,16 +105,17 @@ export default function Notifications() {
             disabled={triggerReminders.isPending}
           >
             <Send className="w-4 h-4 mr-2" />
-            {triggerReminders.isPending ? "Sender..." : "Send påminnelser nå"}
+            {triggerReminders.isPending
+              ? t("notifications.sending")
+              : t("notifications.sendRemindersNow")}
           </Button>
         </div>
 
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Automatiske SMS-påminnelser</CardTitle>
+            <CardTitle>{t("notifications.autoSmsTitle")}</CardTitle>
             <CardDescription>
-              Systemet sender automatisk SMS-påminnelser til kunder 24 timer før
-              deres avtale. Påminnelsene sendes hver time.
+              {t("notifications.autoSmsDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -116,28 +125,28 @@ export default function Notifications() {
                 size="sm"
                 onClick={() => setFilter("all")}
               >
-                Alle
+                {t("notifications.filterAll")}
               </Button>
               <Button
                 variant={filter === "sent" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setFilter("sent")}
               >
-                Sendt
+                {t("notifications.statusSent")}
               </Button>
               <Button
                 variant={filter === "failed" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setFilter("failed")}
               >
-                Feilet
+                {t("notifications.statusFailed")}
               </Button>
               <Button
                 variant={filter === "pending" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setFilter("pending")}
               >
-                Venter
+                {t("notifications.statusPending")}
               </Button>
             </div>
           </CardContent>
@@ -146,14 +155,14 @@ export default function Notifications() {
         {isLoading ? (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
-              Laster varsler...
+              {t("notifications.loading")}
             </CardContent>
           </Card>
         ) : !notifications || notifications.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
               <Bell className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Ingen varsler funnet</p>
+              <p>{t("notifications.empty")}</p>
             </CardContent>
           </Card>
         ) : (
@@ -179,7 +188,8 @@ export default function Notifications() {
                           <p className="font-medium">{notification.subject}</p>
                         )}
                         <p className="text-sm text-muted-foreground">
-                          Til: {notification.recipientContact}
+                          {t("notifications.recipientLabel")}{" "}
+                          {notification.recipientContact}
                         </p>
                       </div>
                       <p className="text-sm bg-muted p-3 rounded-md">
@@ -187,20 +197,27 @@ export default function Notifications() {
                       </p>
                       {notification.errorMessage && (
                         <p className="text-sm text-destructive mt-2">
-                          Feil: {notification.errorMessage}
+                          {t("notifications.errorLabel")}{" "}
+                          {notification.errorMessage}
                         </p>
                       )}
                     </div>
                     <div className="text-right text-sm text-muted-foreground ml-4">
-                      <p>Planlagt: {formatDate(notification.scheduledAt)}</p>
+                      <p>
+                        {t("notifications.scheduledLabel")}{" "}
+                        {formatDate(notification.scheduledAt)}
+                      </p>
                       {notification.sentAt && (
-                        <p>Sendt: {formatDate(notification.sentAt)}</p>
+                        <p>
+                          {t("notifications.sentLabel")}{" "}
+                          {formatDate(notification.sentAt)}
+                        </p>
                       )}
                       {notification.attempts != null &&
                         notification.attempts > 0 && (
                           <p className="mt-1">
-                            Forsøk: {notification.attempts}/
-                            {notification.maxAttempts}
+                            {t("notifications.attemptsLabel")}{" "}
+                            {notification.attempts}/{notification.maxAttempts}
                           </p>
                         )}
                     </div>

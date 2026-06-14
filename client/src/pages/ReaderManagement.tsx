@@ -43,8 +43,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useStripeTerminal } from "@/contexts/StripeTerminalContext";
 import { Reader } from "@stripe/terminal-js";
+import { useTranslation } from "react-i18next";
 
 export default function ReaderManagement() {
+  const { t } = useTranslation();
   const [isDiscovering, setIsDiscovering] = useState(false);
   const [discoveredReaders, setDiscoveredReaders] = useState<Reader[]>([]);
   const [showSetupDialog, setShowSetupDialog] = useState(false);
@@ -84,7 +86,7 @@ export default function ReaderManagement() {
   // Setup terminal mutation
   const setupTerminalMutation = trpc.stripeTerminal.setupTerminal.useMutation({
     onSuccess: (data) => {
-      toast.success("Terminal oppsett fullført!", {
+      toast.success(t("readerManagement.setupCompleted"), {
         description: data.message,
       });
       setShowSetupDialog(false);
@@ -92,7 +94,7 @@ export default function ReaderManagement() {
       refetchReaders();
     },
     onError: (error) => {
-      toast.error("Kunne ikke sette opp terminal", {
+      toast.error(t("readerManagement.setupFailed"), {
         description: error.message,
       });
     },
@@ -101,8 +103,8 @@ export default function ReaderManagement() {
   // Discover readers - supports both real and simulated
   const handleDiscoverReaders = async (simulated: boolean = false) => {
     if (!isInitialized) {
-      toast.error("Kortsystemet er ikke klart", {
-        description: "Vennligst vent litt og prøv igjen",
+      toast.error(t("readerManagement.cardSystemNotReady"), {
+        description: t("readerManagement.waitAndTryAgain"),
       });
       return;
     }
@@ -115,18 +117,18 @@ export default function ReaderManagement() {
       setDiscoveredReaders(readers);
       
       if (readers.length === 0) {
-        toast.info("Ingen kortlesere funnet", {
-          description: simulated 
-            ? "Ingen simulerte lesere tilgjengelig" 
-            : "Sørg for at WisePOS E er på og koblet til internett",
+        toast.info(t("readerManagement.noReadersFound"), {
+          description: simulated
+            ? t("readerManagement.noSimulatedReaders")
+            : t("readerManagement.ensureWisePosOnline"),
         });
       } else {
-        toast.success(`Fant ${readers.length} leser(e)`);
+        toast.success(t("readerManagement.foundReaders", { count: readers.length }));
       }
     } catch (error: any) {
       console.error("Error discovering readers:", error);
-      toast.error("Feil ved søk etter lesere", {
-        description: error.message || "En uventet feil oppstod",
+      toast.error(t("readerManagement.errorSearchingReaders"), {
+        description: error.message || t("readerManagement.unexpectedError"),
       });
     } finally {
       setIsDiscovering(false);
@@ -139,8 +141,8 @@ export default function ReaderManagement() {
       await connectReader(reader);
     } catch (error: any) {
       console.error("Error connecting to reader:", error);
-      toast.error("Tilkoblingsfeil", {
-        description: error.message || "En uventet feil oppstod",
+      toast.error(t("readerManagement.connectionError"), {
+        description: error.message || t("readerManagement.unexpectedError"),
       });
     }
   };
@@ -151,7 +153,7 @@ export default function ReaderManagement() {
       await disconnectReader();
     } catch (error: any) {
       console.error("Error disconnecting reader:", error);
-      toast.error("Kunne ikke frakoble", {
+      toast.error(t("readerManagement.disconnectFailed"), {
         description: error.message,
       });
     }
@@ -160,7 +162,7 @@ export default function ReaderManagement() {
   // Handle setup form submit
   const handleSetup = () => {
     if (!setupForm.salonName || !setupForm.line1 || !setupForm.city || !setupForm.postal_code) {
-      toast.error("Vennligst fyll ut alle feltene");
+      toast.error(t("readerManagement.fillAllFields"));
       return;
     }
 
@@ -185,29 +187,29 @@ export default function ReaderManagement() {
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
-              Kortleser Administrasjon
+              {t("readerManagement.title")}
             </h1>
             <p className="text-muted-foreground mt-1">
-              Koble til kortleser for å behandle betalinger
+              {t("readerManagement.subtitle")}
             </p>
           </div>
           <Dialog open={showSetupDialog} onOpenChange={setShowSetupDialog}>
             <DialogTrigger asChild>
               <Button>
                 <Settings className="mr-2 h-4 w-4" />
-                Sett opp Terminal
+                {t("readerManagement.setupTerminal")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Sett opp Stripe Terminal</DialogTitle>
+                <DialogTitle>{t("readerManagement.setupStripeTerminal")}</DialogTitle>
                 <DialogDescription>
-                  Opprett en lokasjon for din salong
+                  {t("readerManagement.createLocationForSalon")}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="salonName">Salongsnavn</Label>
+                  <Label htmlFor="salonName">{t("readerManagement.salonName")}</Label>
                   <Input
                     id="salonName"
                     placeholder="Min Salong"
@@ -218,7 +220,7 @@ export default function ReaderManagement() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="line1">Adresse</Label>
+                  <Label htmlFor="line1">{t("readerManagement.address")}</Label>
                   <Input
                     id="line1"
                     placeholder="Storgata 1"
@@ -230,7 +232,7 @@ export default function ReaderManagement() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="city">By</Label>
+                    <Label htmlFor="city">{t("readerManagement.city")}</Label>
                     <Input
                       id="city"
                       placeholder="Oslo"
@@ -241,7 +243,7 @@ export default function ReaderManagement() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="postal_code">Postnummer</Label>
+                    <Label htmlFor="postal_code">{t("readerManagement.postalCode")}</Label>
                     <Input
                       id="postal_code"
                       placeholder="0150"
@@ -260,10 +262,10 @@ export default function ReaderManagement() {
                   {setupTerminalMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Setter opp...
+                      {t("readerManagement.settingUp")}
                     </>
                   ) : (
-                    "Opprett lokasjon"
+                    t("readerManagement.createLocation")
                   )}
                 </Button>
               </div>
@@ -275,16 +277,16 @@ export default function ReaderManagement() {
         {connectedReader && (
           <Alert className="mb-6 border-green-500 bg-green-50">
             <CheckCircle2 className="h-4 w-4 text-green-600" />
-            <AlertTitle className="text-green-700">Kortleser tilkoblet</AlertTitle>
+            <AlertTitle className="text-green-700">{t("readerManagement.readerConnected")}</AlertTitle>
             <AlertDescription className="text-green-600">
-              Du er koblet til: {connectedReader.label || connectedReader.id}
+              {t("readerManagement.youAreConnectedTo")} {connectedReader.label || connectedReader.id}
               <Button
                 variant="outline"
                 size="sm"
                 className="ml-4"
                 onClick={handleDisconnectReader}
               >
-                Koble fra
+                {t("readerManagement.disconnect")}
               </Button>
             </AlertDescription>
           </Alert>
@@ -294,9 +296,9 @@ export default function ReaderManagement() {
         {!isInitialized && (
           <Alert className="mb-6">
             <Loader2 className="h-4 w-4 animate-spin" />
-            <AlertTitle>Initialiserer kortsystem...</AlertTitle>
+            <AlertTitle>{t("readerManagement.initializingCardSystem")}</AlertTitle>
             <AlertDescription>
-              Vennligst vent mens Stripe Terminal initialiseres.
+              {t("readerManagement.pleaseWaitStripeInit")}
             </AlertDescription>
           </Alert>
         )}
@@ -306,10 +308,10 @@ export default function ReaderManagement() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MapPin className="h-5 w-5" />
-              Terminal Lokasjoner
+              {t("readerManagement.terminalLocations")}
             </CardTitle>
             <CardDescription>
-              Lokasjoner registrert for kortlesere
+              {t("readerManagement.locationsRegisteredForReaders")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -330,17 +332,16 @@ export default function ReaderManagement() {
                         {location.address?.line1}, {location.address?.postal_code} {location.address?.city}
                       </p>
                     </div>
-                    <Badge>Aktiv</Badge>
+                    <Badge>{t("readerManagement.active")}</Badge>
                   </div>
                 ))}
               </div>
             ) : (
               <Alert>
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Ingen lokasjoner</AlertTitle>
+                <AlertTitle>{t("readerManagement.noLocations")}</AlertTitle>
                 <AlertDescription>
-                  Du må sette opp en lokasjon før du kan bruke kortlesere.
-                  Klikk "Sett opp Terminal" for å komme i gang.
+                  {t("readerManagement.noLocationsDescription")}
                 </AlertDescription>
               </Alert>
             )}
@@ -352,10 +353,10 @@ export default function ReaderManagement() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Wifi className="h-5 w-5" />
-              Søk etter kortlesere
+              {t("readerManagement.searchForReaders")}
             </CardTitle>
             <CardDescription>
-              Finn tilgjengelige kortlesere på nettverket
+              {t("readerManagement.findAvailableReaders")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -363,11 +364,11 @@ export default function ReaderManagement() {
               <TabsList className="mb-4">
                 <TabsTrigger value="real" className="flex items-center gap-2">
                   <Smartphone className="h-4 w-4" />
-                  Ekte Lesere (WisePOS E)
+                  {t("readerManagement.realReaders")}
                 </TabsTrigger>
                 <TabsTrigger value="simulated" className="flex items-center gap-2">
                   <CreditCard className="h-4 w-4" />
-                  Simulerte Lesere (Test)
+                  {t("readerManagement.simulatedReaders")}
                 </TabsTrigger>
               </TabsList>
 
@@ -377,8 +378,7 @@ export default function ReaderManagement() {
                     <Smartphone className="h-4 w-4" />
                     <AlertTitle>WisePOS E</AlertTitle>
                     <AlertDescription>
-                      Sørg for at WisePOS E er påslått og koblet til internett. 
-                      Leseren må være registrert i Stripe Dashboard først.
+                      {t("readerManagement.wisePosInstructions")}
                     </AlertDescription>
                   </Alert>
                   <Button
@@ -389,12 +389,12 @@ export default function ReaderManagement() {
                     {isDiscovering ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Søker...
+                        {t("readerManagement.searching")}
                       </>
                     ) : (
                       <>
                         <RefreshCw className="mr-2 h-4 w-4" />
-                        Søk etter ekte lesere
+                        {t("readerManagement.searchRealReaders")}
                       </>
                     )}
                   </Button>
@@ -405,10 +405,9 @@ export default function ReaderManagement() {
                 <div className="space-y-4">
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Testmodus</AlertTitle>
+                    <AlertTitle>{t("readerManagement.testMode")}</AlertTitle>
                     <AlertDescription>
-                      Simulerte lesere brukes kun for testing. 
-                      Ingen ekte betalinger vil bli behandlet.
+                      {t("readerManagement.testModeDescription")}
                     </AlertDescription>
                   </Alert>
                   <Button
@@ -419,12 +418,12 @@ export default function ReaderManagement() {
                     {isDiscovering ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Søker...
+                        {t("readerManagement.searching")}
                       </>
                     ) : (
                       <>
                         <RefreshCw className="mr-2 h-4 w-4" />
-                        Søk etter simulerte lesere
+                        {t("readerManagement.searchSimulatedReaders")}
                       </>
                     )}
                   </Button>
@@ -435,7 +434,7 @@ export default function ReaderManagement() {
             {/* Discovered Readers */}
             {discoveredReaders.length > 0 && (
               <div className="mt-4 space-y-2">
-                <p className="text-sm font-medium">Funnet {discoveredReaders.length} leser(e):</p>
+                <p className="text-sm font-medium">{t("readerManagement.foundReadersLabel", { count: discoveredReaders.length })}</p>
                 {discoveredReaders.map((reader: any) => (
                   <div
                     key={reader.id}
@@ -444,7 +443,7 @@ export default function ReaderManagement() {
                     <div className="flex items-center gap-3">
                       <CreditCard className="h-8 w-8 text-primary" />
                       <div>
-                        <p className="font-medium">{reader.label || "Kortleser"}</p>
+                        <p className="font-medium">{reader.label || t("readerManagement.cardReader")}</p>
                         <p className="text-sm text-muted-foreground">
                           {reader.device_type} - {reader.serial_number || reader.id}
                         </p>
@@ -452,7 +451,7 @@ export default function ReaderManagement() {
                     </div>
                     {connectedReader?.id === reader.id ? (
                       <Badge variant="default" className="bg-green-500">
-                        Tilkoblet
+                        {t("readerManagement.connected")}
                       </Badge>
                     ) : (
                       <Button
@@ -463,7 +462,7 @@ export default function ReaderManagement() {
                         {isConnecting ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          "Koble til"
+                          t("readerManagement.connect")
                         )}
                       </Button>
                     )}
@@ -481,10 +480,10 @@ export default function ReaderManagement() {
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <CreditCard className="h-5 w-5" />
-                  Registrerte lesere
+                  {t("readerManagement.registeredReaders")}
                 </CardTitle>
                 <CardDescription>
-                  Alle lesere registrert i din Stripe-konto
+                  {t("readerManagement.allReadersInStripeAccount")}
                 </CardDescription>
               </div>
               <Button
@@ -512,7 +511,7 @@ export default function ReaderManagement() {
                     <div className="flex items-center gap-3">
                       <CreditCard className="h-8 w-8 text-primary" />
                       <div>
-                        <p className="font-medium">{reader.label || "Kortleser"}</p>
+                        <p className="font-medium">{reader.label || t("readerManagement.cardReader")}</p>
                         <p className="text-sm text-muted-foreground">
                           {reader.device_type} - {reader.serial_number}
                         </p>
@@ -530,10 +529,9 @@ export default function ReaderManagement() {
             ) : (
               <Alert>
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Ingen lesere registrert</AlertTitle>
+                <AlertTitle>{t("readerManagement.noReadersRegistered")}</AlertTitle>
                 <AlertDescription>
-                  Du har ingen kortlesere registrert i Stripe. 
-                  Registrer en WisePOS E i Stripe Dashboard først.
+                  {t("readerManagement.noReadersRegisteredDescription")}
                 </AlertDescription>
               </Alert>
             )}

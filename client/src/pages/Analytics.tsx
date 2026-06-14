@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { trpc } from "@/lib/trpc";
 import DashboardLayout from "@/components/DashboardLayout";
 import {
@@ -61,14 +62,6 @@ const COLORS = [
   "#e76f51",
 ];
 
-const STATUS_LABELS: Record<string, string> = {
-  pending: "Ventende",
-  confirmed: "Bekreftet",
-  completed: "Fullført",
-  canceled: "Kansellert",
-  no_show: "Møtte ikke",
-};
-
 export default function Analytics() {
   return (
     <DashboardLayout>
@@ -78,7 +71,16 @@ export default function Analytics() {
 }
 
 function AnalyticsContent() {
+  const { t } = useTranslation();
   const [dateRange, setDateRange] = useState<DateRange>("30days");
+
+  const STATUS_LABELS: Record<string, string> = {
+    pending: t("analytics.status.pending"),
+    confirmed: t("analytics.status.confirmed"),
+    completed: t("analytics.status.completed"),
+    canceled: t("analytics.status.canceled"),
+    no_show: t("analytics.status.noShow"),
+  };
 
   const getDateRangeValues = () => {
     const now = new Date();
@@ -133,14 +135,14 @@ function AnalyticsContent() {
 
   const employeePerformanceData =
     employeePerformance?.map(item => ({
-      navn: item.employeeName || "Ukjent",
+      navn: item.employeeName || t("analytics.unknown"),
       avtaler: item.appointmentCount,
       inntekt: parseFloat(item.totalRevenue),
     })) || [];
 
   const topServicesData =
     topServices?.map(item => ({
-      tjeneste: item.serviceName || "Ukjent",
+      tjeneste: item.serviceName || t("analytics.unknown"),
       bookinger: item.bookingCount,
       inntekt: parseFloat(item.totalRevenue),
     })) || [];
@@ -153,7 +155,9 @@ function AnalyticsContent() {
 
   const statusDistributionData =
     statusDistribution?.map(item => ({
-      name: item.status ? STATUS_LABELS[item.status] || item.status : "Ukjent",
+      name: item.status
+        ? STATUS_LABELS[item.status] || item.status
+        : t("analytics.unknown"),
       value: item.count,
     })) || [];
 
@@ -175,10 +179,10 @@ function AnalyticsContent() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
-            Analyse
+            {t("analytics.title")}
           </h1>
           <p className="text-gray-600 mt-1">
-            Detaljert innsikt i din virksomhet
+            {t("analytics.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -190,11 +194,11 @@ function AnalyticsContent() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="7days">Siste 7 dager</SelectItem>
-              <SelectItem value="30days">Siste 30 dager</SelectItem>
-              <SelectItem value="thisMonth">Denne måneden</SelectItem>
-              <SelectItem value="lastMonth">Forrige måned</SelectItem>
-              <SelectItem value="thisYear">Dette året</SelectItem>
+              <SelectItem value="7days">{t("analytics.range.last7Days")}</SelectItem>
+              <SelectItem value="30days">{t("analytics.range.last30Days")}</SelectItem>
+              <SelectItem value="thisMonth">{t("analytics.range.thisMonth")}</SelectItem>
+              <SelectItem value="lastMonth">{t("analytics.range.lastMonth")}</SelectItem>
+              <SelectItem value="thisYear">{t("analytics.range.thisYear")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -204,7 +208,7 @@ function AnalyticsContent() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Inntekt</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("analytics.totalRevenue")}</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -212,30 +216,30 @@ function AnalyticsContent() {
               {safeToFixed(totalRevenue, 2)} kr
             </div>
             <p className="text-xs text-muted-foreground">
-              Fra fullførte avtaler
+              {t("analytics.fromCompletedAppointments")}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Nye Kunder</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("analytics.newCustomers")}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalCustomers}</div>
-            <p className="text-xs text-muted-foreground">I valgt periode</p>
+            <p className="text-xs text-muted-foreground">{t("analytics.inSelectedPeriod")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Totale Avtaler
+              {t("analytics.totalAppointments")}
             </CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalAppointments}</div>
-            <p className="text-xs text-muted-foreground">Fullførte avtaler</p>
+            <p className="text-xs text-muted-foreground">{t("analytics.completedAppointments")}</p>
           </CardContent>
         </Card>
       </div>
@@ -245,18 +249,18 @@ function AnalyticsContent() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-[#1e3a5f]" />
-            Kundevekst
+            {t("analytics.customerGrowth.title")}
           </CardTitle>
-          <CardDescription>Antall nye kunder over tid</CardDescription>
+          <CardDescription>{t("analytics.customerGrowth.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           {loadingCustomers ? (
             <div className="h-80 flex items-center justify-center text-gray-500">
-              Laster...
+              {t("analytics.loading")}
             </div>
           ) : customerGrowthData.length === 0 ? (
             <div className="h-80 flex items-center justify-center text-gray-500">
-              Ingen data tilgjengelig
+              {t("analytics.noData")}
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
@@ -277,7 +281,7 @@ function AnalyticsContent() {
                   dataKey="kunder"
                   stroke="#1e3a5f"
                   strokeWidth={2}
-                  name="Nye kunder"
+                  name={t("analytics.legend.newCustomers")}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -290,20 +294,20 @@ function AnalyticsContent() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="h-5 w-5 text-[#ff6b35]" />
-            Inntektstrend
+            {t("analytics.revenueTrend.title")}
           </CardTitle>
           <CardDescription>
-            Daglig inntekt fra fullførte avtaler
+            {t("analytics.revenueTrend.description")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {loadingRevenue ? (
             <div className="h-80 flex items-center justify-center text-gray-500">
-              Laster...
+              {t("analytics.loading")}
             </div>
           ) : revenueTrendsData.length === 0 ? (
             <div className="h-80 flex items-center justify-center text-gray-500">
-              Ingen data tilgjengelig
+              {t("analytics.noData")}
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
@@ -324,7 +328,7 @@ function AnalyticsContent() {
                   dataKey="inntekt"
                   stroke="#ff6b35"
                   strokeWidth={2}
-                  name="Inntekt (kr)"
+                  name={t("analytics.legend.revenueKr")}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -337,20 +341,20 @@ function AnalyticsContent() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Briefcase className="h-5 w-5 text-[#4a90e2]" />
-            Ansattes Ytelse
+            {t("analytics.employeePerformance.title")}
           </CardTitle>
           <CardDescription>
-            Fullførte avtaler og inntekt per ansatt
+            {t("analytics.employeePerformance.description")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {loadingEmployees ? (
             <div className="h-80 flex items-center justify-center text-gray-500">
-              Laster...
+              {t("analytics.loading")}
             </div>
           ) : employeePerformanceData.length === 0 ? (
             <div className="h-80 flex items-center justify-center text-gray-500">
-              Ingen data tilgjengelig
+              {t("analytics.noData")}
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
@@ -371,13 +375,13 @@ function AnalyticsContent() {
                   yAxisId="left"
                   dataKey="avtaler"
                   fill="#4a90e2"
-                  name="Avtaler"
+                  name={t("analytics.legend.appointments")}
                 />
                 <Bar
                   yAxisId="right"
                   dataKey="inntekt"
                   fill="#50c878"
-                  name="Inntekt (kr)"
+                  name={t("analytics.legend.revenueKr")}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -390,18 +394,18 @@ function AnalyticsContent() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-[#50c878]" />
-            Mest Populære Tjenester
+            {t("analytics.topServices.title")}
           </CardTitle>
-          <CardDescription>Topp 10 mest bookede tjenester</CardDescription>
+          <CardDescription>{t("analytics.topServices.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           {loadingServices ? (
             <div className="h-80 flex items-center justify-center text-gray-500">
-              Laster...
+              {t("analytics.loading")}
             </div>
           ) : topServicesData.length === 0 ? (
             <div className="h-80 flex items-center justify-center text-gray-500">
-              Ingen data tilgjengelig
+              {t("analytics.noData")}
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
@@ -417,7 +421,7 @@ function AnalyticsContent() {
                     color: "#000000",
                   }}
                 />
-                <Bar dataKey="bookinger" fill="#50c878" name="Bookinger" />
+                <Bar dataKey="bookinger" fill="#50c878" name={t("analytics.legend.bookings")} />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -429,18 +433,18 @@ function AnalyticsContent() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-[#f4a261]" />
-            Avtale Status Fordeling
+            {t("analytics.statusDistribution.title")}
           </CardTitle>
-          <CardDescription>Fordeling av avtaler etter status</CardDescription>
+          <CardDescription>{t("analytics.statusDistribution.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           {loadingStatus ? (
             <div className="h-80 flex items-center justify-center text-gray-500">
-              Laster...
+              {t("analytics.loading")}
             </div>
           ) : statusDistributionData.length === 0 ? (
             <div className="h-80 flex items-center justify-center text-gray-500">
-              Ingen data tilgjengelig
+              {t("analytics.noData")}
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={300}>

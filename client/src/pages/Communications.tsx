@@ -34,6 +34,7 @@ import {
   Save,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { trpc } from "@/lib/trpc";
 import {
   Dialog,
@@ -45,6 +46,7 @@ import {
 } from "@/components/ui/dialog";
 
 export function Communications() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("sms");
 
   // Fetch settings from database
@@ -137,10 +139,10 @@ export function Communications() {
         reminderHoursBefore,
       });
 
-      toast.success("Innstillinger lagret!");
+      toast.success(t("communications.toastSettingsSaved"));
       refetchSettings();
     } catch (error) {
-      toast.error("Kunne ikke lagre innstillinger");
+      toast.error(t("communications.toastSettingsSaveFailed"));
     }
   };
 
@@ -170,7 +172,7 @@ export function Communications() {
           subject: templateType === "email" ? templateSubject : undefined,
           content: templateContent,
         });
-        toast.success("Mal oppdatert!");
+        toast.success(t("communications.toastTemplateUpdated"));
       } else {
         // Create new template
         await createTemplateMutation.mutateAsync({
@@ -186,7 +188,7 @@ export function Communications() {
             "{service}",
           ],
         });
-        toast.success("Mal opprettet!");
+        toast.success(t("communications.toastTemplateCreated"));
       }
 
       setTemplateDialogOpen(false);
@@ -196,16 +198,16 @@ export function Communications() {
         refetchEmailTemplates();
       }
     } catch (error) {
-      toast.error("Kunne ikke lagre mal");
+      toast.error(t("communications.toastTemplateSaveFailed"));
     }
   };
 
   const handleDeleteTemplate = async (id: number, type: "sms" | "email") => {
-    if (!confirm("Er du sikker på at du vil slette denne malen?")) return;
+    if (!confirm(t("communications.confirmDeleteTemplate"))) return;
 
     try {
       await deleteTemplateMutation.mutateAsync({ id });
-      toast.success("Mal slettet!");
+      toast.success(t("communications.toastTemplateDeleted"));
 
       if (type === "sms") {
         refetchSmsTemplates();
@@ -213,7 +215,7 @@ export function Communications() {
         refetchEmailTemplates();
       }
     } catch (error) {
-      toast.error("Kunne ikke slette mal");
+      toast.error(t("communications.toastTemplateDeleteFailed"));
     }
   };
 
@@ -221,9 +223,9 @@ export function Communications() {
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Kommunikasjon</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("communications.title")}</h1>
           <p className="text-muted-foreground">
-            Administrer SMS og e-post innstillinger, maler og automatisering
+            {t("communications.subtitle")}
           </p>
         </div>
 
@@ -235,11 +237,11 @@ export function Communications() {
             </TabsTrigger>
             <TabsTrigger value="email">
               <Mail className="h-4 w-4 mr-2" />
-              E-post
+              {t("communications.tabEmail")}
             </TabsTrigger>
             <TabsTrigger value="automation">
               <Settings className="h-4 w-4 mr-2" />
-              Automatisering
+              {t("communications.tabAutomation")}
             </TabsTrigger>
           </TabsList>
 
@@ -247,17 +249,17 @@ export function Communications() {
           <TabsContent value="sms" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>SMS Innstillinger</CardTitle>
+                <CardTitle>{t("communications.smsSettingsTitle")}</CardTitle>
                 <CardDescription>
-                  Konfigurer SMS-leverandør og avsenderinformasjon
+                  {t("communications.smsSettingsDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label>Aktiver SMS</Label>
+                    <Label>{t("communications.enableSms")}</Label>
                     <p className="text-sm text-muted-foreground">
-                      Slå på SMS-varsler for kunder
+                      {t("communications.enableSmsDescription")}
                     </p>
                   </div>
                   <Switch
@@ -269,13 +271,13 @@ export function Communications() {
                 {smsEnabled && (
                   <>
                     <div className="space-y-2">
-                      <Label htmlFor="smsProvider">SMS Leverandør</Label>
+                      <Label htmlFor="smsProvider">{t("communications.smsProvider")}</Label>
                       <Select
                         value={smsProvider}
                         onValueChange={setSmsProvider}
                       >
                         <SelectTrigger id="smsProvider">
-                          <SelectValue placeholder="Velg leverandør" />
+                          <SelectValue placeholder={t("communications.selectProviderPlaceholder")} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="twilio">Twilio</SelectItem>
@@ -288,19 +290,19 @@ export function Communications() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="smsApiKey">API Nøkkel</Label>
+                      <Label htmlFor="smsApiKey">{t("communications.apiKey")}</Label>
                       <Input
                         id="smsApiKey"
                         type="password"
                         value={smsApiKey}
                         onChange={e => setSmsApiKey(e.target.value)}
-                        placeholder="Din API nøkkel"
+                        placeholder={t("communications.apiKeyPlaceholder")}
                       />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="smsSenderName">
-                        Avsendernavn (maks 11 tegn)
+                        {t("communications.senderName")}
                       </Label>
                       <Input
                         id="smsSenderName"
@@ -312,7 +314,7 @@ export function Communications() {
                         maxLength={11}
                       />
                       <p className="text-xs text-muted-foreground">
-                        Dette navnet vises som avsender på SMS
+                        {t("communications.senderNameHelp")}
                       </p>
                     </div>
                   </>
@@ -320,7 +322,7 @@ export function Communications() {
 
                 <Button onClick={handleSaveSettings} className="w-full">
                   <Save className="h-4 w-4 mr-2" />
-                  Lagre Innstillinger
+                  {t("communications.saveSettings")}
                 </Button>
               </CardContent>
             </Card>
@@ -330,9 +332,9 @@ export function Communications() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>SMS Maler</CardTitle>
+                    <CardTitle>{t("communications.smsTemplatesTitle")}</CardTitle>
                     <CardDescription>
-                      Lag og administrer SMS-maler for forskjellige formål
+                      {t("communications.smsTemplatesDescription")}
                     </CardDescription>
                   </div>
                   <Button
@@ -340,14 +342,14 @@ export function Communications() {
                     size="sm"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Ny Mal
+                    {t("communications.newTemplate")}
                   </Button>
                 </div>
               </CardHeader>
               <CardContent>
                 {smsTemplates.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">
-                    Ingen SMS-maler ennå. Klikk "Ny Mal" for å opprette en.
+                    {t("communications.noSmsTemplates")}
                   </p>
                 ) : (
                   <div className="space-y-4">
@@ -383,7 +385,7 @@ export function Communications() {
                           {template.content}
                         </p>
                         {!template.isActive && (
-                          <Badge variant="secondary">Inaktiv</Badge>
+                          <Badge variant="secondary">{t("communications.inactive")}</Badge>
                         )}
                       </div>
                     ))}
@@ -397,17 +399,17 @@ export function Communications() {
           <TabsContent value="email" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>E-post Innstillinger</CardTitle>
+                <CardTitle>{t("communications.emailSettingsTitle")}</CardTitle>
                 <CardDescription>
-                  Konfigurer SMTP-server og avsenderinformasjon
+                  {t("communications.emailSettingsDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label>Aktiver E-post</Label>
+                    <Label>{t("communications.enableEmail")}</Label>
                     <p className="text-sm text-muted-foreground">
-                      Slå på e-postvarsler for kunder
+                      {t("communications.enableEmailDescription")}
                     </p>
                   </div>
                   <Switch
@@ -420,9 +422,9 @@ export function Communications() {
                   <>
                     <div className="flex items-center justify-between border-t pt-4">
                       <div className="space-y-0.5">
-                        <Label>Bruk systemets standard e-postserver</Label>
+                        <Label>{t("communications.useSystemDefaults")}</Label>
                         <p className="text-sm text-muted-foreground">
-                          Bruk den globale SMTP-konfigurasjonen istedenfor egendefinert
+                          {t("communications.useSystemDefaultsDescription")}
                         </p>
                       </div>
                       <Switch
@@ -435,7 +437,7 @@ export function Communications() {
                       <>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label htmlFor="smtpHost">SMTP Server</Label>
+                            <Label htmlFor="smtpHost">{t("communications.smtpHost")}</Label>
                             <Input
                               id="smtpHost"
                               value={smtpHost}
@@ -445,7 +447,7 @@ export function Communications() {
                           </div>
 
                           <div className="space-y-2">
-                            <Label htmlFor="smtpPort">Port</Label>
+                            <Label htmlFor="smtpPort">{t("communications.smtpPort")}</Label>
                             <Input
                               id="smtpPort"
                               type="number"
@@ -457,7 +459,7 @@ export function Communications() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="smtpUser">SMTP Brukernavn</Label>
+                          <Label htmlFor="smtpUser">{t("communications.smtpUser")}</Label>
                           <Input
                             id="smtpUser"
                             value={smtpUser}
@@ -467,7 +469,7 @@ export function Communications() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="smtpPassword">SMTP Passord</Label>
+                          <Label htmlFor="smtpPassword">{t("communications.smtpPassword")}</Label>
                           <Input
                             id="smtpPassword"
                             type="password"
@@ -479,9 +481,9 @@ export function Communications() {
 
                         <div className="flex items-center justify-between">
                           <div className="space-y-0.5">
-                            <Label>Bruk TLS/SSL</Label>
+                            <Label>{t("communications.useTls")}</Label>
                             <p className="text-sm text-muted-foreground">
-                              Anbefalt for sikker tilkobling
+                              {t("communications.useTlsDescription")}
                             </p>
                           </div>
                           <Switch
@@ -491,7 +493,7 @@ export function Communications() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="emailFromAddress">Avsender E-post</Label>
+                          <Label htmlFor="emailFromAddress">{t("communications.emailFromAddress")}</Label>
                           <Input
                             id="emailFromAddress"
                             type="email"
@@ -502,7 +504,7 @@ export function Communications() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="emailFromName">Avsender Navn</Label>
+                          <Label htmlFor="emailFromName">{t("communications.emailFromName")}</Label>
                           <Input
                             id="emailFromName"
                             value={emailFromName}
@@ -517,7 +519,7 @@ export function Communications() {
 
                 <Button onClick={handleSaveSettings} className="w-full">
                   <Save className="h-4 w-4 mr-2" />
-                  Lagre Innstillinger
+                  {t("communications.saveSettings")}
                 </Button>
               </CardContent>
             </Card>
@@ -527,9 +529,9 @@ export function Communications() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>E-post Maler</CardTitle>
+                    <CardTitle>{t("communications.emailTemplatesTitle")}</CardTitle>
                     <CardDescription>
-                      Lag og administrer e-postmaler for forskjellige formål
+                      {t("communications.emailTemplatesDescription")}
                     </CardDescription>
                   </div>
                   <Button
@@ -537,14 +539,14 @@ export function Communications() {
                     size="sm"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Ny Mal
+                    {t("communications.newTemplate")}
                   </Button>
                 </div>
               </CardHeader>
               <CardContent>
                 {emailTemplates.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">
-                    Ingen e-postmaler ennå. Klikk "Ny Mal" for å opprette en.
+                    {t("communications.noEmailTemplates")}
                   </p>
                 ) : (
                   <div className="space-y-4">
@@ -558,7 +560,7 @@ export function Communications() {
                             <h4 className="font-semibold">{template.name}</h4>
                             {template.subject && (
                               <p className="text-sm text-muted-foreground">
-                                Emne: {template.subject}
+                                {t("communications.subjectPrefix")} {template.subject}
                               </p>
                             )}
                           </div>
@@ -587,7 +589,7 @@ export function Communications() {
                           {template.content}
                         </p>
                         {!template.isActive && (
-                          <Badge variant="secondary">Inaktiv</Badge>
+                          <Badge variant="secondary">{t("communications.inactive")}</Badge>
                         )}
                       </div>
                     ))}
@@ -601,17 +603,17 @@ export function Communications() {
           <TabsContent value="automation" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Automatiske Påminnelser</CardTitle>
+                <CardTitle>{t("communications.autoRemindersTitle")}</CardTitle>
                 <CardDescription>
-                  Konfigurer automatiske påminnelser for avtaler
+                  {t("communications.autoRemindersDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label>Aktiver Automatiske Påminnelser</Label>
+                    <Label>{t("communications.enableAutoReminders")}</Label>
                     <p className="text-sm text-muted-foreground">
-                      Send automatiske påminnelser til kunder
+                      {t("communications.enableAutoRemindersDescription")}
                     </p>
                   </div>
                   <Switch
@@ -623,7 +625,7 @@ export function Communications() {
                 {autoReminderEnabled && (
                   <div className="space-y-2">
                     <Label htmlFor="reminderHoursBefore">
-                      Send påminnelse (timer før)
+                      {t("communications.reminderHoursBefore")}
                     </Label>
                     <Select
                       value={reminderHoursBefore.toString()}
@@ -635,13 +637,13 @@ export function Communications() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="2">2 timer før</SelectItem>
-                        <SelectItem value="24">24 timer før (1 dag)</SelectItem>
+                        <SelectItem value="2">{t("communications.reminder2h")}</SelectItem>
+                        <SelectItem value="24">{t("communications.reminder24h")}</SelectItem>
                         <SelectItem value="48">
-                          48 timer før (2 dager)
+                          {t("communications.reminder48h")}
                         </SelectItem>
                         <SelectItem value="72">
-                          72 timer før (3 dager)
+                          {t("communications.reminder72h")}
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -650,16 +652,16 @@ export function Communications() {
 
                 <Button onClick={handleSaveSettings} className="w-full">
                   <Save className="h-4 w-4 mr-2" />
-                  Lagre Innstillinger
+                  {t("communications.saveSettings")}
                 </Button>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Tilgjengelige Variabler</CardTitle>
+                <CardTitle>{t("communications.availableVariablesTitle")}</CardTitle>
                 <CardDescription>
-                  Bruk disse variablene i malene dine
+                  {t("communications.availableVariablesDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -669,7 +671,7 @@ export function Communications() {
                       {"{customer_name}"}
                     </code>
                     <p className="text-xs text-muted-foreground">
-                      Kundens navn
+                      {t("communications.varCustomerName")}
                     </p>
                   </div>
                   <div className="space-y-2">
@@ -677,27 +679,27 @@ export function Communications() {
                       {"{salon_name}"}
                     </code>
                     <p className="text-xs text-muted-foreground">
-                      Salongens navn
+                      {t("communications.varSalonName")}
                     </p>
                   </div>
                   <div className="space-y-2">
                     <code className="text-sm bg-muted px-2 py-1 rounded">
                       {"{date}"}
                     </code>
-                    <p className="text-xs text-muted-foreground">Avtaledato</p>
+                    <p className="text-xs text-muted-foreground">{t("communications.varDate")}</p>
                   </div>
                   <div className="space-y-2">
                     <code className="text-sm bg-muted px-2 py-1 rounded">
                       {"{time}"}
                     </code>
-                    <p className="text-xs text-muted-foreground">Avtaletid</p>
+                    <p className="text-xs text-muted-foreground">{t("communications.varTime")}</p>
                   </div>
                   <div className="space-y-2">
                     <code className="text-sm bg-muted px-2 py-1 rounded">
                       {"{service}"}
                     </code>
                     <p className="text-xs text-muted-foreground">
-                      Tjenestenavn
+                      {t("communications.varService")}
                     </p>
                   </div>
                 </div>
@@ -712,52 +714,55 @@ export function Communications() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingTemplate ? "Rediger Mal" : "Ny Mal"}
+              {editingTemplate
+                ? t("communications.editTemplate")
+                : t("communications.newTemplate")}
             </DialogTitle>
             <DialogDescription>
-              {templateType === "sms" ? "SMS-mal" : "E-postmal"}
+              {templateType === "sms"
+                ? t("communications.smsTemplateLabel")
+                : t("communications.emailTemplateLabel")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="templateName">Malnavn</Label>
+              <Label htmlFor="templateName">{t("communications.templateName")}</Label>
               <Input
                 id="templateName"
                 value={templateName}
                 onChange={e => setTemplateName(e.target.value)}
-                placeholder="F.eks. Avtale påminnelse"
+                placeholder={t("communications.templateNamePlaceholder")}
               />
             </div>
 
             {templateType === "email" && (
               <div className="space-y-2">
-                <Label htmlFor="templateSubject">Emne</Label>
+                <Label htmlFor="templateSubject">{t("communications.subjectLabel")}</Label>
                 <Input
                   id="templateSubject"
                   value={templateSubject}
                   onChange={e => setTemplateSubject(e.target.value)}
-                  placeholder="F.eks. Påminnelse om din time"
+                  placeholder={t("communications.subjectPlaceholder")}
                 />
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="templateContent">Innhold</Label>
+              <Label htmlFor="templateContent">{t("communications.content")}</Label>
               <Textarea
                 id="templateContent"
                 value={templateContent}
                 onChange={e => setTemplateContent(e.target.value)}
                 placeholder={
                   templateType === "sms"
-                    ? "Hei {customer_name}! Påminnelse om din time..."
-                    : "Hei {customer_name},\n\nDette er en påminnelse..."
+                    ? t("communications.contentPlaceholderSms")
+                    : t("communications.contentPlaceholderEmail")
                 }
                 rows={8}
               />
               <p className="text-xs text-muted-foreground">
-                Bruk variabler som {"{customer_name}"}, {"{date}"}, {"{time}"},
-                etc.
+                {t("communications.variablesHint")}
               </p>
             </div>
           </div>
@@ -767,11 +772,11 @@ export function Communications() {
               variant="outline"
               onClick={() => setTemplateDialogOpen(false)}
             >
-              Avbryt
+              {t("communications.cancel")}
             </Button>
             <Button onClick={handleSaveTemplate}>
               <Save className="h-4 w-4 mr-2" />
-              Lagre
+              {t("communications.save")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -51,8 +51,10 @@ import {
   LogOut,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export default function SaasAdminTenantDetails() {
+  const { t } = useTranslation();
   const [match, params] = useRoute("/saas-admin/tenants/:tenantId");
   const [, setLocation] = useLocation();
   const tenantId = params?.tenantId as string;
@@ -97,17 +99,17 @@ export default function SaasAdminTenantDetails() {
       setLocation(result.redirectUrl);
     },
     onError: error => {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("saasAdminTenantDetails.error", { message: error.message }));
     },
   });
 
   const updateMutation = trpc.saasAdmin.updateTenantPlanAndStatus.useMutation({
     onSuccess: () => {
-      toast.success("Oppdatert!");
+      toast.success(t("saasAdminTenantDetails.updated"));
       refetch();
     },
     onError: error => {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("saasAdminTenantDetails.error", { message: error.message }));
     },
   });
 
@@ -118,7 +120,7 @@ export default function SaasAdminTenantDetails() {
       refetch();
     },
     onError: error => {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("saasAdminTenantDetails.error", { message: error.message }));
     },
   });
 
@@ -128,7 +130,7 @@ export default function SaasAdminTenantDetails() {
       refetch();
     },
     onError: error => {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("saasAdminTenantDetails.error", { message: error.message }));
     },
   });
 
@@ -139,7 +141,7 @@ export default function SaasAdminTenantDetails() {
       setLocation("/saas-admin/tenants");
     },
     onError: error => {
-      toast.error(`Feil: ${error.message}`);
+      toast.error(t("saasAdminTenantDetails.error", { message: error.message }));
     },
   });
 
@@ -151,7 +153,7 @@ export default function SaasAdminTenantDetails() {
         setLocation("/saas-admin/tenants");
       },
       onError: error => {
-        toast.error(`Feil: ${error.message}`);
+        toast.error(t("saasAdminTenantDetails.error", { message: error.message }));
       },
     });
 
@@ -165,13 +167,13 @@ export default function SaasAdminTenantDetails() {
   const updateOwnerMutation =
     trpc.saasAdmin.updateTenantOwnerCredentials.useMutation({
       onSuccess: () => {
-        toast.success("Eierinformasjon oppdatert!");
+        toast.success(t("saasAdminTenantDetails.ownerUpdated"));
         setShowEditOwnerDialog(false);
         setOwnerNewPassword("");
         refetchOwner();
       },
       onError: error => {
-        toast.error(`Feil: ${error.message}`);
+        toast.error(t("saasAdminTenantDetails.error", { message: error.message }));
       },
     });
 
@@ -222,7 +224,7 @@ export default function SaasAdminTenantDetails() {
 
   const handleDelete = () => {
     if (deleteConfirmName !== details?.tenant.name) {
-      toast.error("Navnet stemmer ikke. Skriv inn nøyaktig salongnavn.");
+      toast.error(t("saasAdminTenantDetails.nameMismatch"));
       return;
     }
     deleteMutation.mutate({ tenantId, confirmName: deleteConfirmName });
@@ -230,11 +232,11 @@ export default function SaasAdminTenantDetails() {
 
   const handlePermanentDelete = () => {
     if (deleteConfirmName !== details?.tenant.name) {
-      toast.error("Navnet stemmer ikke. Skriv inn nøyaktig salongnavn.");
+      toast.error(t("saasAdminTenantDetails.nameMismatch"));
       return;
     }
     if (permanentDeleteConfirm !== "DELETE PERMANENTLY") {
-      toast.error("Skriv 'DELETE PERMANENTLY' for å bekrefte.");
+      toast.error(t("saasAdminTenantDetails.typeDeletePermanently"));
       return;
     }
     permanentDeleteMutation.mutate({
@@ -250,13 +252,13 @@ export default function SaasAdminTenantDetails() {
       <div className="container py-8">
         <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
           <div className="text-red-600 text-lg font-semibold">
-            Ugyldig salong-ID
+            {t("saasAdminTenantDetails.invalidTenantId")}
           </div>
           <div className="text-muted-foreground">
-            URL-en er ikke gyldig. Vennligst gå tilbake til salonglisten.
+            {t("saasAdminTenantDetails.invalidUrl")}
           </div>
           <Button onClick={() => setLocation("/saas-admin/tenants")}>
-            Tilbake til salonger
+            {t("saasAdminTenantDetails.backToTenants")}
           </Button>
         </div>
       </div>
@@ -267,7 +269,7 @@ export default function SaasAdminTenantDetails() {
     return (
       <div className="container py-8">
         <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-muted-foreground">Laster...</div>
+          <div className="text-muted-foreground">{t("saasAdminTenantDetails.loading")}</div>
         </div>
       </div>
     );
@@ -278,10 +280,10 @@ export default function SaasAdminTenantDetails() {
       <div className="container py-8">
         <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
           <div className="text-muted-foreground text-lg">
-            Salong ikke funnet
+            {t("saasAdminTenantDetails.tenantNotFound")}
           </div>
           <Button onClick={() => setLocation("/saas-admin/tenants")}>
-            Tilbake til salonger
+            {t("saasAdminTenantDetails.backToTenants")}
           </Button>
         </div>
       </div>
@@ -317,7 +319,7 @@ export default function SaasAdminTenantDetails() {
             className="bg-gradient-to-r from-blue-600 to-purple-600"
           >
             <LogIn className="h-4 w-4 mr-2" />
-            Logg inn som denne salongen
+            {t("saasAdminTenantDetails.logInAsTenant")}
           </Button>
           <Button
             variant="outline"
@@ -329,38 +331,38 @@ export default function SaasAdminTenantDetails() {
             className="border-red-200 text-red-600 hover:bg-red-50"
           >
             <LogOut className="h-4 w-4 mr-2" />
-            Logg ut
+            {t("saasAdminTenantDetails.logOut")}
           </Button>
         </div>
       </div>
 
       {/* Basic Info */}
       <Card className="p-6 border-0 shadow-lg">
-        <h2 className="text-xl font-bold mb-4">Grunnleggende informasjon</h2>
+        <h2 className="text-xl font-bold mb-4">{t("saasAdminTenantDetails.basicInfo")}</h2>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="text-sm font-medium text-muted-foreground">
-              Navn
+              {t("saasAdminTenantDetails.name")}
             </label>
             <p className="text-lg font-medium mt-1">{tenant.name}</p>
           </div>
           <div>
             <label className="text-sm font-medium text-muted-foreground">
-              Subdomene
+              {t("saasAdminTenantDetails.subdomain")}
             </label>
             <p className="text-lg font-medium mt-1">{tenant.subdomain}</p>
           </div>
           <div>
             <label className="text-sm font-medium text-muted-foreground">
-              Org.nummer
+              {t("saasAdminTenantDetails.orgNumber")}
             </label>
             <p className="text-lg font-medium mt-1">
-              {tenant.orgNumber || "Ikke angitt"}
+              {tenant.orgNumber || t("saasAdminTenantDetails.notSet")}
             </p>
           </div>
           <div>
             <label className="text-sm font-medium text-muted-foreground">
-              Opprettet
+              {t("saasAdminTenantDetails.created")}
             </label>
             <p className="text-lg font-medium mt-1">
               {new Date(tenant.createdAt).toLocaleDateString("no-NO")}
@@ -368,7 +370,7 @@ export default function SaasAdminTenantDetails() {
           </div>
           <div>
             <label className="text-sm font-medium text-muted-foreground">
-              Status
+              {t("saasAdminTenantDetails.status")}
             </label>
             <div className="mt-1">
               <Badge
@@ -381,19 +383,19 @@ export default function SaasAdminTenantDetails() {
                 }
               >
                 {tenant.status === "active"
-                  ? "Aktiv"
+                  ? t("saasAdminTenantDetails.statusActive")
                   : tenant.status === "trial"
-                    ? "Prøve"
+                    ? t("saasAdminTenantDetails.statusTrial")
                     : tenant.status === "suspended"
-                      ? "Suspendert"
-                      : "Kansellert"}
+                      ? t("saasAdminTenantDetails.statusSuspended")
+                      : t("saasAdminTenantDetails.statusCanceled")}
               </Badge>
             </div>
           </div>
           {tenant.trialEndsAt && (
             <div>
               <label className="text-sm font-medium text-muted-foreground">
-                Prøveperiode slutter
+                {t("saasAdminTenantDetails.trialEnds")}
               </label>
               <p className="text-lg font-medium mt-1">
                 {new Date(tenant.trialEndsAt).toLocaleDateString("no-NO")}
@@ -406,13 +408,13 @@ export default function SaasAdminTenantDetails() {
       {/* Owner Credentials */}
       <Card className="p-6 border-0 shadow-lg">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">Eier innlogging</h2>
+          <h2 className="text-xl font-bold">{t("saasAdminTenantDetails.ownerLogin")}</h2>
           <Button
             variant="outline"
             onClick={() => setShowEditOwnerDialog(true)}
           >
             <Key className="h-4 w-4 mr-2" />
-            Rediger innlogging
+            {t("saasAdminTenantDetails.editLogin")}
           </Button>
         </div>
 
@@ -422,19 +424,19 @@ export default function SaasAdminTenantDetails() {
               <User className="h-5 w-5 text-muted-foreground" />
               <div>
                 <label className="text-sm font-medium text-muted-foreground">
-                  Navn
+                  {t("saasAdminTenantDetails.name")}
                 </label>
-                <p className="font-medium">{ownerData.name || "Ikke angitt"}</p>
+                <p className="font-medium">{ownerData.name || t("saasAdminTenantDetails.notSet")}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <Mail className="h-5 w-5 text-muted-foreground" />
               <div>
                 <label className="text-sm font-medium text-muted-foreground">
-                  E-post
+                  {t("saasAdminTenantDetails.email")}
                 </label>
                 <p className="font-medium">
-                  {ownerData.email || "Ikke angitt"}
+                  {ownerData.email || t("saasAdminTenantDetails.notSet")}
                 </p>
               </div>
             </div>
@@ -442,10 +444,10 @@ export default function SaasAdminTenantDetails() {
               <Phone className="h-5 w-5 text-muted-foreground" />
               <div>
                 <label className="text-sm font-medium text-muted-foreground">
-                  Telefon
+                  {t("saasAdminTenantDetails.phone")}
                 </label>
                 <p className="font-medium">
-                  {ownerData.phone || "Ikke angitt"}
+                  {ownerData.phone || t("saasAdminTenantDetails.notSet")}
                 </p>
               </div>
             </div>
@@ -453,26 +455,26 @@ export default function SaasAdminTenantDetails() {
               <Key className="h-5 w-5 text-muted-foreground" />
               <div>
                 <label className="text-sm font-medium text-muted-foreground">
-                  Passord
+                  {t("saasAdminTenantDetails.password")}
                 </label>
                 <p className="font-medium text-muted-foreground">••••••••</p>
               </div>
             </div>
           </div>
         ) : (
-          <p className="text-muted-foreground">Laster eierinformasjon...</p>
+          <p className="text-muted-foreground">{t("saasAdminTenantDetails.loadingOwner")}</p>
         )}
       </Card>
 
       {/* Subscription Management */}
       <Card className="p-6 border-0 shadow-lg">
-        <h2 className="text-xl font-bold mb-4">Abonnement</h2>
+        <h2 className="text-xl font-bold mb-4">{t("saasAdminTenantDetails.subscription")}</h2>
 
         {subscription && (
           <div className="grid gap-4 md:grid-cols-2 mb-6 p-4 bg-muted/50 rounded-lg">
             <div>
               <label className="text-sm font-medium text-muted-foreground">
-                Nåværende plan
+                {t("saasAdminTenantDetails.currentPlan")}
               </label>
               <p className="text-lg font-medium mt-1">
                 {subscription.planName}
@@ -480,7 +482,7 @@ export default function SaasAdminTenantDetails() {
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">
-                Pris
+                {t("saasAdminTenantDetails.price")}
               </label>
               <p className="text-lg font-medium mt-1">
                 {subscription.priceMonthly} kr/mnd
@@ -488,7 +490,7 @@ export default function SaasAdminTenantDetails() {
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">
-                Abonnementsstatus
+                {t("saasAdminTenantDetails.subscriptionStatus")}
               </label>
               <p className="text-lg font-medium mt-1 capitalize">
                 {subscription.status}
@@ -496,7 +498,7 @@ export default function SaasAdminTenantDetails() {
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">
-                Periode
+                {t("saasAdminTenantDetails.period")}
               </label>
               <p className="text-lg font-medium mt-1">
                 {new Date(subscription.currentPeriodStart).toLocaleDateString(
@@ -514,7 +516,7 @@ export default function SaasAdminTenantDetails() {
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium mb-2 block">
-              Endre status
+              {t("saasAdminTenantDetails.changeStatus")}
             </label>
             <Select
               value={selectedStatus}
@@ -526,16 +528,16 @@ export default function SaasAdminTenantDetails() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="trial">Prøve</SelectItem>
-                <SelectItem value="active">Aktiv</SelectItem>
-                <SelectItem value="suspended">Suspendert</SelectItem>
-                <SelectItem value="canceled">Kansellert</SelectItem>
+                <SelectItem value="trial">{t("saasAdminTenantDetails.statusTrial")}</SelectItem>
+                <SelectItem value="active">{t("saasAdminTenantDetails.statusActive")}</SelectItem>
+                <SelectItem value="suspended">{t("saasAdminTenantDetails.statusSuspended")}</SelectItem>
+                <SelectItem value="canceled">{t("saasAdminTenantDetails.statusCanceled")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">Endre plan</label>
+            <label className="text-sm font-medium mb-2 block">{t("saasAdminTenantDetails.changePlan")}</label>
             <Select
               value={selectedPlanId?.toString() || "none"}
               onValueChange={value =>
@@ -546,7 +548,7 @@ export default function SaasAdminTenantDetails() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Ingen plan</SelectItem>
+                <SelectItem value="none">{t("saasAdminTenantDetails.noPlan")}</SelectItem>
                 {plans?.map((plan: any) => (
                   <SelectItem key={plan.id} value={plan.id.toString()}>
                     {plan.displayNameNo} - {plan.priceMonthly} kr/mnd
@@ -562,14 +564,14 @@ export default function SaasAdminTenantDetails() {
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600"
           >
             <Save className="h-4 w-4 mr-2" />
-            Lagre endringer
+            {t("saasAdminTenantDetails.saveChanges")}
           </Button>
         </div>
       </Card>
 
       {/* Usage Stats */}
       <Card className="p-6 border-0 shadow-lg">
-        <h2 className="text-xl font-bold mb-4">Bruksstatistikk</h2>
+        <h2 className="text-xl font-bold mb-4">{t("saasAdminTenantDetails.usageStats")}</h2>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <div className="flex items-start gap-4">
@@ -577,7 +579,7 @@ export default function SaasAdminTenantDetails() {
               <Users className="h-6 w-6 text-white" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Kunder</p>
+              <p className="text-sm text-muted-foreground">{t("saasAdminTenantDetails.customers")}</p>
               <p className="text-2xl font-bold">{usage.totalCustomers}</p>
             </div>
           </div>
@@ -587,7 +589,7 @@ export default function SaasAdminTenantDetails() {
               <Users className="h-6 w-6 text-white" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Ansatte</p>
+              <p className="text-sm text-muted-foreground">{t("saasAdminTenantDetails.employees")}</p>
               <p className="text-2xl font-bold">{usage.totalEmployees}</p>
             </div>
           </div>
@@ -597,10 +599,10 @@ export default function SaasAdminTenantDetails() {
               <Calendar className="h-6 w-6 text-white" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Timer (totalt)</p>
+              <p className="text-sm text-muted-foreground">{t("saasAdminTenantDetails.appointmentsTotal")}</p>
               <p className="text-2xl font-bold">{usage.totalAppointments}</p>
               <p className="text-xs text-muted-foreground">
-                {usage.totalCompletedAppointments} fullført
+                {t("saasAdminTenantDetails.completedCount", { count: usage.totalCompletedAppointments })}
               </p>
             </div>
           </div>
@@ -610,7 +612,7 @@ export default function SaasAdminTenantDetails() {
               <ShoppingCart className="h-6 w-6 text-white" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Ordre (totalt)</p>
+              <p className="text-sm text-muted-foreground">{t("saasAdminTenantDetails.ordersTotal")}</p>
               <p className="text-2xl font-bold">{usage.totalOrders}</p>
               <p className="text-xs text-muted-foreground">
                 {usage.totalOrderAmount.toLocaleString("no-NO")} kr
@@ -620,14 +622,14 @@ export default function SaasAdminTenantDetails() {
         </div>
 
         <div className="mt-6 pt-6 border-t">
-          <h3 className="font-semibold mb-4">Siste 30 dager</h3>
+          <h3 className="font-semibold mb-4">{t("saasAdminTenantDetails.last30Days")}</h3>
           <div className="grid gap-6 md:grid-cols-3">
             <div className="flex items-start gap-4">
               <div className="p-3 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500">
                 <Calendar className="h-6 w-6 text-white" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Timer</p>
+                <p className="text-sm text-muted-foreground">{t("saasAdminTenantDetails.appointments")}</p>
                 <p className="text-2xl font-bold">
                   {usage.last30DaysAppointments}
                 </p>
@@ -639,7 +641,7 @@ export default function SaasAdminTenantDetails() {
                 <ShoppingCart className="h-6 w-6 text-white" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Ordre</p>
+                <p className="text-sm text-muted-foreground">{t("saasAdminTenantDetails.orders")}</p>
                 <p className="text-2xl font-bold">{usage.last30DaysOrders}</p>
               </div>
             </div>
@@ -649,7 +651,7 @@ export default function SaasAdminTenantDetails() {
                 <DollarSign className="h-6 w-6 text-white" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Omsetning</p>
+                <p className="text-sm text-muted-foreground">{t("saasAdminTenantDetails.revenue")}</p>
                 <p className="text-2xl font-bold">
                   {usage.last30DaysOrderAmount.toLocaleString("no-NO")} kr
                 </p>
@@ -663,10 +665,10 @@ export default function SaasAdminTenantDetails() {
       <Card className="p-6 border-0 shadow-lg border-red-200 bg-red-50/50 dark:bg-red-950/10">
         <h2 className="text-xl font-bold mb-4 text-red-600 flex items-center gap-2">
           <AlertTriangle className="h-5 w-5" />
-          Faresone
+          {t("saasAdminTenantDetails.dangerZone")}
         </h2>
         <p className="text-muted-foreground mb-6">
-          Disse handlingene kan ikke angres. Vær forsiktig.
+          {t("saasAdminTenantDetails.dangerZoneWarning")}
         </p>
 
         <div className="space-y-4">
@@ -674,9 +676,9 @@ export default function SaasAdminTenantDetails() {
           {tenant.status === "suspended" ? (
             <div className="flex items-center justify-between p-4 border rounded-lg bg-white dark:bg-gray-900">
               <div>
-                <h3 className="font-semibold">Reaktiver salong</h3>
+                <h3 className="font-semibold">{t("saasAdminTenantDetails.reactivateTenant")}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Gjenopprett tilgang for denne salongen
+                  {t("saasAdminTenantDetails.reactivateDescription")}
                 </p>
               </div>
               <Button
@@ -690,16 +692,16 @@ export default function SaasAdminTenantDetails() {
                 ) : (
                   <Play className="h-4 w-4 mr-2" />
                 )}
-                Reaktiver
+                {t("saasAdminTenantDetails.reactivate")}
               </Button>
             </div>
           ) : (
             tenant.status !== "canceled" && (
               <div className="flex items-center justify-between p-4 border rounded-lg bg-white dark:bg-gray-900">
                 <div>
-                  <h3 className="font-semibold">Suspender salong</h3>
+                  <h3 className="font-semibold">{t("saasAdminTenantDetails.suspendTenant")}</h3>
                   <p className="text-sm text-muted-foreground">
-                    Midlertidig deaktiver tilgang for denne salongen
+                    {t("saasAdminTenantDetails.suspendDescription")}
                   </p>
                 </div>
                 <Button
@@ -708,7 +710,7 @@ export default function SaasAdminTenantDetails() {
                   onClick={() => setShowSuspendDialog(true)}
                 >
                   <Pause className="h-4 w-4 mr-2" />
-                  Suspender
+                  {t("saasAdminTenantDetails.suspend")}
                 </Button>
               </div>
             )
@@ -718,9 +720,9 @@ export default function SaasAdminTenantDetails() {
           {tenant.status !== "canceled" && (
             <div className="flex items-center justify-between p-4 border rounded-lg bg-white dark:bg-gray-900">
               <div>
-                <h3 className="font-semibold">Slett salong</h3>
+                <h3 className="font-semibold">{t("saasAdminTenantDetails.deleteTenant")}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Deaktiver salongen og alle brukere. Data beholdes.
+                  {t("saasAdminTenantDetails.deleteDescription")}
                 </p>
               </div>
               <Button
@@ -732,7 +734,7 @@ export default function SaasAdminTenantDetails() {
                 }}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                Slett
+                {t("saasAdminTenantDetails.delete")}
               </Button>
             </div>
           )}
@@ -740,9 +742,9 @@ export default function SaasAdminTenantDetails() {
           {/* Permanent Delete */}
           <div className="flex items-center justify-between p-4 border-2 border-red-300 rounded-lg bg-white dark:bg-gray-900">
             <div>
-              <h3 className="font-semibold text-red-600">Slett permanent</h3>
+              <h3 className="font-semibold text-red-600">{t("saasAdminTenantDetails.deletePermanently")}</h3>
               <p className="text-sm text-muted-foreground">
-                Slett salongen og ALL data permanent. Kan ikke angres!
+                {t("saasAdminTenantDetails.deletePermanentlyDescription")}
               </p>
             </div>
             <Button
@@ -754,7 +756,7 @@ export default function SaasAdminTenantDetails() {
               }}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Slett permanent
+              {t("saasAdminTenantDetails.deletePermanently")}
             </Button>
           </div>
         </div>
@@ -764,15 +766,13 @@ export default function SaasAdminTenantDetails() {
       <AlertDialog open={showSuspendDialog} onOpenChange={setShowSuspendDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Suspender salong?</AlertDialogTitle>
+            <AlertDialogTitle>{t("saasAdminTenantDetails.suspendDialogTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Dette vil midlertidig deaktivere tilgang for "{tenant.name}". Alle
-              brukere vil bli logget ut og kan ikke logge inn igjen før salongen
-              reaktiveres.
+              {t("saasAdminTenantDetails.suspendDialogDescription", { name: tenant.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogCancel>{t("saasAdminTenantDetails.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleSuspend}
               className="bg-orange-600 hover:bg-orange-700"
@@ -783,7 +783,7 @@ export default function SaasAdminTenantDetails() {
               ) : (
                 <Pause className="h-4 w-4 mr-2" />
               )}
-              Suspender
+              {t("saasAdminTenantDetails.suspend")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -793,23 +793,22 @@ export default function SaasAdminTenantDetails() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-red-600">Slett salong</DialogTitle>
+            <DialogTitle className="text-red-600">{t("saasAdminTenantDetails.deleteDialogTitle")}</DialogTitle>
             <DialogDescription>
-              Dette vil deaktivere salongen "{tenant.name}" og alle brukere.
-              Data vil bli bevart, men salongen kan ikke brukes.
+              {t("saasAdminTenantDetails.deleteDialogDescription", { name: tenant.name })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
               <Label htmlFor="confirmName">
-                Skriv inn salongnavnet for å bekrefte:{" "}
+                {t("saasAdminTenantDetails.confirmNameLabel")}:{" "}
                 <strong>{tenant.name}</strong>
               </Label>
               <Input
                 id="confirmName"
                 value={deleteConfirmName}
                 onChange={e => setDeleteConfirmName(e.target.value)}
-                placeholder="Skriv salongnavnet her"
+                placeholder={t("saasAdminTenantDetails.tenantNamePlaceholder")}
                 className="mt-2"
               />
             </div>
@@ -819,7 +818,7 @@ export default function SaasAdminTenantDetails() {
               variant="outline"
               onClick={() => setShowDeleteDialog(false)}
             >
-              Avbryt
+              {t("saasAdminTenantDetails.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -833,7 +832,7 @@ export default function SaasAdminTenantDetails() {
               ) : (
                 <Trash2 className="h-4 w-4 mr-2" />
               )}
-              Slett salong
+              {t("saasAdminTenantDetails.deleteTenant")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -843,35 +842,35 @@ export default function SaasAdminTenantDetails() {
       <Dialog open={showEditOwnerDialog} onOpenChange={setShowEditOwnerDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rediger eier innlogging</DialogTitle>
+            <DialogTitle>{t("saasAdminTenantDetails.editOwnerDialogTitle")}</DialogTitle>
             <DialogDescription>
-              Oppdater innloggingsinformasjon for salongeier.
+              {t("saasAdminTenantDetails.editOwnerDialogDescription")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="ownerName">Navn</Label>
+              <Label htmlFor="ownerName">{t("saasAdminTenantDetails.name")}</Label>
               <Input
                 id="ownerName"
                 value={ownerName}
                 onChange={e => setOwnerName(e.target.value)}
-                placeholder="Fullt navn"
+                placeholder={t("saasAdminTenantDetails.fullNamePlaceholder")}
                 className="mt-2"
               />
             </div>
             <div>
-              <Label htmlFor="ownerEmail">E-post</Label>
+              <Label htmlFor="ownerEmail">{t("saasAdminTenantDetails.email")}</Label>
               <Input
                 id="ownerEmail"
                 type="email"
                 value={ownerEmail}
                 onChange={e => setOwnerEmail(e.target.value)}
-                placeholder="epost@eksempel.no"
+                placeholder={t("saasAdminTenantDetails.emailPlaceholder")}
                 className="mt-2"
               />
             </div>
             <div>
-              <Label htmlFor="ownerPhone">Telefon</Label>
+              <Label htmlFor="ownerPhone">{t("saasAdminTenantDetails.phone")}</Label>
               <Input
                 id="ownerPhone"
                 type="tel"
@@ -882,17 +881,17 @@ export default function SaasAdminTenantDetails() {
               />
             </div>
             <div>
-              <Label htmlFor="ownerPassword">Nytt passord (valgfritt)</Label>
+              <Label htmlFor="ownerPassword">{t("saasAdminTenantDetails.newPasswordLabel")}</Label>
               <Input
                 id="ownerPassword"
                 type="password"
                 value={ownerNewPassword}
                 onChange={e => setOwnerNewPassword(e.target.value)}
-                placeholder="La stå tom for å beholde nåværende"
+                placeholder={t("saasAdminTenantDetails.newPasswordPlaceholder")}
                 className="mt-2"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Fyll kun inn hvis du vil endre passordet
+                {t("saasAdminTenantDetails.newPasswordHint")}
               </p>
             </div>
           </div>
@@ -901,7 +900,7 @@ export default function SaasAdminTenantDetails() {
               variant="outline"
               onClick={() => setShowEditOwnerDialog(false)}
             >
-              Avbryt
+              {t("saasAdminTenantDetails.cancel")}
             </Button>
             <Button
               onClick={handleUpdateOwner}
@@ -913,7 +912,7 @@ export default function SaasAdminTenantDetails() {
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              Lagre endringer
+              {t("saasAdminTenantDetails.saveChanges")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -928,31 +927,31 @@ export default function SaasAdminTenantDetails() {
           <DialogHeader>
             <DialogTitle className="text-red-600 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
-              Permanent sletting
+              {t("saasAdminTenantDetails.permanentDeleteDialogTitle")}
             </DialogTitle>
             <DialogDescription>
-              <strong className="text-red-600">ADVARSEL:</strong> Dette vil
-              permanent slette salongen "{tenant.name}" og ALL tilknyttet data
-              inkludert kunder, ansatte, timer, ordre, og betalinger. Denne
-              handlingen kan IKKE angres!
+              <strong className="text-red-600">{t("saasAdminTenantDetails.warning")}:</strong>{" "}
+              {t("saasAdminTenantDetails.permanentDeleteDialogDescription", { name: tenant.name })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
               <Label htmlFor="confirmNamePerm">
-                Skriv inn salongnavnet: <strong>{tenant.name}</strong>
+                {t("saasAdminTenantDetails.enterTenantNameLabel")}: <strong>{tenant.name}</strong>
               </Label>
               <Input
                 id="confirmNamePerm"
                 value={deleteConfirmName}
                 onChange={e => setDeleteConfirmName(e.target.value)}
-                placeholder="Skriv salongnavnet her"
+                placeholder={t("saasAdminTenantDetails.tenantNamePlaceholder")}
                 className="mt-2"
               />
             </div>
             <div>
               <Label htmlFor="confirmPerm">
-                Skriv <strong>DELETE PERMANENTLY</strong> for å bekrefte:
+                {t("saasAdminTenantDetails.typeWord")}{" "}
+                <strong>DELETE PERMANENTLY</strong>{" "}
+                {t("saasAdminTenantDetails.toConfirm")}
               </Label>
               <Input
                 id="confirmPerm"
@@ -968,7 +967,7 @@ export default function SaasAdminTenantDetails() {
               variant="outline"
               onClick={() => setShowPermanentDeleteDialog(false)}
             >
-              Avbryt
+              {t("saasAdminTenantDetails.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -984,7 +983,7 @@ export default function SaasAdminTenantDetails() {
               ) : (
                 <Trash2 className="h-4 w-4 mr-2" />
               )}
-              Slett permanent
+              {t("saasAdminTenantDetails.deletePermanently")}
             </Button>
           </DialogFooter>
         </DialogContent>

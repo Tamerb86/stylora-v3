@@ -31,8 +31,10 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export default function FikenSettings() {
+  const { t } = useTranslation();
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
@@ -63,7 +65,7 @@ export default function FikenSettings() {
     const error = params.get("error");
 
     if (error) {
-      toast.error(`Fiken-tilkobling mislyktes: ${error}`);
+      toast.error(t("fikenSettings.connectionFailed", { error }));
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
       return;
@@ -85,7 +87,7 @@ export default function FikenSettings() {
         redirectUri,
       });
 
-      toast.success(`Tilkoblet til Fiken! Koblet til: ${result.companyName}`);
+      toast.success(t("fikenSettings.connectedToast", { companyName: result.companyName }));
 
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -95,7 +97,9 @@ export default function FikenSettings() {
       refetchSyncStatus();
     } catch (error) {
       toast.error(
-        `Kunne ikke koble til Fiken: ${error instanceof Error ? error.message : "Ukjent feil"}`
+        t("fikenSettings.couldNotConnect", {
+          message: error instanceof Error ? error.message : t("fikenSettings.unknownError"),
+        })
       );
     } finally {
       setIsConnecting(false);
@@ -104,7 +108,7 @@ export default function FikenSettings() {
 
   const handleSaveCredentials = async () => {
     if (!clientId || !clientSecret) {
-      toast.error("Vennligst fyll inn både Client ID og Client Secret");
+      toast.error(t("fikenSettings.fillBothCredentials"));
       return;
     }
 
@@ -114,14 +118,16 @@ export default function FikenSettings() {
         clientSecret,
       });
 
-      toast.success("OAuth-legitimasjon er lagret. Du kan nå koble til Fiken.");
+      toast.success(t("fikenSettings.credentialsSaved"));
 
       refetchSettings();
       setClientId("");
       setClientSecret("");
     } catch (error) {
       toast.error(
-        `Kunne ikke lagre: ${error instanceof Error ? error.message : "Ukjent feil"}`
+        t("fikenSettings.couldNotSave", {
+          message: error instanceof Error ? error.message : t("fikenSettings.unknownError"),
+        })
       );
     }
   };
@@ -130,7 +136,7 @@ export default function FikenSettings() {
     const redirectUri = `${window.location.origin}/fiken`;
     // Build auth URL manually from settings
     if (!settings?.hasCredentials) {
-      toast.error("Vennligst legg til OAuth-legitimasjon først");
+      toast.error(t("fikenSettings.addCredentialsFirst"));
       return;
     }
 
@@ -139,18 +145,20 @@ export default function FikenSettings() {
   };
 
   const handleDisconnect = async () => {
-    if (!confirm("Er du sikker på at du vil koble fra Fiken?")) {
+    if (!confirm(t("fikenSettings.confirmDisconnect"))) {
       return;
     }
 
     try {
       await disconnectMutation.mutateAsync();
-      toast.success("Fiken-integrasjonen er deaktivert");
+      toast.success(t("fikenSettings.disconnected"));
       refetchSettings();
       refetchSyncStatus();
     } catch (error) {
       toast.error(
-        `Kunne ikke koble fra: ${error instanceof Error ? error.message : "Ukjent feil"}`
+        t("fikenSettings.couldNotDisconnect", {
+          message: error instanceof Error ? error.message : t("fikenSettings.unknownError"),
+        })
       );
     }
   };
@@ -160,13 +168,15 @@ export default function FikenSettings() {
       const result = await testConnectionMutation.mutateAsync();
 
       if (result.success) {
-        toast.success(`Tilkobling OK! Koblet til: ${result.companyName}`);
+        toast.success(t("fikenSettings.connectionOk", { companyName: result.companyName }));
       } else {
-        toast.error(`Tilkobling mislyktes: ${result.error}`);
+        toast.error(t("fikenSettings.connectionTestFailed", { error: result.error }));
       }
     } catch (error) {
       toast.error(
-        `Kunne ikke teste tilkobling: ${error instanceof Error ? error.message : "Ukjent feil"}`
+        t("fikenSettings.couldNotTestConnection", {
+          message: error instanceof Error ? error.message : t("fikenSettings.unknownError"),
+        })
       );
     }
   };
@@ -177,18 +187,23 @@ export default function FikenSettings() {
 
       if (result.success) {
         toast.success(
-          `Synkronisering fullført! ${result.totalProcessed} kunder behandlet`
+          t("fikenSettings.syncCustomersDone", { count: result.totalProcessed })
         );
       } else {
         toast.error(
-          `Synkronisering delvis fullført: ${result.totalProcessed} behandlet, ${result.totalFailed} feilet`
+          t("fikenSettings.syncPartialProcessed", {
+            processed: result.totalProcessed,
+            failed: result.totalFailed,
+          })
         );
       }
 
       refetchSyncStatus();
     } catch (error) {
       toast.error(
-        `Synkronisering mislyktes: ${error instanceof Error ? error.message : "Ukjent feil"}`
+        t("fikenSettings.syncFailed", {
+          message: error instanceof Error ? error.message : t("fikenSettings.unknownError"),
+        })
       );
     }
   };
@@ -199,18 +214,23 @@ export default function FikenSettings() {
 
       if (result.success) {
         toast.success(
-          `Synkronisering fullført! ${result.totalProcessed} ordrer behandlet`
+          t("fikenSettings.syncOrdersDone", { count: result.totalProcessed })
         );
       } else {
         toast.error(
-          `Synkronisering delvis fullført: ${result.totalProcessed} behandlet, ${result.totalFailed} feilet`
+          t("fikenSettings.syncPartialProcessed", {
+            processed: result.totalProcessed,
+            failed: result.totalFailed,
+          })
         );
       }
 
       refetchSyncStatus();
     } catch (error) {
       toast.error(
-        `Synkronisering mislyktes: ${error instanceof Error ? error.message : "Ukjent feil"}`
+        t("fikenSettings.syncFailed", {
+          message: error instanceof Error ? error.message : t("fikenSettings.unknownError"),
+        })
       );
     }
   };
@@ -221,18 +241,23 @@ export default function FikenSettings() {
 
       if (result.success) {
         toast.success(
-          `Synkronisering fullført! ${result.synced} tjenester synkronisert`
+          t("fikenSettings.syncServicesDone", { count: result.synced })
         );
       } else {
         toast.error(
-          `Synkronisering delvis fullført: ${result.synced} synkronisert, ${result.failed} feilet`
+          t("fikenSettings.syncPartialSynced", {
+            synced: result.synced,
+            failed: result.failed,
+          })
         );
       }
 
       refetchSyncStatus();
     } catch (error) {
       toast.error(
-        `Synkronisering mislyktes: ${error instanceof Error ? error.message : "Ukjent feil"}`
+        t("fikenSettings.syncFailed", {
+          message: error instanceof Error ? error.message : t("fikenSettings.unknownError"),
+        })
       );
     }
   };
@@ -243,18 +268,23 @@ export default function FikenSettings() {
 
       if (result.success) {
         toast.success(
-          `Synkronisering fullført! ${result.synced} produkter synkronisert`
+          t("fikenSettings.syncProductsDone", { count: result.synced })
         );
       } else {
         toast.error(
-          `Synkronisering delvis fullført: ${result.synced} synkronisert, ${result.failed} feilet`
+          t("fikenSettings.syncPartialSynced", {
+            synced: result.synced,
+            failed: result.failed,
+          })
         );
       }
 
       refetchSyncStatus();
     } catch (error) {
       toast.error(
-        `Synkronisering mislyktes: ${error instanceof Error ? error.message : "Ukjent feil"}`
+        t("fikenSettings.syncFailed", {
+          message: error instanceof Error ? error.message : t("fikenSettings.unknownError"),
+        })
       );
     }
   };
@@ -277,18 +307,23 @@ export default function FikenSettings() {
 
       if (totalFailed === 0) {
         toast.success(
-          `Full synkronisering fullført! ${totalSynced} elementer synkronisert`
+          t("fikenSettings.fullSyncDone", { count: totalSynced })
         );
       } else {
         toast.warning(
-          `Synkronisering delvis fullført: ${totalSynced} synkronisert, ${totalFailed} feilet`
+          t("fikenSettings.syncPartialSynced", {
+            synced: totalSynced,
+            failed: totalFailed,
+          })
         );
       }
 
       refetchSyncStatus();
     } catch (error) {
       toast.error(
-        `Synkronisering mislyktes: ${error instanceof Error ? error.message : "Ukjent feil"}`
+        t("fikenSettings.syncFailed", {
+          message: error instanceof Error ? error.message : t("fikenSettings.unknownError"),
+        })
       );
     }
   };
@@ -298,7 +333,7 @@ export default function FikenSettings() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Kobler til Fiken...</p>
+          <p className="text-muted-foreground">{t("fikenSettings.connecting")}</p>
         </div>
       </div>
     );
@@ -307,45 +342,45 @@ export default function FikenSettings() {
   return (
     <div className="container max-w-6xl py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Fiken-integrasjon</h1>
+        <h1 className="text-3xl font-bold mb-2">{t("fikenSettings.title")}</h1>
         <p className="text-muted-foreground">
-          Koble til Fiken for automatisk synkronisering av kunder og fakturaer
+          {t("fikenSettings.subtitle")}
         </p>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="overview">Oversikt</TabsTrigger>
-          <TabsTrigger value="sync">Synkronisering</TabsTrigger>
-          <TabsTrigger value="logs">Logg</TabsTrigger>
-          <TabsTrigger value="settings">Innstillinger</TabsTrigger>
+          <TabsTrigger value="overview">{t("fikenSettings.tabOverview")}</TabsTrigger>
+          <TabsTrigger value="sync">{t("fikenSettings.tabSync")}</TabsTrigger>
+          <TabsTrigger value="logs">{t("fikenSettings.tabLogs")}</TabsTrigger>
+          <TabsTrigger value="settings">{t("fikenSettings.tabSettings")}</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Tilkoblingsstatus</CardTitle>
-              <CardDescription>Status for Fiken-integrasjonen</CardDescription>
+              <CardTitle>{t("fikenSettings.connectionStatusTitle")}</CardTitle>
+              <CardDescription>{t("fikenSettings.connectionStatusDescription")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {settings?.isConnected ? (
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="h-5 w-5 text-green-500" />
-                    <span className="font-medium">Tilkoblet til Fiken</span>
+                    <span className="font-medium">{t("fikenSettings.connectedStatus")}</span>
                   </div>
 
                   {settings.companyName && (
                     <div>
-                      <Label className="text-muted-foreground">Firma</Label>
+                      <Label className="text-muted-foreground">{t("fikenSettings.companyLabel")}</Label>
                       <p className="font-medium">{settings.companyName}</p>
                     </div>
                   )}
 
                   {settings.organizationNumber && (
                     <div>
-                      <Label className="text-muted-foreground">Org.nr</Label>
+                      <Label className="text-muted-foreground">{t("fikenSettings.orgNumberLabel")}</Label>
                       <p className="font-medium">
                         {settings.organizationNumber}
                       </p>
@@ -355,7 +390,7 @@ export default function FikenSettings() {
                   {settings.lastSyncAt && (
                     <div>
                       <Label className="text-muted-foreground">
-                        Siste synkronisering
+                        {t("fikenSettings.lastSyncLabel")}
                       </Label>
                       <p className="font-medium">
                         {new Date(settings.lastSyncAt).toLocaleString("no-NO")}
@@ -372,10 +407,10 @@ export default function FikenSettings() {
                           className="mt-1"
                         >
                           {settings.lastSyncStatus === "success"
-                            ? "Vellykket"
+                            ? t("fikenSettings.syncStatusSuccess")
                             : settings.lastSyncStatus === "failed"
-                              ? "Feilet"
-                              : "Delvis"}
+                              ? t("fikenSettings.syncStatusFailed")
+                              : t("fikenSettings.syncStatusPartial")}
                         </Badge>
                       )}
                     </div>
@@ -390,14 +425,14 @@ export default function FikenSettings() {
                       {testConnectionMutation.isPending && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
-                      Test tilkobling
+                      {t("fikenSettings.testConnection")}
                     </Button>
                     <Button
                       onClick={handleDisconnect}
                       disabled={disconnectMutation.isPending}
                       variant="destructive"
                     >
-                      Koble fra
+                      {t("fikenSettings.disconnect")}
                     </Button>
                   </div>
                 </div>
@@ -405,21 +440,20 @@ export default function FikenSettings() {
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <XCircle className="h-5 w-5 text-muted-foreground" />
-                    <span>Ikke tilkoblet</span>
+                    <span>{t("fikenSettings.notConnected")}</span>
                   </div>
 
                   {!settings?.hasCredentials ? (
                     <Alert>
                       <AlertCircle className="h-4 w-4" />
                       <AlertDescription>
-                        Du må først legge til OAuth-legitimasjon i
-                        Innstillinger-fanen
+                        {t("fikenSettings.addCredentialsInSettingsTab")}
                       </AlertDescription>
                     </Alert>
                   ) : (
                     <Button onClick={handleConnect}>
                       <ExternalLink className="mr-2 h-4 w-4" />
-                      Koble til Fiken
+                      {t("fikenSettings.connectToFiken")}
                     </Button>
                   )}
                 </div>
@@ -432,7 +466,7 @@ export default function FikenSettings() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
-                    Usynkroniserte kunder
+                    {t("fikenSettings.unsyncedCustomers")}
                   </CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
@@ -441,7 +475,7 @@ export default function FikenSettings() {
                     {syncStatus.unsyncedCustomers}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Kunder som ikke er synkronisert til Fiken
+                    {t("fikenSettings.unsyncedCustomersSub")}
                   </p>
                 </CardContent>
               </Card>
@@ -449,7 +483,7 @@ export default function FikenSettings() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
-                    Usynkroniserte ordrer
+                    {t("fikenSettings.unsyncedOrders")}
                   </CardTitle>
                   <FileText className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
@@ -458,7 +492,7 @@ export default function FikenSettings() {
                     {syncStatus.unsyncedOrders}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Ordrer som ikke er synkronisert til Fiken
+                    {t("fikenSettings.unsyncedOrdersSub")}
                   </p>
                 </CardContent>
               </Card>
@@ -470,9 +504,9 @@ export default function FikenSettings() {
         <TabsContent value="sync" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Manuell synkronisering</CardTitle>
+              <CardTitle>{t("fikenSettings.manualSyncTitle")}</CardTitle>
               <CardDescription>
-                Synkroniser kunder og ordrer til Fiken
+                {t("fikenSettings.manualSyncDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -480,17 +514,18 @@ export default function FikenSettings() {
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    Du må koble til Fiken før du kan synkronisere
+                    {t("fikenSettings.mustConnectBeforeSync")}
                   </AlertDescription>
                 </Alert>
               ) : (
                 <>
                   <div className="flex items-center justify-between p-4 border rounded-lg">
                     <div>
-                      <h3 className="font-medium">Synkroniser kunder</h3>
+                      <h3 className="font-medium">{t("fikenSettings.syncCustomersTitle")}</h3>
                       <p className="text-sm text-muted-foreground">
-                        {syncStatus?.unsyncedCustomers || 0} usynkroniserte
-                        kunder
+                        {t("fikenSettings.unsyncedCustomersCount", {
+                          count: syncStatus?.unsyncedCustomers || 0,
+                        })}
                       </p>
                     </div>
                     <Button
@@ -504,16 +539,18 @@ export default function FikenSettings() {
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
                       {syncAllCustomersMutation.isPending
-                        ? "Synkroniserer..."
-                        : "Synkroniser"}
+                        ? t("fikenSettings.syncing")
+                        : t("fikenSettings.sync")}
                     </Button>
                   </div>
 
                   <div className="flex items-center justify-between p-4 border rounded-lg">
                     <div>
-                      <h3 className="font-medium">Synkroniser ordrer</h3>
+                      <h3 className="font-medium">{t("fikenSettings.syncOrdersTitle")}</h3>
                       <p className="text-sm text-muted-foreground">
-                        {syncStatus?.unsyncedOrders || 0} usynkroniserte ordrer
+                        {t("fikenSettings.unsyncedOrdersCount", {
+                          count: syncStatus?.unsyncedOrders || 0,
+                        })}
                       </p>
                     </div>
                     <Button
@@ -527,16 +564,16 @@ export default function FikenSettings() {
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
                       {syncAllOrdersMutation.isPending
-                        ? "Synkroniserer..."
-                        : "Synkroniser"}
+                        ? t("fikenSettings.syncing")
+                        : t("fikenSettings.sync")}
                     </Button>
                   </div>
 
                   <div className="flex items-center justify-between p-4 border rounded-lg">
                     <div>
-                      <h3 className="font-medium">Synkroniser tjenester</h3>
+                      <h3 className="font-medium">{t("fikenSettings.syncServicesTitle")}</h3>
                       <p className="text-sm text-muted-foreground">
-                        Synkroniser alle tjenester som produkter i Fiken
+                        {t("fikenSettings.syncServicesDescription")}
                       </p>
                     </div>
                     <Button
@@ -547,16 +584,16 @@ export default function FikenSettings() {
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
                       {syncAllServicesMutation.isPending
-                        ? "Synkroniserer..."
-                        : "Synkroniser"}
+                        ? t("fikenSettings.syncing")
+                        : t("fikenSettings.sync")}
                     </Button>
                   </div>
 
                   <div className="flex items-center justify-between p-4 border rounded-lg">
                     <div>
-                      <h3 className="font-medium">Synkroniser produkter</h3>
+                      <h3 className="font-medium">{t("fikenSettings.syncProductsTitle")}</h3>
                       <p className="text-sm text-muted-foreground">
-                        Synkroniser alle fysiske produkter til Fiken
+                        {t("fikenSettings.syncProductsDescription")}
                       </p>
                     </div>
                     <Button
@@ -567,16 +604,16 @@ export default function FikenSettings() {
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
                       {syncAllProductsMutation.isPending
-                        ? "Synkroniserer..."
-                        : "Synkroniser"}
+                        ? t("fikenSettings.syncing")
+                        : t("fikenSettings.sync")}
                     </Button>
                   </div>
 
                   <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
                     <div>
-                      <h3 className="font-medium">Full synkronisering</h3>
+                      <h3 className="font-medium">{t("fikenSettings.fullSyncTitle")}</h3>
                       <p className="text-sm text-muted-foreground">
-                        Synkroniser alt: kunder, tjenester, produkter og ordrer
+                        {t("fikenSettings.fullSyncDescription")}
                       </p>
                     </div>
                     <Button
@@ -588,8 +625,8 @@ export default function FikenSettings() {
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
                       {manualFullSyncMutation.isPending
-                        ? "Synkroniserer..."
-                        : "Synkroniser alt"}
+                        ? t("fikenSettings.syncing")
+                        : t("fikenSettings.syncAll")}
                     </Button>
                   </div>
                 </>
@@ -602,13 +639,13 @@ export default function FikenSettings() {
         <TabsContent value="logs" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Synkroniseringslogg</CardTitle>
-              <CardDescription>Historikk over synkroniseringer</CardDescription>
+              <CardTitle>{t("fikenSettings.syncLogTitle")}</CardTitle>
+              <CardDescription>{t("fikenSettings.syncLogDescription")}</CardDescription>
             </CardHeader>
             <CardContent>
               {!syncLogs || syncLogs.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">
-                  Ingen loggoppføringer ennå
+                  {t("fikenSettings.noLogEntries")}
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -637,8 +674,10 @@ export default function FikenSettings() {
                         </div>
                         {log.itemsProcessed > 0 && (
                           <p className="text-sm text-muted-foreground">
-                            {log.itemsProcessed} behandlet, {log.itemsFailed}{" "}
-                            feilet
+                            {t("fikenSettings.logProcessedFailed", {
+                              processed: log.itemsProcessed,
+                              failed: log.itemsFailed,
+                            })}
                           </p>
                         )}
                         {log.errorMessage && (
@@ -659,23 +698,22 @@ export default function FikenSettings() {
         <TabsContent value="settings" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>OAuth-legitimasjon</CardTitle>
+              <CardTitle>{t("fikenSettings.oauthCredentialsTitle")}</CardTitle>
               <CardDescription>
-                Konfigurer Fiken OAuth-tilgang. Du må opprette en OAuth-app i
-                Fiken først.
+                {t("fikenSettings.oauthCredentialsDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Hvordan få OAuth-legitimasjon:</strong>
+                  <strong>{t("fikenSettings.howToGetCredentials")}</strong>
                   <ol className="list-decimal list-inside mt-2 space-y-1">
-                    <li>Logg inn på Fiken.no</li>
-                    <li>Gå til Rediger konto → Profil → Andre innstillinger</li>
-                    <li>Aktiver "Jeg er utvikler"</li>
-                    <li>Gå til "API"-fanen og opprett en ny app</li>
-                    <li>Kopier Client ID og Client Secret hit</li>
+                    <li>{t("fikenSettings.credentialsStep1")}</li>
+                    <li>{t("fikenSettings.credentialsStep2")}</li>
+                    <li>{t("fikenSettings.credentialsStep3")}</li>
+                    <li>{t("fikenSettings.credentialsStep4")}</li>
+                    <li>{t("fikenSettings.credentialsStep5")}</li>
                   </ol>
                 </AlertDescription>
               </Alert>
@@ -687,7 +725,7 @@ export default function FikenSettings() {
                   type="text"
                   value={clientId}
                   onChange={e => setClientId(e.target.value)}
-                  placeholder="Din Fiken OAuth Client ID"
+                  placeholder={t("fikenSettings.clientIdPlaceholder")}
                 />
               </div>
 
@@ -698,7 +736,7 @@ export default function FikenSettings() {
                   type="password"
                   value={clientSecret}
                   onChange={e => setClientSecret(e.target.value)}
-                  placeholder="Din Fiken OAuth Client Secret"
+                  placeholder={t("fikenSettings.clientSecretPlaceholder")}
                 />
               </div>
 
@@ -709,15 +747,14 @@ export default function FikenSettings() {
                 {saveCredentialsMutation.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Lagre legitimasjon
+                {t("fikenSettings.saveCredentials")}
               </Button>
 
               {settings?.hasCredentials && (
                 <Alert>
                   <CheckCircle2 className="h-4 w-4" />
                   <AlertDescription>
-                    OAuth-legitimasjon er lagret. Du kan nå koble til Fiken fra
-                    Oversikt-fanen.
+                    {t("fikenSettings.credentialsSavedAlert")}
                   </AlertDescription>
                 </Alert>
               )}

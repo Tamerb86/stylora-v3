@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Shield, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export default function SaasAdminLogin() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const { data: user, isLoading, refetch } = trpc.auth.me.useQuery();
   const [email, setEmail] = useState("");
@@ -29,20 +31,20 @@ export default function SaasAdminLogin() {
     e.preventDefault();
 
     if (!email || !password) {
-      toast.error("Vennligst fyll inn e-post og passord");
+      toast.error(t("saasAdminLogin.fillEmailAndPassword"));
       return;
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      toast.error("Ugyldig e-postformat");
+      toast.error(t("saasAdminLogin.invalidEmailFormat"));
       return;
     }
 
     // Validate password length
     if (password.length < 6) {
-      toast.error("Passordet må være minst 6 tegn");
+      toast.error(t("saasAdminLogin.passwordTooShort"));
       return;
     }
 
@@ -58,7 +60,7 @@ export default function SaasAdminLogin() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        toast.success("Innlogget!");
+        toast.success(t("saasAdminLogin.loggedIn"));
         await refetch();
         // Check if user is platform owner after login
         setTimeout(() => {
@@ -67,18 +69,18 @@ export default function SaasAdminLogin() {
       } else {
         // Provide more specific error messages
         if (response.status === 401) {
-          toast.error("Ugyldig e-post eller passord");
+          toast.error(t("saasAdminLogin.invalidCredentials"));
         } else if (response.status === 403) {
-          toast.error(data.error || "Kontoen er deaktivert");
+          toast.error(data.error || t("saasAdminLogin.accountDeactivated"));
         } else if (response.status === 500) {
-          toast.error("Serverfeil. Vennligst prøv igjen senere.");
+          toast.error(t("saasAdminLogin.serverError"));
         } else {
-          toast.error(data.error || "Innlogging feilet");
+          toast.error(data.error || t("saasAdminLogin.loginFailed"));
         }
       }
     } catch (error) {
       console.error("Login error:", error);
-      toast.error("Nettverksfeil. Sjekk internettforbindelsen din og prøv igjen.");
+      toast.error(t("saasAdminLogin.networkError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -90,7 +92,7 @@ export default function SaasAdminLogin() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-          <p className="text-gray-600">Laster...</p>
+          <p className="text-gray-600">{t("saasAdminLogin.loading")}</p>
         </div>
       </div>
     );
@@ -122,11 +124,10 @@ export default function SaasAdminLogin() {
                 <AlertCircle className="h-8 w-8 text-red-600" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Ingen tilgang
+                {t("saasAdminLogin.noAccessTitle")}
               </h2>
               <p className="text-gray-600 mb-6">
-                Du har ikke tillatelse til å få tilgang til Platform
-                Admin-panelet. Dette området er kun for plattformeieren.
+                {t("saasAdminLogin.noAccessDescription")}
               </p>
               <div className="space-y-2">
                 <Button
@@ -134,7 +135,7 @@ export default function SaasAdminLogin() {
                   variant="outline"
                   className="w-full"
                 >
-                  Gå til hjemmesiden
+                  {t("saasAdminLogin.goToHome")}
                 </Button>
                 <Button
                   onClick={async () => {
@@ -144,7 +145,7 @@ export default function SaasAdminLogin() {
                   variant="ghost"
                   className="w-full text-gray-600"
                 >
-                  Logg ut
+                  {t("saasAdminLogin.logout")}
                 </Button>
               </div>
             </div>
@@ -152,14 +153,14 @@ export default function SaasAdminLogin() {
             // Login Form
             <form onSubmit={handleLogin} className="space-y-4">
               <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">
-                Velkommen tilbake
+                {t("saasAdminLogin.welcomeBack")}
               </h2>
               <p className="text-gray-600 mb-6 text-center">
-                Logg inn for å administrere alle salonger i plattformen
+                {t("saasAdminLogin.loginSubtitle")}
               </p>
 
               <div className="space-y-2">
-                <Label htmlFor="email">E-post</Label>
+                <Label htmlFor="email">{t("saasAdminLogin.emailLabel")}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -171,7 +172,7 @@ export default function SaasAdminLogin() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Passord</Label>
+                <Label htmlFor="password">{t("saasAdminLogin.passwordLabel")}</Label>
                 <Input
                   id="password"
                   type="password"
@@ -190,19 +191,19 @@ export default function SaasAdminLogin() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Logger inn...
+                    {t("saasAdminLogin.loggingIn")}
                   </>
                 ) : (
                   <>
                     <Shield className="mr-2 h-5 w-5" />
-                    Logg inn som plattformeier
+                    {t("saasAdminLogin.loginAsOwner")}
                   </>
                 )}
               </Button>
 
               <div className="pt-4 border-t border-gray-200">
                 <p className="text-sm text-gray-500 text-center">
-                  Kun plattformeieren har tilgang til dette området
+                  {t("saasAdminLogin.ownerOnlyNote")}
                 </p>
               </div>
             </form>
@@ -212,7 +213,7 @@ export default function SaasAdminLogin() {
         {/* Footer */}
         <div className="text-center mt-6">
           <p className="text-sm text-gray-500">
-            Sikker innlogging med kryptert tilkobling
+            {t("saasAdminLogin.secureLoginNote")}
           </p>
         </div>
       </div>

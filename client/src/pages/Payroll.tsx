@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import DashboardLayout from "@/components/DashboardLayout";
 import {
   Card,
@@ -115,6 +116,7 @@ interface PayslipData {
 }
 
 export default function Payroll() {
+  const { t } = useTranslation();
   const [selectedMonth] = useState(String(new Date().getMonth() + 1));
   const [selectedYear] = useState(String(currentYear));
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(
@@ -197,9 +199,9 @@ export default function Payroll() {
         }, 500);
       }
 
-      toast.success("Lønnsslipp generert for utskrift");
+      toast.success(t("payroll.payslipGenerated"));
     } catch (error) {
-      toast.error("Kunne ikke generere lønnsslipp");
+      toast.error(t("payroll.payslipGenerateError"));
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -512,17 +514,17 @@ export default function Payroll() {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Lønnsadministrasjon
+              {t("payroll.title")}
             </h1>
             <p className="text-muted-foreground">
-              Administrer lønn, provisjoner og generer lønnsslipp for ansatte
+              {t("payroll.subtitle")}
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <Select value={selectedMonth} disabled>
               <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Måned" />
+                <SelectValue placeholder={t("payroll.monthPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {MONTHS.map(month => (
@@ -535,7 +537,7 @@ export default function Payroll() {
 
             <Select value={selectedYear} disabled>
               <SelectTrigger className="w-[100px]">
-                <SelectValue placeholder="År" />
+                <SelectValue placeholder={t("payroll.yearPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {YEARS.map(year => (
@@ -553,7 +555,7 @@ export default function Payroll() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Totale inntekter
+                {t("payroll.totalEarnings")}
               </CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -562,7 +564,7 @@ export default function Payroll() {
                 {formatCurrency(totals.totalEarnings)}
               </div>
               <p className="text-xs text-muted-foreground">
-                For {totals.employeeCount} ansatte
+                {t("payroll.forNEmployees", { count: totals.employeeCount })}
               </p>
             </CardContent>
           </Card>
@@ -570,7 +572,7 @@ export default function Payroll() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Totale fradrag
+                {t("payroll.totalDeductions")}
               </CardTitle>
               <AlertCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -579,7 +581,7 @@ export default function Payroll() {
                 {formatCurrency(totals.totalDeductions)}
               </div>
               <p className="text-xs text-muted-foreground">
-                Skatt, forsikring, pensjon
+                {t("payroll.deductionsBreakdown")}
               </p>
             </CardContent>
           </Card>
@@ -587,7 +589,7 @@ export default function Payroll() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Netto utbetaling
+                {t("payroll.netPayout")}
               </CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -596,20 +598,20 @@ export default function Payroll() {
                 {formatCurrency(totals.totalNet)}
               </div>
               <p className="text-xs text-muted-foreground">
-                Total til utbetaling
+                {t("payroll.totalToPay")}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Ansatte</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("payroll.employees")}</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totals.employeeCount}</div>
               <p className="text-xs text-muted-foreground">
-                Aktive denne måneden
+                {t("payroll.activeThisMonth")}
               </p>
             </CardContent>
           </Card>
@@ -620,12 +622,12 @@ export default function Payroll() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Briefcase className="h-5 w-5" />
-              Lønnsoversikt -{" "}
+              {t("payroll.payrollOverview")} -{" "}
               {MONTHS.find(m => m.value === selectedMonth)?.label}{" "}
               {selectedYear}
             </CardTitle>
             <CardDescription>
-              Klikk på en ansatt for å se detaljert lønnsslipp og generere PDF
+              {t("payroll.payrollOverviewDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -637,14 +639,14 @@ export default function Payroll() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Ansatt</TableHead>
-                    <TableHead>Stilling</TableHead>
-                    <TableHead className="text-right">Avtaler</TableHead>
-                    <TableHead className="text-right">Inntekter</TableHead>
-                    <TableHead className="text-right">Fradrag</TableHead>
-                    <TableHead className="text-right">Ferie</TableHead>
-                    <TableHead className="text-right">Netto</TableHead>
-                    <TableHead className="text-right">Handling</TableHead>
+                    <TableHead>{t("payroll.colEmployee")}</TableHead>
+                    <TableHead>{t("payroll.colPosition")}</TableHead>
+                    <TableHead className="text-right">{t("payroll.colAppointments")}</TableHead>
+                    <TableHead className="text-right">{t("payroll.colEarnings")}</TableHead>
+                    <TableHead className="text-right">{t("payroll.colDeductions")}</TableHead>
+                    <TableHead className="text-right">{t("payroll.colLeave")}</TableHead>
+                    <TableHead className="text-right">{t("payroll.colNet")}</TableHead>
+                    <TableHead className="text-right">{t("payroll.colAction")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -659,10 +661,10 @@ export default function Payroll() {
                       <TableCell>
                         <Badge variant="outline">
                           {employee.role === "employee"
-                            ? "Ansatt"
+                            ? t("payroll.roleEmployee")
                             : employee.role === "admin"
-                              ? "Admin"
-                              : "Eier"}
+                              ? t("payroll.roleAdmin")
+                              : t("payroll.roleOwner")}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -677,7 +679,7 @@ export default function Payroll() {
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
                           <Plane className="h-3 w-3 text-muted-foreground" />
-                          <span>{employee.leaveDays}d</span>
+                          <span>{t("payroll.leaveDaysShort", { count: employee.leaveDays })}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-right font-semibold text-green-600">
@@ -690,7 +692,7 @@ export default function Payroll() {
                           onClick={() => handleViewPayslip(employee.employeeId)}
                         >
                           <FileText className="h-4 w-4 mr-1" />
-                          Lønnsslipp
+                          {t("payroll.payslip")}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -700,9 +702,9 @@ export default function Payroll() {
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Users className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold">Ingen lønnsdata</h3>
+                <h3 className="text-lg font-semibold">{t("payroll.noPayrollData")}</h3>
                 <p className="text-muted-foreground">
-                  Det er ingen lønnsdata for denne perioden
+                  {t("payroll.noPayrollDataForPeriod")}
                 </p>
               </div>
             )}
@@ -715,7 +717,7 @@ export default function Payroll() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Lønnsslipp
+                {t("payroll.payslip")}
               </DialogTitle>
               <DialogDescription>
                 {payslipData && (
@@ -741,27 +743,27 @@ export default function Payroll() {
                 {/* Employee Info */}
                 <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
                   <div>
-                    <p className="text-sm text-muted-foreground">Navn</p>
+                    <p className="text-sm text-muted-foreground">{t("payroll.fieldName")}</p>
                     <p className="font-medium">{payslipData.employee.name}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">E-post</p>
+                    <p className="text-sm text-muted-foreground">{t("payroll.fieldEmail")}</p>
                     <p className="font-medium">
                       {payslipData.employee.email || "-"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Stilling</p>
+                    <p className="text-sm text-muted-foreground">{t("payroll.fieldPosition")}</p>
                     <p className="font-medium">
                       {payslipData.employee.role === "employee"
-                        ? "Ansatt"
+                        ? t("payroll.roleEmployee")
                         : payslipData.employee.role === "admin"
-                          ? "Administrator"
-                          : "Eier"}
+                          ? t("payroll.roleAdministrator")
+                          : t("payroll.roleOwner")}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Provisjon</p>
+                    <p className="text-sm text-muted-foreground">{t("payroll.fieldCommission")}</p>
                     <p className="font-medium">
                       {payslipData.employee.commissionRate || 0}%
                     </p>
@@ -772,7 +774,7 @@ export default function Payroll() {
                 <div>
                   <h4 className="font-semibold mb-3 flex items-center gap-2">
                     <Plane className="h-4 w-4" />
-                    Ferieoversikt
+                    {t("payroll.leaveOverview")}
                   </h4>
                   <div className="grid grid-cols-3 gap-3">
                     <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg text-center">
@@ -780,7 +782,7 @@ export default function Payroll() {
                         {payslipData.leaves.paidLeaveDays}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Betalte dager
+                        {t("payroll.paidDays")}
                       </p>
                     </div>
                     <div className="p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg text-center">
@@ -788,14 +790,14 @@ export default function Payroll() {
                         {payslipData.leaves.unpaidLeaveDays}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Ubetalte dager
+                        {t("payroll.unpaidDays")}
                       </p>
                     </div>
                     <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg text-center">
                       <p className="text-2xl font-bold text-blue-600">
                         {payslipData.leaves.sickLeaveDays}
                       </p>
-                      <p className="text-xs text-muted-foreground">Sykedager</p>
+                      <p className="text-xs text-muted-foreground">{t("payroll.sickDays")}</p>
                     </div>
                   </div>
                 </div>
@@ -806,18 +808,18 @@ export default function Payroll() {
                 <div>
                   <h4 className="font-semibold mb-3 flex items-center gap-2">
                     <TrendingUp className="h-4 w-4" />
-                    Inntekter
+                    {t("payroll.earnings")}
                   </h4>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Grunnlønn</span>
+                      <span className="text-muted-foreground">{t("payroll.baseSalary")}</span>
                       <span>
                         {formatCurrency(payslipData.earnings.baseSalary)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">
-                        Tjenesteprovisjon
+                        {t("payroll.serviceCommission")}
                       </span>
                       <span>
                         {formatCurrency(payslipData.earnings.serviceCommission)}
@@ -825,23 +827,23 @@ export default function Payroll() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">
-                        Produktprovisjon
+                        {t("payroll.productCommission")}
                       </span>
                       <span>
                         {formatCurrency(payslipData.earnings.productCommission)}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Tips</span>
+                      <span className="text-muted-foreground">{t("payroll.tips")}</span>
                       <span>{formatCurrency(payslipData.earnings.tips)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Bonus</span>
+                      <span className="text-muted-foreground">{t("payroll.bonus")}</span>
                       <span>{formatCurrency(payslipData.earnings.bonus)}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between font-semibold">
-                      <span>Totale inntekter</span>
+                      <span>{t("payroll.totalEarnings")}</span>
                       <span>
                         {formatCurrency(payslipData.earnings.totalEarnings)}
                       </span>
@@ -855,24 +857,24 @@ export default function Payroll() {
                 <div>
                   <h4 className="font-semibold mb-3 flex items-center gap-2">
                     <AlertCircle className="h-4 w-4" />
-                    Fradrag
+                    {t("payroll.deductions")}
                   </h4>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Skatt (30%)</span>
+                      <span className="text-muted-foreground">{t("payroll.tax")}</span>
                       <span className="text-orange-600">
                         {formatCurrency(payslipData.deductions.tax)}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Forsikring</span>
+                      <span className="text-muted-foreground">{t("payroll.insurance")}</span>
                       <span className="text-orange-600">
                         {formatCurrency(payslipData.deductions.insurance)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">
-                        Pensjon (2%)
+                        {t("payroll.pension")}
                       </span>
                       <span className="text-orange-600">
                         {formatCurrency(payslipData.deductions.pension)}
@@ -880,7 +882,7 @@ export default function Payroll() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">
-                        Ubetalt ferie
+                        {t("payroll.unpaidLeave")}
                       </span>
                       <span className="text-orange-600">
                         {formatCurrency(payslipData.deductions.unpaidLeave)}
@@ -888,7 +890,7 @@ export default function Payroll() {
                     </div>
                     <Separator />
                     <div className="flex justify-between font-semibold">
-                      <span>Totale fradrag</span>
+                      <span>{t("payroll.totalDeductions")}</span>
                       <span className="text-orange-600">
                         {formatCurrency(payslipData.deductions.totalDeductions)}
                       </span>
@@ -903,7 +905,7 @@ export default function Payroll() {
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="h-5 w-5" />
-                      <span className="font-semibold">Netto lønn</span>
+                      <span className="font-semibold">{t("payroll.netSalary")}</span>
                     </div>
                     <span className="text-2xl font-bold">
                       {formatCurrency(payslipData.netSalary)}
@@ -917,7 +919,7 @@ export default function Payroll() {
                     variant="outline"
                     onClick={() => setShowPayslipDialog(false)}
                   >
-                    Lukk
+                    {t("payroll.close")}
                   </Button>
                   <Button
                     onClick={generatePayslipPdf}
@@ -928,7 +930,7 @@ export default function Payroll() {
                     ) : (
                       <Download className="h-4 w-4 mr-2" />
                     )}
-                    Last ned PDF
+                    {t("payroll.downloadPdf")}
                   </Button>
                 </div>
               </div>

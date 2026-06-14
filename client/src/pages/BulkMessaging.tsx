@@ -31,8 +31,10 @@ import {
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslation } from "react-i18next";
 
 export function BulkMessaging() {
+  const { t } = useTranslation();
   const [messageType, setMessageType] = useState<"sms" | "email">("sms");
   const [campaignName, setCampaignName] = useState("");
   const [subject, setSubject] = useState("");
@@ -104,22 +106,22 @@ export function BulkMessaging() {
 
   const handleSendCampaign = async () => {
     if (!campaignName) {
-      toast.error("Vennligst gi kampanjen et navn");
+      toast.error(t("bulkMessaging.errorNoName"));
       return;
     }
 
     if (!content) {
-      toast.error("Vennligst skriv inn meldingsinnhold");
+      toast.error(t("bulkMessaging.errorNoContent"));
       return;
     }
 
     if (selectedCustomers.length === 0) {
-      toast.error("Vennligst velg minst én kunde");
+      toast.error(t("bulkMessaging.errorNoCustomer"));
       return;
     }
 
     if (messageType === "email" && !subject) {
-      toast.error("Vennligst skriv inn emne for e-post");
+      toast.error(t("bulkMessaging.errorNoSubject"));
       return;
     }
 
@@ -141,8 +143,8 @@ export function BulkMessaging() {
 
       toast.success(
         scheduledAt
-          ? "Kampanje planlagt!"
-          : "Kampanje opprettet! Meldinger sendes snart."
+          ? t("bulkMessaging.campaignScheduled")
+          : t("bulkMessaging.campaignCreated")
       );
 
       // Reset form
@@ -154,7 +156,7 @@ export function BulkMessaging() {
       setScheduleDate("");
       setScheduleTime("");
     } catch (error) {
-      toast.error("Kunne ikke opprette kampanje");
+      toast.error(t("bulkMessaging.errorCreate"));
     }
   };
 
@@ -170,9 +172,9 @@ export function BulkMessaging() {
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Masseutsendelse</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("bulkMessaging.title")}</h1>
           <p className="text-muted-foreground">
-            Send SMS eller e-post til flere kunder samtidig
+            {t("bulkMessaging.subtitle")}
           </p>
         </div>
 
@@ -181,19 +183,19 @@ export function BulkMessaging() {
           <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Kampanjedetaljer</CardTitle>
+                <CardTitle>{t("bulkMessaging.campaignDetails")}</CardTitle>
                 <CardDescription>
-                  Konfigurer meldingen som skal sendes
+                  {t("bulkMessaging.campaignDetailsDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="campaignName">Kampanjenavn</Label>
+                  <Label htmlFor="campaignName">{t("bulkMessaging.campaignName")}</Label>
                   <Input
                     id="campaignName"
                     value={campaignName}
                     onChange={e => setCampaignName(e.target.value)}
-                    placeholder="F.eks. Sommertilbud 2024"
+                    placeholder={t("bulkMessaging.campaignNamePlaceholder")}
                   />
                 </div>
 
@@ -208,7 +210,7 @@ export function BulkMessaging() {
                     </TabsTrigger>
                     <TabsTrigger value="email">
                       <Mail className="h-4 w-4 mr-2" />
-                      E-post
+                      {t("bulkMessaging.email")}
                     </TabsTrigger>
                   </TabsList>
 
@@ -216,14 +218,14 @@ export function BulkMessaging() {
                     {smsTemplates.length > 0 && (
                       <div className="space-y-2">
                         <Label htmlFor="smsTemplate">
-                          Velg mal (valgfritt)
+                          {t("bulkMessaging.selectTemplate")}
                         </Label>
                         <Select
                           value={selectedTemplate}
                           onValueChange={handleTemplateSelect}
                         >
                           <SelectTrigger id="smsTemplate">
-                            <SelectValue placeholder="Velg en mal" />
+                            <SelectValue placeholder={t("bulkMessaging.selectTemplatePlaceholder")} />
                           </SelectTrigger>
                           <SelectContent>
                             {smsTemplates.map((template: any) => (
@@ -240,16 +242,16 @@ export function BulkMessaging() {
                     )}
 
                     <div className="space-y-2">
-                      <Label htmlFor="smsContent">SMS Innhold</Label>
+                      <Label htmlFor="smsContent">{t("bulkMessaging.smsContent")}</Label>
                       <Textarea
                         id="smsContent"
                         value={content}
                         onChange={e => setContent(e.target.value)}
-                        placeholder="Skriv inn SMS-melding..."
+                        placeholder={t("bulkMessaging.smsContentPlaceholder")}
                         rows={5}
                       />
                       <p className="text-xs text-muted-foreground">
-                        {content.length} tegn
+                        {t("bulkMessaging.charCount", { count: content.length })}
                       </p>
                     </div>
                   </TabsContent>
@@ -258,14 +260,14 @@ export function BulkMessaging() {
                     {emailTemplates.length > 0 && (
                       <div className="space-y-2">
                         <Label htmlFor="emailTemplate">
-                          Velg mal (valgfritt)
+                          {t("bulkMessaging.selectTemplate")}
                         </Label>
                         <Select
                           value={selectedTemplate}
                           onValueChange={handleTemplateSelect}
                         >
                           <SelectTrigger id="emailTemplate">
-                            <SelectValue placeholder="Velg en mal" />
+                            <SelectValue placeholder={t("bulkMessaging.selectTemplatePlaceholder")} />
                           </SelectTrigger>
                           <SelectContent>
                             {emailTemplates.map((template: any) => (
@@ -282,22 +284,22 @@ export function BulkMessaging() {
                     )}
 
                     <div className="space-y-2">
-                      <Label htmlFor="emailSubject">Emne</Label>
+                      <Label htmlFor="emailSubject">{t("bulkMessaging.subject")}</Label>
                       <Input
                         id="emailSubject"
                         value={subject}
                         onChange={e => setSubject(e.target.value)}
-                        placeholder="F.eks. Spesialtilbud bare for deg!"
+                        placeholder={t("bulkMessaging.subjectPlaceholder")}
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="emailContent">E-post Innhold</Label>
+                      <Label htmlFor="emailContent">{t("bulkMessaging.emailContent")}</Label>
                       <Textarea
                         id="emailContent"
                         value={content}
                         onChange={e => setContent(e.target.value)}
-                        placeholder="Skriv inn e-postmelding..."
+                        placeholder={t("bulkMessaging.emailContentPlaceholder")}
                         rows={10}
                       />
                     </div>
@@ -306,11 +308,11 @@ export function BulkMessaging() {
 
                 <div className="border-t pt-4 space-y-4">
                   <h3 className="font-semibold">
-                    Planlegg sending (valgfritt)
+                    {t("bulkMessaging.scheduleSending")}
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="scheduleDate">Dato</Label>
+                      <Label htmlFor="scheduleDate">{t("bulkMessaging.date")}</Label>
                       <Input
                         id="scheduleDate"
                         type="date"
@@ -319,7 +321,7 @@ export function BulkMessaging() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="scheduleTime">Tid</Label>
+                      <Label htmlFor="scheduleTime">{t("bulkMessaging.time")}</Label>
                       <Input
                         id="scheduleTime"
                         type="time"
@@ -345,30 +347,30 @@ export function BulkMessaging() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Mottakere</CardTitle>
+                <CardTitle>{t("bulkMessaging.recipients")}</CardTitle>
                 <CardDescription>
-                  Velg kunder som skal motta meldingen
+                  {t("bulkMessaging.recipientsDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="filterType">Filter</Label>
+                  <Label htmlFor="filterType">{t("bulkMessaging.filter")}</Label>
                   <Select value={filterType} onValueChange={handleFilterChange}>
                     <SelectTrigger id="filterType">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Alle kunder</SelectItem>
-                      <SelectItem value="recent">Nylige kunder</SelectItem>
-                      <SelectItem value="high_value">Høyverdikunder</SelectItem>
-                      <SelectItem value="inactive">Inaktive kunder</SelectItem>
+                      <SelectItem value="all">{t("bulkMessaging.filterAll")}</SelectItem>
+                      <SelectItem value="recent">{t("bulkMessaging.filterRecent")}</SelectItem>
+                      <SelectItem value="high_value">{t("bulkMessaging.filterHighValue")}</SelectItem>
+                      <SelectItem value="inactive">{t("bulkMessaging.filterInactive")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 {filterType === "recent" || filterType === "inactive" ? (
                   <div className="space-y-2">
-                    <Label htmlFor="lastVisitDays">Siste besøk (dager)</Label>
+                    <Label htmlFor="lastVisitDays">{t("bulkMessaging.lastVisitDays")}</Label>
                     <Input
                       id="lastVisitDays"
                       type="number"
@@ -382,7 +384,7 @@ export function BulkMessaging() {
                 {filterType === "high_value" && (
                   <div className="space-y-2">
                     <Label htmlFor="minTotalSpent">
-                      Min. totalforbruk (NOK)
+                      {t("bulkMessaging.minTotalSpent")}
                     </Label>
                     <Input
                       id="minTotalSpent"
@@ -396,20 +398,22 @@ export function BulkMessaging() {
 
                 <div className="flex items-center justify-between pt-2">
                   <span className="text-sm font-medium">
-                    {selectedCustomers.length} av {filteredCustomers.length}{" "}
-                    valgt
+                    {t("bulkMessaging.selectedCount", {
+                      selected: selectedCustomers.length,
+                      total: filteredCustomers.length,
+                    })}
                   </span>
                   <Button variant="outline" size="sm" onClick={handleSelectAll}>
                     {selectedCustomers.length === filteredCustomers.length
-                      ? "Fjern alle"
-                      : "Velg alle"}
+                      ? t("bulkMessaging.deselectAll")
+                      : t("bulkMessaging.selectAll")}
                   </Button>
                 </div>
 
                 <div className="border rounded-lg max-h-96 overflow-y-auto">
                   {filteredCustomers.length === 0 ? (
                     <p className="text-center text-muted-foreground py-8">
-                      Ingen kunder funnet med dette filteret
+                      {t("bulkMessaging.noCustomers")}
                     </p>
                   ) : (
                     <div className="divide-y">
@@ -451,16 +455,16 @@ export function BulkMessaging() {
                   }
                 >
                   {createCampaignMutation.isPending ? (
-                    "Oppretter..."
+                    t("bulkMessaging.creating")
                   ) : scheduleDate && scheduleTime ? (
                     <>
                       <Calendar className="h-4 w-4 mr-2" />
-                      Planlegg Kampanje
+                      {t("bulkMessaging.scheduleCampaign")}
                     </>
                   ) : (
                     <>
                       <Send className="h-4 w-4 mr-2" />
-                      Send Nå
+                      {t("bulkMessaging.sendNow")}
                     </>
                   )}
                 </Button>

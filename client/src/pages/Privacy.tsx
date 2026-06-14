@@ -13,8 +13,10 @@ import {
   FileText,
 } from "lucide-react";
 import Footer from "@/components/Footer";
+import { useTranslation } from "react-i18next";
 
 export default function Privacy() {
+  const { t } = useTranslation();
   const lastUpdated = "16. desember 2024";
 
   return (
@@ -30,7 +32,7 @@ export default function Privacy() {
           <Link href="/">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Tilbake til forsiden
+              {t("privacy.backToHome")}
             </Button>
           </Link>
         </div>
@@ -44,9 +46,9 @@ export default function Privacy() {
               <Shield className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold">Personvernerklæring</h1>
+              <h1 className="text-3xl font-bold">{t("privacy.title")}</h1>
               <p className="text-muted-foreground">
-                Sist oppdatert: {lastUpdated}
+                {t("privacy.lastUpdated", { date: lastUpdated })}
               </p>
             </div>
           </div>
@@ -70,13 +72,13 @@ export default function Privacy() {
           <section>
             <div className="flex items-center gap-2 mb-4">
               <Database className="h-5 w-5 text-green-600" />
-              <h2 className="text-xl font-bold m-0">1. Behandlingsansvarlig</h2>
+              <h2 className="text-xl font-bold m-0">{t("privacy.section1Title")}</h2>
             </div>
             <div className="bg-white rounded-lg border p-4">
               <p>
                 <strong>Nexify CRM Systems AS</strong>
               </p>
-              <p>Organisasjonsnummer: 936 300 278</p>
+              <p>{t("privacy.orgNumber", { number: "936 300 278" })}</p>
               <p>
                 E-post:{" "}
                 <a
@@ -86,12 +88,7 @@ export default function Privacy() {
                   personvern@stylora.no
                 </a>
               </p>
-              <p className="mt-4">
-                Vi er behandlingsansvarlig for personopplysninger vi samler inn
-                direkte fra deg. For personopplysninger som våre kunder
-                (salonger) registrerer om sine sluttkunder, er salongen
-                behandlingsansvarlig og vi er databehandler.
-              </p>
+              <p className="mt-4">{t("privacy.section1Body")}</p>
             </div>
           </section>
 
@@ -100,41 +97,39 @@ export default function Privacy() {
             <div className="flex items-center gap-2 mb-4">
               <Eye className="h-5 w-5 text-green-600" />
               <h2 className="text-xl font-bold m-0">
-                2. Hvilke personopplysninger samler vi inn?
+                {t("privacy.section2Title")}
               </h2>
             </div>
 
             <h3 className="text-lg font-semibold mt-4">
-              2.1 Kontoinformasjon (Salongkunder)
+              {t("privacy.section2_1Title")}
             </h3>
             <ul className="list-disc pl-6 space-y-1">
-              <li>Navn og kontaktinformasjon (e-post, telefon)</li>
-              <li>
-                Bedriftsinformasjon (firmanavn, organisasjonsnummer, adresse)
-              </li>
-              <li>Påloggingsinformasjon (e-post, kryptert passord)</li>
-              <li>Betalingsinformasjon (via sikker betalingsleverandør)</li>
-              <li>Bruksmønstre og preferanser i tjenesten</li>
+              <li>{t("privacy.section2_1Item1")}</li>
+              <li>{t("privacy.section2_1Item2")}</li>
+              <li>{t("privacy.section2_1Item3")}</li>
+              <li>{t("privacy.section2_1Item4")}</li>
+              <li>{t("privacy.section2_1Item5")}</li>
             </ul>
 
             <h3 className="text-lg font-semibold mt-4">
-              2.2 Sluttkundedata (Salongenes kunder)
+              {t("privacy.section2_2Title")}
             </h3>
-            <p>Salonger kan registrere følgende om sine kunder:</p>
+            <p>{t("privacy.section2_2Intro")}</p>
             <ul className="list-disc pl-6 space-y-1">
-              <li>Navn og kontaktinformasjon</li>
-              <li>Avtalehistorikk og preferanser</li>
-              <li>Notater (f.eks. allergier, ønsker)</li>
-              <li>Kjøps- og betalingshistorikk</li>
-              <li>Samtykke til markedsføring</li>
+              <li>{t("privacy.section2_2Item1")}</li>
+              <li>{t("privacy.section2_2Item2")}</li>
+              <li>{t("privacy.section2_2Item3")}</li>
+              <li>{t("privacy.section2_2Item4")}</li>
+              <li>{t("privacy.section2_2Item5")}</li>
             </ul>
 
-            <h3 className="text-lg font-semibold mt-4">2.3 Tekniske data</h3>
+            <h3 className="text-lg font-semibold mt-4">{t("privacy.section2_3Title")}</h3>
             <ul className="list-disc pl-6 space-y-1">
-              <li>IP-adresse og enhetstype</li>
-              <li>Nettlesertype og operativsystem</li>
-              <li>Tidspunkt for innlogging og aktivitet</li>
-              <li>Feillogger for feilsøking</li>
+              <li>{t("privacy.section2_3Item1")}</li>
+              <li>{t("privacy.section2_3Item2")}</li>
+              <li>{t("privacy.section2_3Item3")}</li>
+              <li>{t("privacy.section2_3Item4")}</li>
             </ul>
           </section>
 
@@ -143,7 +138,7 @@ export default function Privacy() {
             <div className="flex items-center gap-2 mb-4">
               <FileText className="h-5 w-5 text-green-600" />
               <h2 className="text-xl font-bold m-0">
-                3. Formål og rettslig grunnlag
+                {t("privacy.section3Title")}
               </h2>
             </div>
 
@@ -151,51 +146,51 @@ export default function Privacy() {
               <table className="w-full border-collapse bg-white rounded-lg overflow-hidden">
                 <thead className="bg-slate-100">
                   <tr>
-                    <th className="text-left p-3 border-b">Formål</th>
+                    <th className="text-left p-3 border-b">{t("privacy.purposeHeader")}</th>
                     <th className="text-left p-3 border-b">
-                      Rettslig grunnlag
+                      {t("privacy.legalBasisHeader")}
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td className="p-3 border-b">
-                      Levere og administrere tjenesten
+                      {t("privacy.purpose1")}
                     </td>
-                    <td className="p-3 border-b">Avtale (GDPR art. 6(1)(b))</td>
+                    <td className="p-3 border-b">{t("privacy.legalBasis1")}</td>
                   </tr>
                   <tr>
-                    <td className="p-3 border-b">Fakturering og betaling</td>
+                    <td className="p-3 border-b">{t("privacy.purpose2")}</td>
                     <td className="p-3 border-b">
-                      Avtale og rettslig forpliktelse
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="p-3 border-b">Kundeservice og support</td>
-                    <td className="p-3 border-b">
-                      Avtale og berettiget interesse
+                      {t("privacy.legalBasis2")}
                     </td>
                   </tr>
                   <tr>
-                    <td className="p-3 border-b">Forbedre tjenesten</td>
+                    <td className="p-3 border-b">{t("privacy.purpose3")}</td>
                     <td className="p-3 border-b">
-                      Berettiget interesse (GDPR art. 6(1)(f))
+                      {t("privacy.legalBasis3")}
                     </td>
                   </tr>
                   <tr>
+                    <td className="p-3 border-b">{t("privacy.purpose4")}</td>
                     <td className="p-3 border-b">
-                      Markedsføring (med samtykke)
-                    </td>
-                    <td className="p-3 border-b">
-                      Samtykke (GDPR art. 6(1)(a))
+                      {t("privacy.legalBasis4")}
                     </td>
                   </tr>
                   <tr>
                     <td className="p-3 border-b">
-                      Oppfylle lovkrav (regnskap, skatt)
+                      {t("privacy.purpose5")}
                     </td>
                     <td className="p-3 border-b">
-                      Rettslig forpliktelse (GDPR art. 6(1)(c))
+                      {t("privacy.legalBasis5")}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 border-b">
+                      {t("privacy.purpose6")}
+                    </td>
+                    <td className="p-3 border-b">
+                      {t("privacy.legalBasis6")}
                     </td>
                   </tr>
                 </tbody>
@@ -208,16 +203,13 @@ export default function Privacy() {
             <div className="flex items-center gap-2 mb-4">
               <Globe className="h-5 w-5 text-green-600" />
               <h2 className="text-xl font-bold m-0">
-                4. Deling av personopplysninger
+                {t("privacy.section4Title")}
               </h2>
             </div>
-            <p>
-              Vi deler kun personopplysninger med tredjeparter når det er
-              nødvendig:
-            </p>
+            <p>{t("privacy.section4Intro")}</p>
 
             <h3 className="text-lg font-semibold mt-4">
-              4.1 Underleverandører (databehandlere)
+              {t("privacy.section4_1Title")}
             </h3>
             <ul className="list-disc pl-6 space-y-1">
               <li>
@@ -234,27 +226,21 @@ export default function Privacy() {
                 <strong>E-posttjenester:</strong> Amazon SES
               </li>
             </ul>
-            <p className="mt-4">
-              Alle underleverandører er bundet av databehandleravtaler og
-              behandler data kun på våre instrukser.
-            </p>
+            <p className="mt-4">{t("privacy.section4_1Note")}</p>
 
             <h3 className="text-lg font-semibold mt-4">
-              4.2 Lovpålagt utlevering
+              {t("privacy.section4_2Title")}
             </h3>
-            <p>
-              Vi kan utlevere data dersom det kreves av norsk lov,
-              domstolsavgjørelse eller offentlig myndighet med lovlig hjemmel.
-            </p>
+            <p>{t("privacy.section4_2Body")}</p>
           </section>
 
           {/* Section 5 */}
           <section>
             <div className="flex items-center gap-2 mb-4">
               <Lock className="h-5 w-5 text-green-600" />
-              <h2 className="text-xl font-bold m-0">5. Sikkerhet</h2>
+              <h2 className="text-xl font-bold m-0">{t("privacy.section5Title")}</h2>
             </div>
-            <p>Vi implementerer omfattende sikkerhetstiltak:</p>
+            <p>{t("privacy.section5Intro")}</p>
             <ul className="list-disc pl-6 space-y-1">
               <li>
                 <strong>Kryptering:</strong> All dataoverføring skjer via
@@ -287,41 +273,41 @@ export default function Privacy() {
           <section>
             <div className="flex items-center gap-2 mb-4">
               <Clock className="h-5 w-5 text-green-600" />
-              <h2 className="text-xl font-bold m-0">6. Lagringstid</h2>
+              <h2 className="text-xl font-bold m-0">{t("privacy.section6Title")}</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse bg-white rounded-lg overflow-hidden">
                 <thead className="bg-slate-100">
                   <tr>
-                    <th className="text-left p-3 border-b">Datatype</th>
-                    <th className="text-left p-3 border-b">Lagringstid</th>
+                    <th className="text-left p-3 border-b">{t("privacy.dataTypeHeader")}</th>
+                    <th className="text-left p-3 border-b">{t("privacy.retentionHeader")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td className="p-3 border-b">Kontoinformasjon</td>
+                    <td className="p-3 border-b">{t("privacy.dataType1")}</td>
                     <td className="p-3 border-b">
-                      Så lenge kontoen er aktiv + 30 dager
+                      {t("privacy.retention1")}
                     </td>
                   </tr>
                   <tr>
-                    <td className="p-3 border-b">Transaksjonsdata</td>
-                    <td className="p-3 border-b">5 år (regnskapsloven)</td>
+                    <td className="p-3 border-b">{t("privacy.dataType2")}</td>
+                    <td className="p-3 border-b">{t("privacy.retention2")}</td>
                   </tr>
                   <tr>
-                    <td className="p-3 border-b">Sluttkundedata</td>
+                    <td className="p-3 border-b">{t("privacy.dataType3")}</td>
                     <td className="p-3 border-b">
-                      Styres av salongen (behandlingsansvarlig)
+                      {t("privacy.retention3")}
                     </td>
                   </tr>
                   <tr>
-                    <td className="p-3 border-b">Tekniske logger</td>
-                    <td className="p-3 border-b">90 dager</td>
+                    <td className="p-3 border-b">{t("privacy.dataType4")}</td>
+                    <td className="p-3 border-b">{t("privacy.retention4")}</td>
                   </tr>
                   <tr>
-                    <td className="p-3 border-b">Markedsføringssamtykke</td>
+                    <td className="p-3 border-b">{t("privacy.dataType5")}</td>
                     <td className="p-3 border-b">
-                      Til samtykket trekkes tilbake
+                      {t("privacy.retention5")}
                     </td>
                   </tr>
                 </tbody>
@@ -334,64 +320,63 @@ export default function Privacy() {
             <div className="flex items-center gap-2 mb-4">
               <UserX className="h-5 w-5 text-blue-600" />
               <h2 className="text-xl font-bold m-0">
-                7. Dine rettigheter (GDPR)
+                {t("privacy.section7Title")}
               </h2>
             </div>
-            <p className="mb-4">Som registrert har du følgende rettigheter:</p>
+            <p className="mb-4">{t("privacy.section7Intro")}</p>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-white rounded-lg p-4 border">
-                <h4 className="font-semibold text-blue-600">Rett til innsyn</h4>
+                <h4 className="font-semibold text-blue-600">{t("privacy.rightAccessTitle")}</h4>
                 <p className="text-sm">
-                  Du kan be om kopi av alle personopplysninger vi har om deg.
+                  {t("privacy.rightAccessBody")}
                 </p>
               </div>
               <div className="bg-white rounded-lg p-4 border">
                 <h4 className="font-semibold text-blue-600">
-                  Rett til retting
+                  {t("privacy.rightRectificationTitle")}
                 </h4>
                 <p className="text-sm">
-                  Du kan be om at feilaktige opplysninger rettes.
+                  {t("privacy.rightRectificationBody")}
                 </p>
               </div>
               <div className="bg-white rounded-lg p-4 border">
                 <h4 className="font-semibold text-blue-600">
-                  Rett til sletting
+                  {t("privacy.rightErasureTitle")}
                 </h4>
                 <p className="text-sm">
-                  Du kan be om at dine data slettes ("retten til å bli glemt").
+                  {t("privacy.rightErasureBody")}
                 </p>
               </div>
               <div className="bg-white rounded-lg p-4 border">
                 <h4 className="font-semibold text-blue-600">
-                  Rett til dataportabilitet
+                  {t("privacy.rightPortabilityTitle")}
                 </h4>
                 <p className="text-sm">
-                  Du kan be om å få dine data i et maskinlesbart format.
+                  {t("privacy.rightPortabilityBody")}
                 </p>
               </div>
               <div className="bg-white rounded-lg p-4 border">
                 <h4 className="font-semibold text-blue-600">
-                  Rett til å protestere
+                  {t("privacy.rightObjectTitle")}
                 </h4>
                 <p className="text-sm">
-                  Du kan protestere mot behandling basert på berettiget
-                  interesse.
+                  {t("privacy.rightObjectBody")}
                 </p>
               </div>
               <div className="bg-white rounded-lg p-4 border">
                 <h4 className="font-semibold text-blue-600">
-                  Rett til begrensning
+                  {t("privacy.rightRestrictionTitle")}
                 </h4>
                 <p className="text-sm">
-                  Du kan be om at behandlingen begrenses i visse tilfeller.
+                  {t("privacy.rightRestrictionBody")}
                 </p>
               </div>
             </div>
 
             <div className="mt-6 p-4 bg-white rounded-lg border-2 border-blue-200">
               <h4 className="font-semibold mb-2">
-                Hvordan utøve dine rettigheter?
+                {t("privacy.exerciseRightsTitle")}
               </h4>
               <p className="text-sm mb-3">
                 Send en forespørsel til{" "}
@@ -416,19 +401,14 @@ export default function Privacy() {
             <div className="flex items-center gap-2 mb-4">
               <Globe className="h-5 w-5 text-green-600" />
               <h2 className="text-xl font-bold m-0">
-                8. Overføring til tredjeland
+                {t("privacy.section8Title")}
               </h2>
             </div>
-            <p>
-              Vi lagrer primært alle data på servere i EU/EØS. Dersom data
-              overføres til land utenfor EU/EØS (f.eks. ved bruk av visse
-              skytjenester), sikrer vi at det foreligger tilstrekkelig
-              beskyttelsesnivå gjennom:
-            </p>
+            <p>{t("privacy.section8Intro")}</p>
             <ul className="list-disc pl-6 space-y-1">
-              <li>EU-kommisjonens standard kontraktsklausuler (SCCs)</li>
-              <li>Binding Corporate Rules (BCRs)</li>
-              <li>Tilstrekkelighetsbeslutninger fra EU-kommisjonen</li>
+              <li>{t("privacy.section8Item1")}</li>
+              <li>{t("privacy.section8Item2")}</li>
+              <li>{t("privacy.section8Item3")}</li>
             </ul>
           </section>
 
@@ -437,10 +417,10 @@ export default function Privacy() {
             <div className="flex items-center gap-2 mb-4">
               <FileText className="h-5 w-5 text-green-600" />
               <h2 className="text-xl font-bold m-0">
-                9. Informasjonskapsler (Cookies)
+                {t("privacy.section9Title")}
               </h2>
             </div>
-            <p>Vi bruker følgende typer informasjonskapsler:</p>
+            <p>{t("privacy.section9Intro")}</p>
             <ul className="list-disc pl-6 space-y-1">
               <li>
                 <strong>Nødvendige:</strong> For pålogging og sikkerhet (krever
@@ -454,10 +434,7 @@ export default function Privacy() {
                 (anonymisert)
               </li>
             </ul>
-            <p className="mt-4">
-              Vi bruker ikke informasjonskapsler for reklame eller sporing på
-              tvers av nettsteder.
-            </p>
+            <p className="mt-4">{t("privacy.section9Note")}</p>
           </section>
 
           {/* Section 10 */}
@@ -465,34 +442,26 @@ export default function Privacy() {
             <div className="flex items-center gap-2 mb-4">
               <Shield className="h-5 w-5 text-green-600" />
               <h2 className="text-xl font-bold m-0">
-                10. Endringer i personvernerklæringen
+                {t("privacy.section10Title")}
               </h2>
             </div>
-            <p>
-              Vi kan oppdatere denne personvernerklæringen ved behov. Vesentlige
-              endringer varsles via e-post og/eller i tjenesten minimum 30 dager
-              før de trer i kraft. Vi oppfordrer deg til å gjennomgå denne siden
-              regelmessig.
-            </p>
+            <p>{t("privacy.section10Body")}</p>
           </section>
 
           {/* Section 11 - Complaints */}
           <section>
             <div className="flex items-center gap-2 mb-4">
               <Mail className="h-5 w-5 text-green-600" />
-              <h2 className="text-xl font-bold m-0">11. Klagerett</h2>
+              <h2 className="text-xl font-bold m-0">{t("privacy.section11Title")}</h2>
             </div>
-            <p>
-              Dersom du mener at vi behandler personopplysninger i strid med
-              personvernregelverket, har du rett til å klage til Datatilsynet:
-            </p>
+            <p>{t("privacy.section11Intro")}</p>
             <div className="bg-white rounded-lg border p-4 mt-4">
               <p>
                 <strong>Datatilsynet</strong>
               </p>
               <p>Postboks 458 Sentrum</p>
               <p>0105 Oslo</p>
-              <p>Telefon: 22 39 69 00</p>
+              <p>{t("privacy.phoneLabel", { phone: "22 39 69 00" })}</p>
               <p>
                 E-post:{" "}
                 <a
@@ -520,14 +489,14 @@ export default function Privacy() {
           <section className="bg-slate-50 rounded-xl p-6 border">
             <div className="flex items-center gap-2 mb-4">
               <Mail className="h-5 w-5 text-green-600" />
-              <h2 className="text-xl font-bold m-0">12. Kontakt oss</h2>
+              <h2 className="text-xl font-bold m-0">{t("privacy.section12Title")}</h2>
             </div>
-            <p className="mb-4">For spørsmål om personvern, kontakt oss:</p>
+            <p className="mb-4">{t("privacy.section12Intro")}</p>
             <div className="bg-white rounded-lg border p-4 space-y-2">
               <p>
                 <strong>Nexify CRM Systems AS</strong>
               </p>
-              <p>Organisasjonsnummer: 936 300 278</p>
+              <p>{t("privacy.orgNumber", { number: "936 300 278" })}</p>
               <p>
                 E-post for personvern:{" "}
                 <a
@@ -554,11 +523,11 @@ export default function Privacy() {
         <div className="mt-12 text-center">
           <Link href="/terms">
             <Button variant="outline" className="mr-4">
-              Les vilkår for bruk
+              {t("privacy.readTerms")}
             </Button>
           </Link>
           <Link href="/">
-            <Button>Tilbake til forsiden</Button>
+            <Button>{t("privacy.backToHome")}</Button>
           </Link>
         </div>
       </main>

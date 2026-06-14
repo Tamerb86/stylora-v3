@@ -20,14 +20,16 @@ import {
 import { format } from "date-fns";
 import { nb } from "date-fns/locale";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export default function Backups() {
+  const { t } = useTranslation();
   const [isCreating, setIsCreating] = useState(false);
 
   const { data: backups, refetch } = trpc.backups.list.useQuery();
   const createBackup = trpc.backups.create.useMutation({
     onSuccess: data => {
-      toast.success("Sikkerhetskopi opprettet!");
+      toast.success(t("backups.toast.created"));
       setIsCreating(false);
       refetch();
 
@@ -37,26 +39,24 @@ export default function Backups() {
       }
     },
     onError: error => {
-      toast.error(error.message || "Kunne ikke opprette sikkerhetskopi");
+      toast.error(error.message || t("backups.toast.createFailed"));
       setIsCreating(false);
     },
   });
 
   const deleteBackup = trpc.backups.delete.useMutation({
     onSuccess: () => {
-      toast.success("Sikkerhetskopi slettet");
+      toast.success(t("backups.toast.deleted"));
       refetch();
     },
     onError: error => {
-      toast.error(error.message || "Kunne ikke slette sikkerhetskopi");
+      toast.error(error.message || t("backups.toast.deleteFailed"));
     },
   });
 
   const handleCreateBackup = () => {
     if (
-      confirm(
-        "Er du sikker på at du vil opprette en sikkerhetskopi av databasen?"
-      )
+      confirm(t("backups.confirmCreate"))
     ) {
       setIsCreating(true);
       createBackup.mutate();
@@ -68,9 +68,7 @@ export default function Backups() {
       locale: nb,
     });
     if (
-      confirm(
-        `Er du sikker på at du vil slette sikkerhetskopien fra ${dateStr}?`
-      )
+      confirm(t("backups.confirmDelete", { date: dateStr }))
     ) {
       deleteBackup.mutate({ id });
     }
@@ -95,21 +93,21 @@ export default function Backups() {
 
   const handleDownload = async (backupId: number) => {
     try {
-      toast.info("Genererer sikkerhetskopi...");
+      toast.info(t("backups.toast.generating"));
       const utils = trpc.useUtils();
       const result = await utils.backups.download.fetch({ id: backupId });
       if (result?.sqlContent) {
         const fileName = `backup-${backupId}-${new Date().toISOString().replace(/[:.]/g, "-")}.sql`;
         downloadBackupFile(result.sqlContent, fileName);
-        toast.success("Sikkerhetskopi lastet ned!");
+        toast.success(t("backups.toast.downloaded"));
       }
     } catch (error: any) {
-      toast.error(error.message || "Kunne ikke laste ned sikkerhetskopi");
+      toast.error(error.message || t("backups.toast.downloadFailed"));
     }
   };
 
   const formatFileSize = (bytes?: number | null) => {
-    if (!bytes) return "Ukjent størrelse";
+    if (!bytes) return t("backups.unknownSize");
     const mb = bytes / (1024 * 1024);
     if (mb < 1) {
       const kb = bytes / 1024;
@@ -124,21 +122,21 @@ export default function Backups() {
         return (
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
             <CheckCircle2 className="h-4 w-4" />
-            Fullført
+            {t("backups.status.completed")}
           </span>
         );
       case "failed":
         return (
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
             <AlertCircle className="h-4 w-4" />
-            Feilet
+            {t("backups.status.failed")}
           </span>
         );
       default:
         return (
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
             <Clock className="h-4 w-4" />
-            Pågår
+            {t("backups.status.inProgress")}
           </span>
         );
     }
@@ -155,9 +153,9 @@ export default function Backups() {
       <div className="container py-8 max-w-6xl">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold">Sikkerhetskopier</h1>
+            <h1 className="text-4xl font-bold">{t("backups.title")}</h1>
             <p className="text-muted-foreground mt-2">
-              Administrer databasesikkerhetskopier
+              {t("backups.subtitle")}
             </p>
           </div>
           <Button
@@ -168,8 +166,8 @@ export default function Backups() {
           >
             <Database className="h-5 w-5" />
             {isCreating || createBackup.isPending
-              ? "Oppretter..."
-              : "Opprett Sikkerhetskopi"}
+              ? t("backups.creating")
+              : t("backups.createButton")}
           </Button>
         </div>
 
@@ -178,7 +176,7 @@ export default function Backups() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Totalt Antall
+                {t("backups.totalCount")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -186,7 +184,7 @@ export default function Backups() {
                 {completedBackups.length}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Fullførte sikkerhetskopier
+                {t("backups.completedBackups")}
               </p>
             </CardContent>
           </Card>
@@ -194,7 +192,7 @@ export default function Backups() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Størrelse
+                {t("backups.totalSize")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -202,7 +200,7 @@ export default function Backups() {
                 {formatFileSize(totalSize)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Lagringsplass brukt
+                {t("backups.storageUsed")}
               </p>
             </CardContent>
           </Card>
@@ -210,7 +208,7 @@ export default function Backups() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Siste Sikkerhetskopi
+                {t("backups.lastBackup")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -219,14 +217,14 @@ export default function Backups() {
                   ? format(new Date(completedBackups[0].createdAt), "PPP", {
                       locale: nb,
                     })
-                  : "Ingen"}
+                  : t("backups.none")}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
                 {completedBackups.length > 0
                   ? format(new Date(completedBackups[0].createdAt), "HH:mm", {
                       locale: nb,
                     })
-                  : "Opprett din første sikkerhetskopi"}
+                  : t("backups.createFirst")}
               </p>
             </CardContent>
           </Card>
@@ -239,25 +237,13 @@ export default function Backups() {
               <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-blue-900 dark:text-blue-100">
                 <p className="font-semibold mb-2">
-                  Viktig informasjon om sikkerhetskopier:
+                  {t("backups.info.heading")}
                 </p>
                 <ul className="list-disc list-inside space-y-1 text-blue-800 dark:text-blue-200">
-                  <li>
-                    Sikkerhetskopier genereres som SQL-filer og lastes ned
-                    automatisk
-                  </li>
-                  <li>
-                    Opprett sikkerhetskopi før viktige oppdateringer eller
-                    endringer
-                  </li>
-                  <li>
-                    Gamle sikkerhetskopier slettes ikke automatisk - administrer
-                    manuelt
-                  </li>
-                  <li>
-                    Du kan laste ned tidligere sikkerhetskopier ved å klikke på
-                    nedlastingsknappen
-                  </li>
+                  <li>{t("backups.info.point1")}</li>
+                  <li>{t("backups.info.point2")}</li>
+                  <li>{t("backups.info.point3")}</li>
+                  <li>{t("backups.info.point4")}</li>
                 </ul>
               </div>
             </div>
@@ -267,18 +253,18 @@ export default function Backups() {
         {/* Backups List */}
         <Card>
           <CardHeader>
-            <CardTitle>Tilgjengelige Sikkerhetskopier</CardTitle>
+            <CardTitle>{t("backups.availableTitle")}</CardTitle>
             <CardDescription>
-              Alle databasesikkerhetskopier sortert etter dato
+              {t("backups.availableDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {!backups || backups.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Database className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">Ingen sikkerhetskopier ennå</p>
+                <p className="text-lg">{t("backups.emptyTitle")}</p>
                 <p className="text-sm mt-2">
-                  Klikk "Opprett Sikkerhetskopi" for å komme i gang
+                  {t("backups.emptyHint")}
                 </p>
               </div>
             ) : (
@@ -301,18 +287,18 @@ export default function Backups() {
                         {getStatusBadge(backup.status)}
                         {backup.backupType === "manual" && (
                           <span className="px-2 py-1 rounded text-xs bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400">
-                            Manuell
+                            {t("backups.manual")}
                           </span>
                         )}
                       </div>
 
                       <div className="text-sm text-muted-foreground">
-                        Størrelse: {formatFileSize(backup.fileSize)}
+                        {t("backups.sizeLabel")}: {formatFileSize(backup.fileSize)}
                       </div>
 
                       {backup.status === "failed" && backup.errorMessage && (
                         <div className="text-sm mt-2 text-red-600 dark:text-red-400">
-                          Feil: {backup.errorMessage}
+                          {t("backups.errorLabel")}: {backup.errorMessage}
                         </div>
                       )}
 
@@ -330,7 +316,7 @@ export default function Backups() {
                           size="icon"
                           className="h-10 w-10"
                           onClick={() => handleDownload(backup.id)}
-                          title="Last ned sikkerhetskopi"
+                          title={t("backups.downloadTitle")}
                         >
                           <Download className="h-5 w-5" />
                         </Button>

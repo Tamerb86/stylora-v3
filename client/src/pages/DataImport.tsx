@@ -24,8 +24,10 @@ import { format } from "date-fns";
 import { nb } from "date-fns/locale";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslation } from "react-i18next";
 
 export default function DataImport() {
+  const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
   const [activeTab, setActiveTab] = useState("customers");
 
@@ -33,45 +35,60 @@ export default function DataImport() {
 
   const importCustomers = trpc.imports.importCustomers.useMutation({
     onSuccess: data => {
-      toast.success(`Importert ${data.imported} av ${data.total} kunder`);
+      toast.success(
+        t("dataImport.importedCustomers", {
+          imported: data.imported,
+          total: data.total,
+        })
+      );
       if (data.failed > 0) {
-        toast.warning(`${data.failed} kunder feilet`);
+        toast.warning(t("dataImport.failedCustomers", { count: data.failed }));
       }
       setUploading(false);
       refetch();
     },
     onError: error => {
-      toast.error(error.message || "Kunne ikke importere kunder");
+      toast.error(error.message || t("dataImport.couldNotImportCustomers"));
       setUploading(false);
     },
   });
 
   const importServices = trpc.imports.importServices.useMutation({
     onSuccess: data => {
-      toast.success(`Importert ${data.imported} av ${data.total} tjenester`);
+      toast.success(
+        t("dataImport.importedServices", {
+          imported: data.imported,
+          total: data.total,
+        })
+      );
       if (data.failed > 0) {
-        toast.warning(`${data.failed} tjenester feilet`);
+        toast.warning(t("dataImport.failedServices", { count: data.failed }));
       }
       setUploading(false);
       refetch();
     },
     onError: error => {
-      toast.error(error.message || "Kunne ikke importere tjenester");
+      toast.error(error.message || t("dataImport.couldNotImportServices"));
       setUploading(false);
     },
   });
 
   const importProducts = trpc.imports.importProducts.useMutation({
     onSuccess: data => {
-      toast.success(`Importert ${data.imported} av ${data.total} produkter`);
+      toast.success(
+        t("dataImport.importedProducts", {
+          imported: data.imported,
+          total: data.total,
+        })
+      );
       if (data.failed > 0) {
-        toast.warning(`${data.failed} produkter feilet`);
+        toast.warning(t("dataImport.failedProducts", { count: data.failed }));
       }
       setUploading(false);
       refetch();
     },
     onError: error => {
-      toast.error(error.message || "Kunne ikke importere produkter");
+      toast.error(error.message || t("dataImport.couldNotImportProducts"));
       setUploading(false);
     },
   });
@@ -91,14 +108,16 @@ export default function DataImport() {
 
     if (!validExtensions.includes(fileExtension)) {
       toast.error(
-        `Ugyldig filtype. Tillatte typer: ${validExtensions.join(", ")}`
+        t("dataImport.invalidFileType", {
+          types: validExtensions.join(", "),
+        })
       );
       return;
     }
 
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("Filen er for stor. Maksimal størrelse: 10MB");
+      toast.error(t("dataImport.fileTooLarge"));
       return;
     }
 
@@ -135,13 +154,13 @@ export default function DataImport() {
       };
 
       reader.onerror = () => {
-        toast.error("Kunne ikke lese filen");
+        toast.error(t("dataImport.couldNotReadFile"));
         setUploading(false);
       };
 
       reader.readAsDataURL(file);
     } catch (error: any) {
-      toast.error(error.message || "En feil oppstod");
+      toast.error(error.message || t("dataImport.errorOccurred"));
       setUploading(false);
     }
 
@@ -187,7 +206,7 @@ export default function DataImport() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    toast.success("Mal lastet ned!");
+    toast.success(t("dataImport.templateDownloaded"));
   };
 
   const getStatusBadge = (status: string) => {
@@ -196,21 +215,21 @@ export default function DataImport() {
         return (
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
             <CheckCircle2 className="h-4 w-4" />
-            Fullført
+            {t("dataImport.statusCompleted")}
           </span>
         );
       case "failed":
         return (
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
             <AlertCircle className="h-4 w-4" />
-            Feilet
+            {t("dataImport.statusFailed")}
           </span>
         );
       default:
         return (
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
             <Clock className="h-4 w-4" />
-            Pågår
+            {t("dataImport.statusInProgress")}
           </span>
         );
     }
@@ -219,20 +238,20 @@ export default function DataImport() {
   const getImportTypeLabel = (type: string) => {
     switch (type) {
       case "customers":
-        return "Kunder";
+        return t("dataImport.typeCustomers");
       case "services":
-        return "Tjenester";
+        return t("dataImport.typeServices");
       case "products":
-        return "Produkter";
+        return t("dataImport.typeProducts");
       case "sql_restore":
-        return "SQL Gjenoppretting";
+        return t("dataImport.typeSqlRestore");
       default:
         return type;
     }
   };
 
   const formatFileSize = (bytes?: number | null) => {
-    if (!bytes) return "Ukjent størrelse";
+    if (!bytes) return t("dataImport.unknownSize");
     const mb = bytes / (1024 * 1024);
     if (mb < 1) {
       const kb = bytes / 1024;
@@ -245,9 +264,9 @@ export default function DataImport() {
     <DashboardLayout>
       <div className="container py-8 max-w-6xl">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold">Importer Data</h1>
+          <h1 className="text-4xl font-bold">{t("dataImport.title")}</h1>
           <p className="text-muted-foreground mt-2">
-            Last opp CSV/Excel-filer
+            {t("dataImport.subtitle")}
           </p>
         </div>
 
@@ -255,15 +274,15 @@ export default function DataImport() {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="customers">
               <Users className="h-4 w-4 mr-2" />
-              Kunder
+              {t("dataImport.typeCustomers")}
             </TabsTrigger>
             <TabsTrigger value="services">
               <Briefcase className="h-4 w-4 mr-2" />
-              Tjenester
+              {t("dataImport.typeServices")}
             </TabsTrigger>
             <TabsTrigger value="products">
               <Package className="h-4 w-4 mr-2" />
-              Produkter
+              {t("dataImport.typeProducts")}
             </TabsTrigger>
           </TabsList>
 
@@ -271,9 +290,9 @@ export default function DataImport() {
           <TabsContent value="customers">
             <Card>
               <CardHeader>
-                <CardTitle>Importer Kunder</CardTitle>
+                <CardTitle>{t("dataImport.importCustomersTitle")}</CardTitle>
                 <CardDescription>
-                  Last opp en CSV eller Excel-fil med kundedata
+                  {t("dataImport.importCustomersDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -283,14 +302,16 @@ export default function DataImport() {
                     onClick={() => downloadTemplate("customers")}
                   >
                     <Download className="h-4 w-4 mr-2" />
-                    Last ned mal
+                    {t("dataImport.downloadTemplate")}
                   </Button>
 
                   <label htmlFor="customers-upload">
                     <Button variant="default" disabled={uploading} asChild>
                       <span>
                         <Upload className="h-4 w-4 mr-2" />
-                        {uploading ? "Laster opp..." : "Last opp fil"}
+                        {uploading
+                          ? t("dataImport.uploading")
+                          : t("dataImport.uploadFile")}
                       </span>
                     </Button>
                     <input
@@ -308,22 +329,24 @@ export default function DataImport() {
                   <div className="flex gap-3">
                     <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-blue-900 dark:text-blue-100">
-                      <p className="font-semibold mb-2">Påkrevde kolonner:</p>
+                      <p className="font-semibold mb-2">
+                        {t("dataImport.requiredColumns")}
+                      </p>
                       <ul className="list-disc list-inside space-y-1">
                         <li>
-                          <code>firstName</code> - Fornavn (påkrevd)
+                          <code>firstName</code> - {t("dataImport.colFirstName")}
                         </li>
                         <li>
-                          <code>phone</code> - Telefonnummer (påkrevd)
+                          <code>phone</code> - {t("dataImport.colPhone")}
                         </li>
                         <li>
-                          <code>lastName</code> - Etternavn (valgfritt)
+                          <code>lastName</code> - {t("dataImport.colLastName")}
                         </li>
                         <li>
-                          <code>email</code> - E-post (valgfritt)
+                          <code>email</code> - {t("dataImport.colEmail")}
                         </li>
                         <li>
-                          <code>notes</code> - Notater (valgfritt)
+                          <code>notes</code> - {t("dataImport.colNotes")}
                         </li>
                       </ul>
                     </div>
@@ -337,9 +360,9 @@ export default function DataImport() {
           <TabsContent value="services">
             <Card>
               <CardHeader>
-                <CardTitle>Importer Tjenester</CardTitle>
+                <CardTitle>{t("dataImport.importServicesTitle")}</CardTitle>
                 <CardDescription>
-                  Last opp en CSV eller Excel-fil med tjenestedata
+                  {t("dataImport.importServicesDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -349,14 +372,16 @@ export default function DataImport() {
                     onClick={() => downloadTemplate("services")}
                   >
                     <Download className="h-4 w-4 mr-2" />
-                    Last ned mal
+                    {t("dataImport.downloadTemplate")}
                   </Button>
 
                   <label htmlFor="services-upload">
                     <Button variant="default" disabled={uploading} asChild>
                       <span>
                         <Upload className="h-4 w-4 mr-2" />
-                        {uploading ? "Laster opp..." : "Last opp fil"}
+                        {uploading
+                          ? t("dataImport.uploading")
+                          : t("dataImport.uploadFile")}
                       </span>
                     </Button>
                     <input
@@ -374,19 +399,22 @@ export default function DataImport() {
                   <div className="flex gap-3">
                     <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-blue-900 dark:text-blue-100">
-                      <p className="font-semibold mb-2">Påkrevde kolonner:</p>
+                      <p className="font-semibold mb-2">
+                        {t("dataImport.requiredColumns")}
+                      </p>
                       <ul className="list-disc list-inside space-y-1">
                         <li>
-                          <code>name</code> - Tjenestenavn (påkrevd)
+                          <code>name</code> - {t("dataImport.colServiceName")}
                         </li>
                         <li>
-                          <code>price</code> - Pris i NOK (påkrevd)
+                          <code>price</code> - {t("dataImport.colServicePrice")}
                         </li>
                         <li>
-                          <code>duration</code> - Varighet i minutter (påkrevd)
+                          <code>duration</code> - {t("dataImport.colDuration")}
                         </li>
                         <li>
-                          <code>description</code> - Beskrivelse (valgfritt)
+                          <code>description</code> -{" "}
+                          {t("dataImport.colDescription")}
                         </li>
                       </ul>
                     </div>
@@ -400,9 +428,9 @@ export default function DataImport() {
           <TabsContent value="products">
             <Card>
               <CardHeader>
-                <CardTitle>Importer Produkter</CardTitle>
+                <CardTitle>{t("dataImport.importProductsTitle")}</CardTitle>
                 <CardDescription>
-                  Last opp en CSV eller Excel-fil med produktdata
+                  {t("dataImport.importProductsDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -412,14 +440,16 @@ export default function DataImport() {
                     onClick={() => downloadTemplate("products")}
                   >
                     <Download className="h-4 w-4 mr-2" />
-                    Last ned mal
+                    {t("dataImport.downloadTemplate")}
                   </Button>
 
                   <label htmlFor="products-upload">
                     <Button variant="default" disabled={uploading} asChild>
                       <span>
                         <Upload className="h-4 w-4 mr-2" />
-                        {uploading ? "Laster opp..." : "Last opp fil"}
+                        {uploading
+                          ? t("dataImport.uploading")
+                          : t("dataImport.uploadFile")}
                       </span>
                     </Button>
                     <input
@@ -437,32 +467,35 @@ export default function DataImport() {
                   <div className="flex gap-3">
                     <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-blue-900 dark:text-blue-100">
-                      <p className="font-semibold mb-2">Påkrevde kolonner:</p>
+                      <p className="font-semibold mb-2">
+                        {t("dataImport.requiredColumns")}
+                      </p>
                       <ul className="list-disc list-inside space-y-1">
                         <li>
-                          <code>name</code> - Produktnavn (påkrevd)
+                          <code>name</code> - {t("dataImport.colProductName")}
                         </li>
                         <li>
-                          <code>price</code> - Salgspris i NOK (påkrevd)
+                          <code>price</code> - {t("dataImport.colSalesPrice")}
                         </li>
                         <li>
-                          <code>description</code> - Beskrivelse (valgfritt)
+                          <code>description</code> -{" "}
+                          {t("dataImport.colDescription")}
                         </li>
                         <li>
-                          <code>costPrice</code> - Innkjøpspris (valgfritt)
+                          <code>costPrice</code> - {t("dataImport.colCostPrice")}
                         </li>
                         <li>
-                          <code>stock</code> - Lagerbeholdning (valgfritt)
+                          <code>stock</code> - {t("dataImport.colStock")}
                         </li>
                         <li>
-                          <code>lowStockThreshold</code> - Lavt lager-terskel
-                          (valgfritt)
+                          <code>lowStockThreshold</code> -{" "}
+                          {t("dataImport.colLowStockThreshold")}
                         </li>
                         <li>
-                          <code>sku</code> - Varenummer (valgfritt)
+                          <code>sku</code> - {t("dataImport.colSku")}
                         </li>
                         <li>
-                          <code>barcode</code> - Strekkode (valgfritt)
+                          <code>barcode</code> - {t("dataImport.colBarcode")}
                         </li>
                       </ul>
                     </div>
@@ -477,18 +510,18 @@ export default function DataImport() {
         {/* Import History */}
         <Card>
           <CardHeader>
-            <CardTitle>Importhistorikk</CardTitle>
+            <CardTitle>{t("dataImport.historyTitle")}</CardTitle>
             <CardDescription>
-              Alle dataimpor ter sortert etter dato
+              {t("dataImport.historyDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {!imports || imports.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">Ingen importer ennå</p>
+                <p className="text-lg">{t("dataImport.noImports")}</p>
                 <p className="text-sm mt-2">
-                  Last opp en fil for å komme i gang
+                  {t("dataImport.noImportsHint")}
                 </p>
               </div>
             ) : (
@@ -515,15 +548,17 @@ export default function DataImport() {
                           })}
                         </div>
                         <div>
-                          Størrelse: {formatFileSize(imp.fileSize)} | Totalt:{" "}
-                          {imp.recordsTotal} | Importert: {imp.recordsImported}{" "}
-                          | Feilet: {imp.recordsFailed}
+                          {t("dataImport.sizeLabel")}:{" "}
+                          {formatFileSize(imp.fileSize)} |{" "}
+                          {t("dataImport.totalLabel")}: {imp.recordsTotal} |{" "}
+                          {t("dataImport.importedLabel")}: {imp.recordsImported}{" "}
+                          | {t("dataImport.failedLabel")}: {imp.recordsFailed}
                         </div>
                       </div>
 
                       {imp.status === "failed" && imp.errorMessage && (
                         <div className="text-sm mt-2 text-red-600 dark:text-red-400">
-                          Feil: {imp.errorMessage}
+                          {t("dataImport.errorLabel")}: {imp.errorMessage}
                         </div>
                       )}
                     </div>
