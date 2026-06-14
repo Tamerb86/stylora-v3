@@ -349,7 +349,9 @@
     "menu": "Meny",
     "back": "Tilbake",
     "next": "Neste",
-    "creating": "Oppretter…"
+    "creating": "Oppretter…",
+    "loadError": "Kunne ikke laste data. Prøv igjen.",
+    "retry": "Prøv igjen"
   },
   "onboarding": {
     "welcome": "Velkommen til Stylora",
@@ -4171,5 +4173,10 @@
     "successTitle": "Du er avmeldt",
     "successDescription": "Du vil ikke lenger motta markedsføring fra denne salongen.",
     "backToHome": "Tilbake til forsiden"
+  },
+  "errorBoundary": {
+    "title": "Noe gikk galt",
+    "description": "En uventet feil oppstod. Last inn siden på nytt for å fortsette.",
+    "reload": "Last inn på nytt"
   }
 }

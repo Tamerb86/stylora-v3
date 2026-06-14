@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import DashboardLayout from "@/components/DashboardLayout";
+import { QueryError } from "@/components/QueryError";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -92,6 +93,7 @@ export default function Customers() {
   const {
     data: customers,
     isLoading,
+    isError,
     refetch,
   } = trpc.customers.list.useQuery();
 
@@ -465,7 +467,9 @@ export default function Customers() {
         </div>
 
         {/* Customer Cards */}
-        {isLoading ? (
+        {isError ? (
+          <QueryError onRetry={() => refetch()} />
+        ) : isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map(i => (
               <div

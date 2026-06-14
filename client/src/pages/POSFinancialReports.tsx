@@ -148,14 +148,6 @@ export default function POSFinancialReports() {
       sales: parseFloat(h.totalSales),
     })) || [];
 
-  const handleExportPDF = () => {
-    toast.info(t("posFinancialReports.pdfExportComingSoon"));
-  };
-
-  const handleExportExcel = () => {
-    toast.info(t("posFinancialReports.excelExportComingSoon"));
-  };
-
   return (
     <DashboardLayout>
       <div className="container mx-auto py-8">
@@ -263,16 +255,6 @@ export default function POSFinancialReports() {
               </div>
             </div>
 
-            <div className="mt-4 flex gap-2 justify-end">
-              <Button variant="outline" onClick={handleExportPDF}>
-                <Download className="h-4 w-4 mr-2" />
-                {t("posFinancialReports.exportPdf")}
-              </Button>
-              <Button variant="outline" onClick={handleExportExcel}>
-                <Download className="h-4 w-4 mr-2" />
-                {t("posFinancialReports.exportExcel")}
-              </Button>
-            </div>
           </CardContent>
         </Card>
 

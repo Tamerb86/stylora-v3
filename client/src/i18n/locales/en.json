@@ -349,7 +349,9 @@
     "menu": "Menu",
     "back": "Back",
     "next": "Next",
-    "creating": "Creating…"
+    "creating": "Creating…",
+    "loadError": "Could not load data. Please try again.",
+    "retry": "Try again"
   },
   "onboarding": {
     "welcome": "Welcome to Stylora",
@@ -4171,5 +4173,10 @@
     "successTitle": "You have been unsubscribed",
     "successDescription": "You will no longer receive marketing from this salon.",
     "backToHome": "Back to home"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. Reload the page to continue.",
+    "reload": "Reload page"
   }
 }
