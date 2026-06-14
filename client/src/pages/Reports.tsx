@@ -27,7 +27,16 @@ import {
   Filter,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { exportToPDF, exportToExcel } from "@/lib/exportUtils";
 import { safeToFixed } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
@@ -136,6 +145,51 @@ export default function Reports() {
     0
   );
   const completedOrders = ordersData.length;
+
+  // Revenue grouped by ISO week (Monday start), chronological, last 8 weeks
+  const weeklyRevenue = useMemo(() => {
+    const buckets = new Map<string, { ts: number; revenue: number }>();
+    for (const order of ordersData as any[]) {
+      const raw = order.orderDate || order.createdAt;
+      if (!raw) continue;
+      const d = new Date(raw);
+      if (isNaN(d.getTime())) continue;
+      // Normalize to Monday of that week
+      const day = (d.getDay() + 6) % 7; // 0 = Monday
+      const monday = new Date(d);
+      monday.setHours(0, 0, 0, 0);
+      monday.setDate(d.getDate() - day);
+      const key = monday.toISOString().split("T")[0];
+      const label = `${String(monday.getDate()).padStart(2, "0")}.${String(
+        monday.getMonth() + 1
+      ).padStart(2, "0")}`;
+      const prev = buckets.get(key);
+      const amount = parseFloat(order.total || "0") || 0;
+      if (prev) {
+        prev.revenue += amount;
+      } else {
+        buckets.set(key, { ts: monday.getTime(), revenue: amount });
+        (buckets.get(key) as any).label = label;
+      }
+    }
+    return Array.from(buckets.values())
+      .sort((a, b) => a.ts - b.ts)
+      .slice(-8)
+      .map(b => ({ label: (b as any).label as string, revenue: Math.round(b.revenue) }));
+  }, [ordersData]);
+
+  // Most-booked services, top 8 by order count
+  const popularServices = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const order of ordersData as any[]) {
+      const name = order.serviceName || t("reports.exportMiscService");
+      counts.set(name, (counts.get(name) || 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+  }, [ordersData, t]);
 
   const handleExportPDF = () => {
     const exportData = ordersData.map((order: any) => ({
@@ -490,13 +544,29 @@ export default function Reports() {
               <CardDescription>{t("reports.last8Weeks")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                <div className="text-center">
-                  <BarChart3 className="h-12 w-12 mx-auto mb-4" />
-                  <p>{t("reports.chartComingSoon")}</p>
-                  <p className="text-sm">{t("reports.chartRequiresChartjs")}</p>
+              {weeklyRevenue.length === 0 ? (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                  <div className="text-center">
+                    <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>{t("reports.noSalesData")}</p>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={weeklyRevenue}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="label" />
+                    <YAxis />
+                    <Tooltip formatter={(value: number) => `${value} kr`} />
+                    <Bar
+                      dataKey="revenue"
+                      name={t("reports.revenuePerWeek")}
+                      fill="#3b82f6"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
 
@@ -506,13 +576,34 @@ export default function Reports() {
               <CardDescription>{t("reports.mostBookedServices")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                <div className="text-center">
-                  <BarChart3 className="h-12 w-12 mx-auto mb-4" />
-                  <p>{t("reports.chartComingSoon")}</p>
-                  <p className="text-sm">{t("reports.chartRequiresChartjs")}</p>
+              {popularServices.length === 0 ? (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                  <div className="text-center">
+                    <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>{t("reports.noSalesData")}</p>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={popularServices} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" allowDecimals={false} />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      width={110}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <Tooltip />
+                    <Bar
+                      dataKey="count"
+                      name={t("reports.mostBookedServices")}
+                      fill="#10b981"
+                      radius={[0, 4, 4, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
         </div>
