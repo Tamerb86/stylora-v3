@@ -273,13 +273,13 @@ export default function PublicBooking() {
     if (paymentMethod === "stripe") {
       createBookingWithPaymentMutation.mutate({
         ...bookingData,
-        successUrl: `${window.location.origin}/book/success?bookingId={APPOINTMENT_ID}`,
+        successUrl: `${window.location.origin}/book/success?token={MANAGEMENT_TOKEN}`,
         cancelUrl: `${window.location.origin}/book?canceled=true`,
       });
     } else if (paymentMethod === "vipps") {
       createVippsPaymentMutation.mutate({
         ...bookingData,
-        callbackUrl: `${window.location.origin}/book/success?bookingId={APPOINTMENT_ID}`,
+        callbackUrl: `${window.location.origin}/book/success?token={MANAGEMENT_TOKEN}`,
         fallbackUrl: `${window.location.origin}/book?canceled=true`,
       });
     } else {

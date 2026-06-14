@@ -4035,7 +4035,9 @@ export const appRouter = router({
         .where(and(eq(users.tenantId, ctx.tenantId), eq(users.isActive, true)));
     }),
 
-    create: tenantProcedure
+    // adminProcedure: creating staff (esp. with role "admin") is a privilege
+    // operation — a plain employee must not be able to mint an admin account.
+    create: adminProcedure
       .input(
         z.object({
           name: z.string().min(1),
@@ -4816,7 +4818,23 @@ export const appRouter = router({
           tenantId: z.string(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
+        // Throttle PIN attempts per tenant+IP — a 4-digit PIN space is trivially
+        // brute-forceable and /api/trpc is not covered by the express limiter.
+        const { consumeRateLimit } = await import("./security");
+        const clockIp =
+          ctx.req?.ip ||
+          ctx.req?.headers["x-forwarded-for"]?.toString() ||
+          "unknown";
+        if (
+          !consumeRateLimit(`clockin:${input.tenantId}:${clockIp}`, 10, 60 * 1000)
+        ) {
+          throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message: "For mange forsøk. Vennligst vent litt og prøv igjen.",
+          });
+        }
+
         const dbInstance = await db.getDb();
         if (!dbInstance)
           throw new TRPCError({
@@ -4917,7 +4935,21 @@ export const appRouter = router({
           tenantId: z.string(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
+        const { consumeRateLimit } = await import("./security");
+        const clockIp =
+          ctx.req?.ip ||
+          ctx.req?.headers["x-forwarded-for"]?.toString() ||
+          "unknown";
+        if (
+          !consumeRateLimit(`clockout:${input.tenantId}:${clockIp}`, 10, 60 * 1000)
+        ) {
+          throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message: "For mange forsøk. Vennligst vent litt og prøv igjen.",
+          });
+        }
+
         const dbInstance = await db.getDb();
         if (!dbInstance)
           throw new TRPCError({
@@ -6333,7 +6365,7 @@ export const appRouter = router({
         } = await import("../drizzle/schema");
         const { eq, and } = await import("drizzle-orm");
 
-        // Get service details
+        // Get service details — tenant-scoped to prevent cross-tenant id reuse.
         const [service] = await dbInstance
           .select({
             id: services.id,
@@ -6341,9 +6373,27 @@ export const appRouter = router({
             price: services.price,
           })
           .from(services)
-          .where(eq(services.id, input.serviceId));
+          .where(
+            and(
+              eq(services.id, input.serviceId),
+              eq(services.tenantId, input.tenantId)
+            )
+          );
 
         if (!service) throw new Error("Service not found");
+
+        // Validate the employee belongs to this tenant.
+        const { users: usersTbl } = await import("../drizzle/schema");
+        const [bookableEmployee] = await dbInstance
+          .select({ id: usersTbl.id })
+          .from(usersTbl)
+          .where(
+            and(
+              eq(usersTbl.id, input.employeeId),
+              eq(usersTbl.tenantId, input.tenantId)
+            )
+          );
+        if (!bookableEmployee) throw new Error("Employee not found");
 
         // Calculate end time
         const [hours, minutes] = input.time.split(":").map(Number);
@@ -6495,7 +6545,8 @@ export const appRouter = router({
         // STEP 1: Create the booking (same logic as createBooking)
         // ========================================
 
-        // Get service details
+        // Get service details — scoped to the tenant so a caller cannot pair
+        // tenant A's id with tenant B's service (cross-tenant price/data leak).
         const [service] = await dbInstance
           .select({
             id: services.id,
@@ -6503,12 +6554,35 @@ export const appRouter = router({
             price: services.price,
           })
           .from(services)
-          .where(eq(services.id, input.serviceId));
+          .where(
+            and(
+              eq(services.id, input.serviceId),
+              eq(services.tenantId, input.tenantId)
+            )
+          );
 
         if (!service) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Service not found",
+          });
+        }
+
+        // Validate the requested employee belongs to this tenant.
+        const { users: usersTbl } = await import("../drizzle/schema");
+        const [bookableEmployee] = await dbInstance
+          .select({ id: usersTbl.id })
+          .from(usersTbl)
+          .where(
+            and(
+              eq(usersTbl.id, input.employeeId),
+              eq(usersTbl.tenantId, input.tenantId)
+            )
+          );
+        if (!bookableEmployee) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Employee not found",
           });
         }
 
@@ -6609,10 +6683,9 @@ export const appRouter = router({
               },
             },
           ],
-          success_url: input.successUrl.replace(
-            "{APPOINTMENT_ID}",
-            String(appointmentId)
-          ),
+          success_url: input.successUrl
+            .replace("{APPOINTMENT_ID}", String(appointmentId))
+            .replace("{MANAGEMENT_TOKEN}", managementToken),
           cancel_url: input.cancelUrl,
           metadata: {
             tenantId: input.tenantId,
@@ -6804,7 +6877,9 @@ export const appRouter = router({
           orderId: vippsOrderId,
           amountNOK: totalAmountNok,
           transactionText: `Timebestilling #${appointmentId}`,
-          callbackUrl: input.callbackUrl,
+          callbackUrl: input.callbackUrl
+            .replace("{APPOINTMENT_ID}", String(appointmentId))
+            .replace("{MANAGEMENT_TOKEN}", managementToken),
           fallbackUrl: input.fallbackUrl,
           mobileNumber: input.customerInfo.phone,
         });
@@ -6851,7 +6926,10 @@ export const appRouter = router({
      * Used after successful payment to display booking information
      */
     getBookingDetails: publicProcedure
-      .input(z.object({ bookingId: z.number().int().positive() }))
+      // SECURITY: keyed on the unguessable managementToken (nanoid 32), NOT a
+      // sequential bookingId. A plain id let anyone enumerate every tenant's
+      // customer PII + booking-management token (cross-tenant IDOR).
+      .input(z.object({ token: z.string().min(16).max(64) }))
       .query(async ({ input }) => {
         const dbInstance = await db.getDb();
         if (!dbInstance)
@@ -6887,7 +6965,7 @@ export const appRouter = router({
           .from(appointments)
           .leftJoin(customers, eq(appointments.customerId, customers.id))
           .leftJoin(users, eq(appointments.employeeId, users.id))
-          .where(eq(appointments.id, input.bookingId));
+          .where(eq(appointments.managementToken, input.token));
 
         if (!appointment) {
           throw new TRPCError({
@@ -6904,7 +6982,7 @@ export const appRouter = router({
           })
           .from(appointmentServices)
           .leftJoin(services, eq(appointmentServices.serviceId, services.id))
-          .where(eq(appointmentServices.appointmentId, input.bookingId));
+          .where(eq(appointmentServices.appointmentId, appointment.id));
 
         // Get payment details
         const [payment] = await dbInstance
@@ -6914,7 +6992,7 @@ export const appRouter = router({
             status: payments.status,
           })
           .from(payments)
-          .where(eq(payments.appointmentId, input.bookingId));
+          .where(eq(payments.appointmentId, appointment.id));
 
         // Combine start date and time
         const appointmentDateTime = new Date(appointment.appointmentDate);
@@ -6932,7 +7010,8 @@ export const appRouter = router({
           startTime: appointmentDateTime.toISOString(),
           endTime: endDateTime.toISOString(),
           status: appointment.status,
-          managementToken: appointment.managementToken || undefined,
+          // managementToken intentionally NOT returned — the caller already
+          // holds it (it is the lookup key passed in the URL).
           customerName: `${appointment.customerName}`,
           customerPhone: appointment.customerPhone,
           customerEmail: appointment.customerEmail || undefined,

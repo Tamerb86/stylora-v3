@@ -19,14 +19,15 @@ import { useTranslation } from "react-i18next";
 export default function BookingSuccess() {
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
-  const [bookingId, setBookingId] = useState<number | null>(null);
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get booking ID from URL query parameters
+    // The booking is identified by its unguessable management token (passed in
+    // the post-payment redirect URL), not a sequential id.
     const params = new URLSearchParams(window.location.search);
-    const id = params.get("bookingId");
-    if (id) {
-      setBookingId(parseInt(id, 10));
+    const t = params.get("token");
+    if (t) {
+      setToken(t);
     }
   }, []);
 
@@ -35,8 +36,8 @@ export default function BookingSuccess() {
     isLoading,
     error,
   } = trpc.publicBooking.getBookingDetails.useQuery(
-    { bookingId: bookingId! },
-    { enabled: !!bookingId }
+    { token: token! },
+    { enabled: !!token }
   );
 
   const handleAddToCalendar = () => {
@@ -265,7 +266,7 @@ END:VCALENDAR`;
         </Card>
 
         {/* Management Link */}
-        {booking.managementToken && (
+        {token && (
           <Card className="p-6 mb-6 shadow-lg bg-blue-50 border-blue-200">
             <h2 className="text-xl font-bold text-gray-900 mb-2">
               {t("bookingSuccess.manageBookingTitle")}
@@ -273,7 +274,7 @@ END:VCALENDAR`;
             <p className="text-gray-600 mb-4">
               {t("bookingSuccess.manageBookingDescription")}
             </p>
-            <Link href={`/manage-booking/${booking.managementToken}`}>
+            <Link href={`/manage-booking/${token}`}>
               <Button className="w-full bg-gradient-to-r from-[#4a90e2] to-[#7b68ee] hover:opacity-90 text-white">
                 {t("bookingSuccess.manageBookingButton")}
               </Button>
