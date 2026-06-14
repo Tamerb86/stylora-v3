@@ -3030,76 +3030,76 @@ export const appRouter = router({
           Date.UTC(year, month - 1, day, 12, 0, 0)
         );
 
-        const conflictingAppointments = await dbInstance
-          .select()
-          .from(appointments)
-          .where(
-            and(
-              eq(appointments.tenantId, ctx.tenantId),
-              eq(appointments.employeeId, input.employeeId),
-              eq(appointments.appointmentDate, appointmentDateObj),
-              or(
-                eq(appointments.status, "pending"),
-                eq(appointments.status, "confirmed")
-              ),
-              or(
-                // New appointment starts during existing appointment
-                and(
-                  lte(appointments.startTime, input.startTime),
-                  gte(appointments.endTime, input.startTime)
+        // Insert the appointment and its service links atomically so a partial
+        // failure can't leave an appointment with no services attached. The
+        // overlap check runs INSIDE the transaction with `FOR UPDATE` so two
+        // concurrent bookings for the same employee/slot can't both pass the
+        // check and double-book — InnoDB gap-locks the range until commit.
+        let appointmentId = 0;
+        await dbInstance.transaction(async tx => {
+          const conflictingAppointments = await tx
+            .select()
+            .from(appointments)
+            .where(
+              and(
+                eq(appointments.tenantId, ctx.tenantId),
+                eq(appointments.employeeId, input.employeeId),
+                eq(appointments.appointmentDate, appointmentDateObj),
+                or(
+                  eq(appointments.status, "pending"),
+                  eq(appointments.status, "confirmed")
                 ),
-                // New appointment ends during existing appointment
-                and(
-                  lte(appointments.startTime, input.endTime),
-                  gte(appointments.endTime, input.endTime)
-                ),
-                // New appointment completely contains existing appointment
-                and(
-                  gte(appointments.startTime, input.startTime),
-                  lte(appointments.endTime, input.endTime)
+                or(
+                  // New appointment starts during existing appointment
+                  and(
+                    lte(appointments.startTime, input.startTime),
+                    gte(appointments.endTime, input.startTime)
+                  ),
+                  // New appointment ends during existing appointment
+                  and(
+                    lte(appointments.startTime, input.endTime),
+                    gte(appointments.endTime, input.endTime)
+                  ),
+                  // New appointment completely contains existing appointment
+                  and(
+                    gte(appointments.startTime, input.startTime),
+                    lte(appointments.endTime, input.endTime)
+                  )
                 )
               )
             )
-          );
+            .for("update");
 
-        if (conflictingAppointments.length > 0) {
-          const conflict = conflictingAppointments[0];
+          if (conflictingAppointments.length > 0) {
+            const conflict = conflictingAppointments[0];
 
-          // Get customer name separately
-          const customer = await dbInstance
-            .select({
-              firstName: customers.firstName,
-              lastName: customers.lastName,
-            })
-            .from(customers)
-            .where(eq(customers.id, conflict.customerId))
-            .limit(1);
+            const customer = await tx
+              .select({
+                firstName: customers.firstName,
+                lastName: customers.lastName,
+              })
+              .from(customers)
+              .where(eq(customers.id, conflict.customerId))
+              .limit(1);
 
-          const customerName = customer[0]
-            ? `${customer[0].firstName} ${customer[0].lastName || ""}`.trim()
-            : "Ukjent kunde";
+            const customerName = customer[0]
+              ? `${customer[0].firstName} ${customer[0].lastName || ""}`.trim()
+              : "Ukjent kunde";
 
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: `APPOINTMENT_CONFLICT`,
-            cause: {
-              existingAppointment: {
-                id: conflict.id,
-                customerName,
-                startTime: conflict.startTime,
-                endTime: conflict.endTime,
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `APPOINTMENT_CONFLICT`,
+              cause: {
+                existingAppointment: {
+                  id: conflict.id,
+                  customerName,
+                  startTime: conflict.startTime,
+                  endTime: conflict.endTime,
+                },
               },
-            },
-          });
-        }
+            });
+          }
 
-        // Insert appointment
-        // Date already converted above for conflict check
-
-        // Insert the appointment and its service links atomically so a partial
-        // failure can't leave an appointment with no services attached.
-        let appointmentId = 0;
-        await dbInstance.transaction(async tx => {
           const [appointment] = await tx.insert(appointments).values({
             tenantId: ctx.tenantId,
             customerId: input.customerId,
